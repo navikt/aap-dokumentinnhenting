@@ -11,13 +11,11 @@ import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import integrasjonportal.routes.actuator
@@ -29,6 +27,8 @@ import integrasjonportal.auth.authentication
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytException
 import integrasjonportal.routes.integrasjonportal
+import io.ktor.server.plugins.calllogging.*
+import io.ktor.utils.io.*
 
 val LOGGER: Logger = LoggerFactory.getLogger("aap-integrasjonportal")
 
