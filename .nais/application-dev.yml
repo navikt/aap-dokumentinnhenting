@@ -63,12 +63,17 @@ spec:
       value: http://behandlingsflyt
     - name: BEHANDLINGSFLYT_SCOPE
       value: api://dev-gcp.aap.behandlingsflyt/.default
+    - name: SYFO_BASE_URL
+      value: http://isdialogmelding.teamsykefravr
+    - name: SYFO_SCOPE
+      value: dev-gcp:teamsykefravr:isdialogmelding
   accessPolicy:
     inbound:
       rules:
         - application: behandlingsflyt
     outbound:
       rules:
-        - application: postmottak-backend
+        - application: isdialogmelding
+          namespace: teamsykefravr
       external:
         - host: saf.dev-fss-pub.nais.io
