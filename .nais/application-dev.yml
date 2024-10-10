@@ -56,7 +56,7 @@ spec:
     enabled: true
   env:
   {{#each roles as |role|}}
-    - name: "{{role.name}}"
+    - name:  "{{role.name}}"
       value: "{{role.group}}"
   {{/each}}
     - name: BEHANDLINGSFLYT_BASE_URL
@@ -71,5 +71,4 @@ spec:
       rules:
         - application: postmottak-backend
       external:
-        - host: pdl-api.dev-fss-pub.nais.io
         - host: saf.dev-fss-pub.nais.io

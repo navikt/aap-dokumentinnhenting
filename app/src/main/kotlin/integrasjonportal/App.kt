@@ -26,7 +26,7 @@ import integrasjonportal.auth.AZURE
 import integrasjonportal.auth.authentication
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytException
-import integrasjonportal.routes.integrasjonportal
+import integrasjonportal.routes.syfo
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.utils.io.*
 
@@ -96,7 +96,7 @@ fun Application.api(
 
         authenticate(AZURE) {
             apiRoute {
-                integrasjonportal()
+                syfo()
             }
         }
     }
