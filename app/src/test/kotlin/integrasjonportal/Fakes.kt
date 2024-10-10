@@ -13,22 +13,23 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class Fakes(azurePort: Int = 0): AutoCloseable {
+class Fakes(azurePort: Int): AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
     private val azure = embeddedServer(Netty, port = azurePort, module = { azureFake() }).start()
-    
+
+
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure
-        System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.port()}/token")
+        System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azure.engine.port()}/token")
         System.setProperty("azure.app.client.id", "integrasjonportal")
         System.setProperty("azure.app.client.secret", "")
-        System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.port()}/jwks")
+        System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.engine.port()}/jwks")
         System.setProperty("azure.openid.config.issuer", "integrasjonportal")
     }
 
     fun azurePort(): Int {
-        return azure.port()
+        return azure.engine.port()
     }
 
     override fun close() {
