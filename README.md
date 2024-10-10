@@ -1,5 +1,5 @@
-## aap-tilgang
-Applikasjon for å sjekke om brukere har tilgang til Kelvin-ressurs
+## aap-integrasjonportal
+Todo: write me
 
 ## Komme i gang
 Bruker gradle wrapper, så bare klon og kjør `./gradlew build`
@@ -10,7 +10,6 @@ Miljøvariabelen `GITHUB_TOKEN` må være satt for å hente dependencies fra Git
 Den skal være satt til din github personal access token.
 Denne opprettes på Github ved å gå til settings -> developer settings. 
 Husk `read:packages`-rettighet og enable SSO.
-
 
 ## Henvendelser
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på GitHub

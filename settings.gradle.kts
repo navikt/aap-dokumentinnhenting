@@ -1,2 +1,2 @@
-rootProject.name = "aap-tilgang"
-include("app", "plugin", "api-kontrakt")
+rootProject.name = "aap-integrasjonportal"
+include("app")
