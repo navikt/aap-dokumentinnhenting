@@ -1,6 +1,6 @@
 package integrasjonportal
 
-import integrasjonportal.auth.AzureConfig
+import integrasjonportal.util.auth.AzureConfig
 import java.net.URI
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")

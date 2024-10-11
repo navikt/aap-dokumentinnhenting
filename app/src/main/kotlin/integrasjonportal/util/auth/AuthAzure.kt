@@ -1,4 +1,4 @@
-package integrasjonportal.auth
+package integrasjonportal.util.auth
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder

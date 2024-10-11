@@ -1,4 +1,4 @@
-package integrasjonportal.auth
+package integrasjonportal.util.auth
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

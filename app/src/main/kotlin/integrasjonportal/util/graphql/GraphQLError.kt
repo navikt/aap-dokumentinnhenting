@@ -1,4 +1,4 @@
-package integrasjonportal.graphql
+package integrasjonportal.util.graphql
 
 data class GraphQLError(
     val message: String,

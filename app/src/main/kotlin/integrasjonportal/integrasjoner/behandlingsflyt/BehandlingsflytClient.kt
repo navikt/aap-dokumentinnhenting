@@ -7,9 +7,9 @@ import io.ktor.http.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import org.slf4j.LoggerFactory
 import integrasjonportal.BehandlingsflytConfig
-import integrasjonportal.auth.AzureAdTokenProvider
-import integrasjonportal.auth.AzureConfig
-import integrasjonportal.http.HttpClientFactory
+import integrasjonportal.util.auth.AzureAdTokenProvider
+import integrasjonportal.util.auth.AzureConfig
+import integrasjonportal.util.http.HttpClientFactory
 import integrasjonportal.metrics.cacheHit
 import integrasjonportal.metrics.cacheMiss
 

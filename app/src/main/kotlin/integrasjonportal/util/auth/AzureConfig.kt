@@ -1,4 +1,4 @@
-package integrasjonportal.auth
+package integrasjonportal.util.auth
 
 import java.net.URL
 
