@@ -7,6 +7,8 @@ plugins {
 
 val ktorVersion = "3.0.0"
 val aapLibVersion = "3.7.145"
+val kafkaVersion = "3.7.0"
+val komponenterVersjon = "0.0.92"
 
 application {
     mainClass.set("integrasjonportal.AppKt")
@@ -38,6 +40,21 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
     implementation("redis.clients:jedis:5.1.5")
+
+    //Felleskomponenter
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
+
+    // kafka
+    implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
+    implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
+    implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
 
     testImplementation(kotlin("test"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
