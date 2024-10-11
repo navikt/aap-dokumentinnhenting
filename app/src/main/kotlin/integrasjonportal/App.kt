@@ -22,8 +22,8 @@ import integrasjonportal.routes.actuator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import integrasjonportal.auth.AZURE
-import integrasjonportal.auth.authentication
+import integrasjonportal.util.auth.AZURE
+import integrasjonportal.util.auth.authentication
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytException
 import integrasjonportal.routes.syfo
@@ -45,7 +45,6 @@ fun Application.api(
     /*
     * Services
     * */
-    val integrasjonportalService = IntegrasjonportalService()
 
     install(MicrometerMetrics) { registry = prometheus }
 
