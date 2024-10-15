@@ -18,13 +18,14 @@ spec:
   azure:
     application:
       enabled: true
+      allowAllUsers: true
       claims:
         extra:
           - "NAVident"
-        groups:
-          {{#each roles}}
-          - id: "{{this.group}}"
-          {{/each}}
+          - "azp_name"
+  kafka:
+    pool: nav-dev
+    streams: true
   resources:
     limits:
       memory: 1024Mi
@@ -55,10 +56,6 @@ spec:
   secureLogs:
     enabled: true
   env:
-  {{#each roles as |role|}}
-    - name:  "{{role.name}}"
-      value: "{{role.group}}"
-  {{/each}}
     - name: BEHANDLINGSFLYT_BASE_URL
       value: http://behandlingsflyt
     - name: BEHANDLINGSFLYT_SCOPE
