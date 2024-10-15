@@ -7,7 +7,7 @@ plugins {
 
 val ktorVersion = "3.0.0"
 val kafkaVersion = "3.7.0"
-val komponenterVersjon = "1.0.11"
+val komponenterVersjon = "1.0.16"
 
 application {
     mainClass.set("integrasjonportal.AppKt")
@@ -31,7 +31,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.42")
+    implementation("no.nav:ktor-openapi-generator:1.0.46")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.5")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.0")
