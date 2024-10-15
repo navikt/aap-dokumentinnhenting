@@ -6,9 +6,8 @@ plugins {
 }
 
 val ktorVersion = "3.0.0"
-val aapLibVersion = "3.7.145"
 val kafkaVersion = "3.7.0"
-val komponenterVersjon = "0.0.92"
+val komponenterVersjon = "1.0.11"
 
 application {
     mainClass.set("integrasjonportal.AppKt")
@@ -32,14 +31,13 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("dev.forst:ktor-openapi-generator:0.6.1")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.13.4")
+    implementation("no.nav:ktor-openapi-generator:1.0.42")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.13.5")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.0")
     implementation("ch.qos.logback:logback-classic:1.5.9")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
-    implementation("redis.clients:jedis:5.1.5")
 
     //Felleskomponenter
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
@@ -58,10 +56,9 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.11.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.11.2")
     testImplementation("org.assertj:assertj-core:3.26.3")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("com.redis:testcontainers-redis:2.2.2")
 }
 
 tasks {
