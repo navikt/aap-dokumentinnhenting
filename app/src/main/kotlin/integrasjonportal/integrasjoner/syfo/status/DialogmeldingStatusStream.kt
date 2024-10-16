@@ -16,6 +16,8 @@ private const val EESSI = "EESSI" // what here
 // TODO:
 //  Feilhåndtering (Må bruke jobbmotor), 1 steg for write to stream, 1 steg for write to db
 //  Må få lagd repo db, og kunne hente disse ut til filtrering kontinuerlig
+//  Må avklare om syfo kan pushe tagsene over på det mottatte dokumentet, slik at postmottak faktisk kan hente det ut
+
 class DialogmeldingStatusStream{
     private val log = LoggerFactory.getLogger(DialogmeldingStatusStream::class.java)
     val topology: Topology
