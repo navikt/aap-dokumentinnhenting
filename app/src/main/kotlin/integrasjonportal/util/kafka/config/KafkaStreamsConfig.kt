@@ -5,8 +5,27 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.streams.StreamsConfig
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import org.apache.kafka.common.serialization.StringSerializer
+import io.confluent.kafka.serializers.KafkaAvroSerializer
 
 import java.util.*
+
+data class ProducerConfig(
+    val brokers: String = requiredConfigForKey("KAFKA_BROKERS"),
+    val schemaRegistry: SchemaRegistryConfig? = SchemaRegistryConfig(),
+    val ssl: SslConfig? = SslConfig(),
+    val compressionType: String = "snappy",
+) {
+    fun properties(): Properties = Properties().apply {
+        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
+        put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name)
+        put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer::class.java.name)
+        schemaRegistry?.let { putAll(it.properties()) }
+        ssl?.let { putAll(it.properties()) }
+        put(ProducerConfig.ACKS_CONFIG, "all")
+        put(ProducerConfig.COMPRESSION_TYPE_CONFIG, compressionType)
+    }
+}
 
 data class StreamsConfig(
     val applicationId: String = requiredConfigForKey("KAFKA_STREAMS_APPLICATION_ID"),

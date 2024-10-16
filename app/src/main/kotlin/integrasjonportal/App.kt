@@ -26,6 +26,8 @@ import integrasjonportal.util.auth.AZURE
 import integrasjonportal.util.auth.authentication
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytException
+import integrasjonportal.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestilling
+import integrasjonportal.integrasjoner.syfo.status.dialogmeldingStatusStream
 import integrasjonportal.routes.syfo
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.utils.io.*
@@ -45,6 +47,7 @@ fun Application.api(
     /*
     * Services
     * */
+    //val dialogmeldingStatusStream = dialogmeldingStatusStream(prometheus)
 
     install(MicrometerMetrics) { registry = prometheus }
 
@@ -91,11 +94,11 @@ fun Application.api(
     swaggerDoc()
 
     routing {
-        actuator(prometheus)
+        actuator(prometheus/*, dialogmeldingStatusStream*/)
 
         authenticate(AZURE) {
             apiRoute {
-                syfo()
+                syfo(BehandlerDialogmeldingBestilling(monitor))
             }
         }
     }

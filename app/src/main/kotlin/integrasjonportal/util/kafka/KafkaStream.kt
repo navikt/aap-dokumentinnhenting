@@ -1,6 +1,5 @@
-package integrasjonportal.integrasjoner.syfo
+package integrasjonportal.util.kafka
 
-import integrasjonportal.util.kafka.Stream
 import integrasjonportal.util.kafka.config.ProcessingExceptionHandler
 import integrasjonportal.util.kafka.config.StreamsConfig
 import io.micrometer.core.instrument.MeterRegistry
@@ -8,7 +7,7 @@ import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.Topology
 
-class DialogmeldingStream(topology: Topology, config: StreamsConfig, registry: MeterRegistry): Stream {
+class KafkaStream(topology: Topology, config: StreamsConfig, registry: MeterRegistry): Stream {
     val streams = KafkaStreams(topology, config.streamsProperties())
 
     init {

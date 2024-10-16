@@ -1,4 +1,4 @@
-package integrasjonportal.integrasjoner.syfo
+package integrasjonportal.integrasjoner.syfo.bestilling
 
 data class DialogmeldingToBehandlerBestillingDTO(
     val behandlerRef: String,
@@ -9,6 +9,6 @@ data class DialogmeldingToBehandlerBestillingDTO(
     val dialogmeldingType: String,
     val dialogmeldingKodeverk: String,
     val dialogmeldingKode: Int,
-    val dialogmeldingTekst: String?,
+    val dialogmeldingTekst: String,
     val dialogmeldingVedlegg: ByteArray? = null,
 )
