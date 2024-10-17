@@ -69,6 +69,7 @@ class BehandlerDialogmeldingBestilling(
     class TransactionProvider(
         val datasource: DataSource
     ) {
+        //Todo: jobb-implementasjon i block her?
         fun inTransaction(block: TransactionContext.() -> Unit) {
             datasource.transaction {
                 TransactionContext(DialogmeldingRepository(it))
