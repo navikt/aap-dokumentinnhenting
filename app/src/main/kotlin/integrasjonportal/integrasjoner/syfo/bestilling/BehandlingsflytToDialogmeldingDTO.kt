@@ -9,5 +9,6 @@ data class BehandlingsflytToDialogmeldingDTO(
     val dialogmeldingKodeverk: String,       // Kodeverk for dialogmelding: DIALOGMOTE, FORESPORSEL eller HENVENDELSE. Se DialogmeldingToBehandlerBestilling
     val dialogmeldingKode: Int,              // Kode som definerer hva slags dialogmelding dette er, i henhold til kodeverket. Ofte et tall mellom 1-9. Se Dialogmeldingskoder.
     val dialogmeldingTekst: String,          //or Null Innholdet i dialogmeldingen. Kan være en stringserialisering av et dokument på et strukturert format.
-    val dialogmeldingVedlegg: ByteArray?     //Vedlegg til dialogmeldingen, en PDF på byte-array format.
+    val dialogmeldingVedlegg: ByteArray?,    //Vedlegg til dialogmeldingen, en PDF på byte-array format.
+    val sakId: String
 )

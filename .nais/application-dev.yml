@@ -26,6 +26,13 @@ spec:
   kafka:
     pool: nav-dev
     streams: true
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_16
+        tier: db-f1-micro
+        databases:
+          - name: integrasjonportal
+            envVarPrefix: DB_INTEGRASJONPORTAL
   resources:
     limits:
       memory: 1024Mi

@@ -1,4 +1,4 @@
-package integrasjonportal.metrics
+package integrasjonportal.util.metrics
 
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Tag

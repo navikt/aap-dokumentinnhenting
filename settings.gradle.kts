@@ -1,2 +1,6 @@
-rootProject.name = "aap-integrasjonportal"
-include("app")
+rootProject.name = "integrasjonportal"
+
+include(
+    "app",
+    "dbflyway"
+)

@@ -1,5 +1,5 @@
 plugins {
-    id("aap-integrasjonportal.conventions")
+    id("integrasjonportal.conventions")
     kotlin("jvm")
     id("io.ktor.plugin") version "3.0.0"
     application
@@ -32,6 +32,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
+    implementation(project(":dbflyway"))
     implementation("no.nav:ktor-openapi-generator:1.0.46")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.5")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
@@ -39,6 +40,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.9")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
+    implementation("org.flywaydb:flyway-database-postgresql:10.18.2")
+    implementation("com.zaxxer:HikariCP:6.0.0")
 
     //Felleskomponenter
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
@@ -56,11 +59,13 @@ dependencies {
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
 
+    // Test
     testImplementation(kotlin("test"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.11.2")
     testImplementation("org.assertj:assertj-core:3.26.3")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    testImplementation("org.testcontainers:postgresql:1.20.2")
 }
 
 tasks {

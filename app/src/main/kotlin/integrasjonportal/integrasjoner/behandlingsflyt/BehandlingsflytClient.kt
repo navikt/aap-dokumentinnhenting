@@ -6,46 +6,18 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import org.slf4j.LoggerFactory
-import integrasjonportal.BehandlingsflytConfig
-import integrasjonportal.util.auth.AzureAdTokenProvider
-import integrasjonportal.util.auth.AzureConfig
 import integrasjonportal.util.http.HttpClientFactory
-import integrasjonportal.metrics.cacheHit
-import integrasjonportal.metrics.cacheMiss
+import integrasjonportal.util.metrics.cacheHit
+import integrasjonportal.util.metrics.cacheMiss
 
 private val log = LoggerFactory.getLogger(BehandlingsflytClient::class.java)
 
 class BehandlingsflytClient(
-    azureConfig: AzureConfig,
-    private val behandlingsflytConfig: BehandlingsflytConfig,
-    private val prometheus: PrometheusMeterRegistry
-) {
+   // private val behandlingsflytConfig: BehandlingsflytConfig,
+  //  private val prometheus: PrometheusMeterRegistry
+) {/* TODO: Skriv om denne til å bruke lib om den skal brukes
     private val httpClient = HttpClientFactory.create()
-    private val azureTokenProvider = AzureAdTokenProvider(azureConfig, behandlingsflytConfig.scope)
 
-    suspend fun hentIdenterForSak(currentToken: String, saksnummer: String): IdenterRespons {
-        val token = azureTokenProvider.getOnBehalfOfToken(currentToken)
-        prometheus.cacheMiss(BEHANDLINGSFLYT).increment()
-
-        val url = "${behandlingsflytConfig.baseUrl}/pip/api/sak/${saksnummer}/identer"
-        log.info("Kaller behandlingsflyt med URL: $url")
-
-        val respons = httpClient.get(url) {
-            bearerAuth(token)
-            contentType(ContentType.Application.Json)
-        }
-
-        val body = respons.body<IdenterRespons>()
-
-        return when (respons.status) {
-            HttpStatusCode.OK -> {
-                val identer = body
-                identer
-            }
-
-            else -> throw BehandlingsflytException("Feil ved henting av identer fra behandlingsflyt: ${respons.status} : ${respons.bodyAsText()}")
-        }
-    }
 
     suspend fun hentIdenterForBehandling(currentToken: String, behandlingsnummer: String): IdenterRespons {
         prometheus.cacheMiss(BEHANDLINGSFLYT).increment()
@@ -70,7 +42,7 @@ class BehandlingsflytClient(
             else -> throw BehandlingsflytException("Feil ved henting av identer fra behandlingsflyt: ${respons.status} : ${respons.bodyAsText()}")
         }
     }
-
+*/
     companion object {
         private const val IDENTER_SAK_PREFIX = "identer_sak"
         private const val IDENTER_BEHANDLING_PREFIX = "identer_behandling"

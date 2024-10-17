@@ -11,10 +11,14 @@ import org.apache.kafka.common.serialization.Serdes
 data class DialogmeldingStatusDTO(
     val uuid: String,
     val createdAt: OffsetDateTime,
-    val status: String,
+    val status: MeldingStatusType,
     val tekst: String?,
     val bestillingUuid: String,
 )
+
+enum class MeldingStatusType {
+    BESTILT, SENDT, OK, AVVIST
+}
 
 private class DialogmeldingStatusDTOSerializer : Serializer<DialogmeldingStatusDTO> {
     private val objectMapper = jacksonObjectMapper()

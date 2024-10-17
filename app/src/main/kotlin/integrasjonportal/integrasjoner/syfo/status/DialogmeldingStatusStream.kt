@@ -29,15 +29,16 @@ class DialogmeldingStatusStream{
             SYFO_STATUS_DIALOGMELDING_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingStatusDTOSerde())
         )
-            .filter { _, record -> record.bestillingUuid == "" }
+            .filter { _, record -> record.bestillingUuid == "" } // Eller blir det dialogmeldingUUid? Hva er forskjell?
             .foreach { _, record -> håndterStatus(record) }
 
         topology = streamBuilder.build()
     }
 
+    // TODO: Er det hensiktmessig å batche her eller ei?
     private fun håndterStatus(record: DialogmeldingStatusDTO) {
-
         // Lagre status på hver entry? og så kan vi returnere på hvilke behandlingsId?
+        // TODO: Implementer denne -> oppdaterDialogmeldingStatus(record)
         log.info("")
     }
 }

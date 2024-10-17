@@ -1,4 +1,0 @@
-package integrasjonportal
-
-class IntegrasjonportalService {
-}

@@ -3,7 +3,10 @@ package integrasjonportal
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.papsign.ktor.openapigen.OpenAPIGen
+import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -13,7 +16,6 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusConfig
@@ -21,65 +23,65 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import integrasjonportal.routes.actuator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.event.Level
-import integrasjonportal.util.auth.AZURE
-import integrasjonportal.util.auth.authentication
-import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.komponenter.server.AZURE
 import integrasjonportal.integrasjoner.behandlingsflyt.BehandlingsflytException
 import integrasjonportal.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestilling
-import integrasjonportal.integrasjoner.syfo.status.dialogmeldingStatusStream
 import integrasjonportal.routes.syfo
-import io.ktor.server.plugins.calllogging.*
 import io.ktor.utils.io.*
+import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.dbmigrering.Migrering
+import no.nav.aap.komponenter.httpklient.auth.Bruker
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.server.commonKtorModule
 
-val LOGGER: Logger = LoggerFactory.getLogger("aap-integrasjonportal")
+internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
+
+class App
+
+val SYSTEMBRUKER = Bruker("Kelvin")
+
+private const val ANTALL_WORKERS = 4
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> LOGGER.error("Uhåndtert feil", e) }
-    embeddedServer(Netty, port = 8080, module = Application::api).start(wait = true)
+    Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
+    embeddedServer(Netty, configure = {
+        connector {
+            port = 8080
+        }
+        connectionGroupSize = 8
+        workerGroupSize = 8
+        callGroupSize = 16
+    }) { server(DbConfig()) }.start(wait = true)
 }
 
-fun Application.api(
-    config: Config = Config(),
+fun Application.server(dbConfig: DbConfig
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    val behandlingsflyt = BehandlingsflytClient(config.azureConfig, config.behandlingsflytConfig, prometheus)
+    install(MicrometerMetrics) { registry = prometheus }
+    commonKtorModule(
+        prometheus,
+        AzureConfig(),
+        InfoModel(title = "AAP - Integrasjonportal")
+    )
+
     /*
     * Services
     * */
     //val dialogmeldingStatusStream = dialogmeldingStatusStream(prometheus)
 
-    install(MicrometerMetrics) { registry = prometheus }
-
-    authentication(config.azureConfig)
-
-    install(CallLogging) {
-        level = Level.INFO
-        logger = LOGGER
-        format { call ->
-            """
-                URL:            ${call.request.local.uri}
-                Status:         ${call.response.status()}
-                Method:         ${call.request.httpMethod.value}
-                User-agent:     ${call.request.headers["User-Agent"]}
-                CallId:         ${call.request.header("x-callId") ?: call.request.header("nav-callId")}
-            """.trimIndent()
-        }
-        filter { call -> call.request.path().startsWith("/actuator").not() }
-    }
-
     install(StatusPages) {
+        val logger = LoggerFactory.getLogger(App::class.java)
         exception<BehandlingsflytException> { call, cause ->
-            LOGGER.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause.stackTraceToString())
-            LOGGER.error("Feil i behandlingsflyt: ${cause.message} \n ${cause.stackTraceToString()}")
+            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause.stackTraceToString())
+            logger.error("Feil i behandlingsflyt: ${cause.message} \n ${cause.stackTraceToString()}")
             call.respondText(
                 text = "Feil i behandlingsflyt: ${cause.message}",
                 status = HttpStatusCode.InternalServerError
             )
         }
         exception<Throwable> { call, cause ->
-            LOGGER.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            LOGGER.error("Feil i tjeneste: ${cause.message} \n ${cause.stackTraceToString()}")
+            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+            logger.error("Feil i tjeneste: ${cause.message} \n ${cause.stackTraceToString()}")
             call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
     }
@@ -91,6 +93,10 @@ fun Application.api(
         }
     }
 
+    val dataSource = initDatasource(dbConfig)
+    Migrering.migrate(dataSource)
+    //val motor = module(dataSource) // Todo: implementer motor
+
     swaggerDoc()
 
     routing {
@@ -98,7 +104,7 @@ fun Application.api(
 
         authenticate(AZURE) {
             apiRoute {
-                syfo(BehandlerDialogmeldingBestilling(monitor))
+                syfo(BehandlerDialogmeldingBestilling(monitor, dataSource), dataSource)
             }
         }
     }
@@ -122,7 +128,50 @@ private fun Application.swaggerDoc() {
         // this serves Swagger UI on /swagger-ui/index.html
         serveSwaggerUi = true
         info {
-            title = "AAP - Integrasjonportalx"
+            title = "AAP - Integrasjonportal"
         }
     }
 }
+
+/*
+fun Application.module(dataSource: DataSource): Motor {
+    val motor = Motor(
+        dataSource = dataSource,
+        antallKammer = ANTALL_WORKERS,
+        logInfoProvider = BehandlingsflytLogInfoProvider,
+        jobber = ProsesseringsJobber.alle()
+    )
+
+    dataSource.transaction { dbConnection ->
+        RetryService(dbConnection).enable()
+    }
+
+    environment.monitor.subscribe(ApplicationStarted) {
+        motor.start()
+    }
+    environment.monitor.subscribe(ApplicationStopped) { application ->
+        application.environment.log.info("Server har stoppet")
+        motor.stop()
+        // Release resources and unsubscribe from events
+        application.environment.monitor.unsubscribe(ApplicationStarted) {}
+        application.environment.monitor.unsubscribe(ApplicationStopped) {}
+    }
+
+    return motor
+}*/
+
+class DbConfig(
+    val url: String = requiredConfigForKey("NAIS_DATABASE_INTEGRASJONPORTAL_INTEGRASJONPORTAL_JDBC_URL"),
+    val username: String = requiredConfigForKey("NAIS_DATABASE_INTEGRASJONPORTAL_INTEGRASJONPORTAL_USERNAME"),
+    val password: String = requiredConfigForKey("NAIS_DATABASE_INTEGRASJONPORTAL_INTEGRASJONPORTAL_PASSWORD")
+)
+
+fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
+    jdbcUrl = dbConfig.url
+    username = dbConfig.username
+    password = dbConfig.password
+    maximumPoolSize = 10 + (ANTALL_WORKERS * 2)
+    minimumIdle = 1
+    driverClassName = "org.postgresql.Driver"
+    connectionTestQuery = "SELECT 1"
+})
