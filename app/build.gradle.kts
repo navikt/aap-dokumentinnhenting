@@ -1,3 +1,6 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import java.io.ByteArrayOutputStream
+
 plugins {
     id("integrasjonportal.conventions")
     kotlin("jvm")
@@ -68,7 +71,38 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:1.20.2")
 }
 
+fun runCommand(command: String): String {
+    val byteOut = ByteArrayOutputStream()
+    project.exec {
+        commandLine = command.split("\\s".toRegex())
+        standardOutput = byteOut
+    }
+    return String(byteOut.toByteArray()).trim()
+}
+
+fun getCheckedOutGitCommitHash(): String {
+    if (System.getenv("GITHUB_ACTIONS") == "true") {
+        return System.getenv("GITHUB_SHA")
+    }
+    return runCommand("git rev-parse --verify HEAD")
+}
+
 tasks {
+    val projectProps by registering(WriteProperties::class) {
+        destinationFile = layout.buildDirectory.file("version.properties")
+        // Define property.
+        property("project.version", getCheckedOutGitCommitHash())
+    }
+
+    processResources {
+        // Depend on output of the task to create properties,
+        // so the properties file will be part of the Java resources.
+        from(projectProps)
+    }
+
+    withType<ShadowJar> {
+        mergeServiceFiles()
+    }
     withType<Test> {
         useJUnitPlatform()
     }
