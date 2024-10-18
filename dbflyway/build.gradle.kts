@@ -1,4 +1,4 @@
-val komponenterVersjon = "1.0.16"
+val komponenterVersjon = "1.0.22"
 
 plugins {
     id("integrasjonportal.conventions")
