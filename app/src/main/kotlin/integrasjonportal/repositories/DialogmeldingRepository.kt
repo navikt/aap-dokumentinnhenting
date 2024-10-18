@@ -2,7 +2,7 @@ package integrasjonportal.repositories
 
 import integrasjonportal.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import integrasjonportal.integrasjoner.syfo.status.DialogmeldingStatusDTO
-import integrasjonportal.integrasjoner.syfo.status.DialogmeldingStatusRecord
+import integrasjonportal.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import java.util.*
 
@@ -38,7 +38,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentBySakId(sakId: String): List<DialogmeldingStatusRecord> {
+    fun hentBySakId(sakId: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
         val query = """
             SELECT * FROM DIALOGMELDING
             WHERE SAK_ID = ?
@@ -49,7 +49,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setString(1, sakId)
             }
             setRowMapper {
-                DialogmeldingStatusRecord(
+                DialogmeldingStatusTilBehandslingsflytDTO(
                     it.getUUID("DIALOGMELDING_UUID"),
                     it.getEnumOrNull("STATUS"),
                     it.getString("BEHANDLER_REF"),

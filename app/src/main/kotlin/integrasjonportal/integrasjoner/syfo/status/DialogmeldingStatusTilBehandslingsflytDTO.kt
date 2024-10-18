@@ -3,7 +3,7 @@ package integrasjonportal.integrasjoner.syfo.status
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import java.util.*
 
-data class DialogmeldingStatusRecord(
+data class DialogmeldingStatusTilBehandslingsflytDTO(
     val dialogmeldingUuid: UUID,
     val status: MeldingStatusType?,
     val behandlerRef: String,

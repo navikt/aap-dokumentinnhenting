@@ -1,5 +1,6 @@
 package integrasjonportal.integrasjoner.syfo.bestilling
 
+import integrasjonportal.integrasjoner.syfo.status.TransactionProvider
 import integrasjonportal.repositories.DialogmeldingRepository
 import integrasjonportal.util.kafka.config.ProducerConfig
 import io.ktor.events.*
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 import java.util.*
 
-private const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-behandler-dialogmelding-bestilling"
+const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-behandler-dialogmelding-bestilling"
 private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestilling::class.java)
 
 class BehandlerDialogmeldingBestilling(
@@ -62,20 +63,6 @@ class BehandlerDialogmeldingBestilling(
         )
     }
 
-    class TransactionContext(
-        val dialogmeldingRepository: DialogmeldingRepository
-    )
-
-    class TransactionProvider(
-        val datasource: DataSource
-    ) {
-        //Todo: jobb-implementasjon i block her?
-        fun inTransaction(block: TransactionContext.() -> Unit) {
-            datasource.transaction {
-                TransactionContext(DialogmeldingRepository(it))
-            }
-        }
-    }
 
     private fun skrivDialogmeldingTilRepository(melding: DialogmeldingRecord) {
         log.info("Mottatt dialogmelding-bestilling på sak ${melding.sakId}")

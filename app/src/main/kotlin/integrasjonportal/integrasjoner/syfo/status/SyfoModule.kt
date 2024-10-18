@@ -8,11 +8,12 @@ import no.nav.aap.komponenter.miljo.MiljøKode
 import integrasjonportal.util.kafka.NoopStream
 import integrasjonportal.util.kafka.Stream
 import integrasjonportal.util.kafka.config.StreamsConfig
+import javax.sql.DataSource
 
-fun Application.dialogmeldingStatusStream(registry: MeterRegistry): Stream {
+fun Application.dialogmeldingStatusStream(registry: MeterRegistry, dataSource: DataSource): Stream {
   if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
   val config = StreamsConfig()
-  val stream = KafkaStream(DialogmeldingStatusStream().topology, config, registry)
+  val stream = KafkaStream(DialogmeldingStatusStream(dataSource).topology, config, registry)
   stream.start()
 
   monitor.subscribe(ApplicationStopped) {
