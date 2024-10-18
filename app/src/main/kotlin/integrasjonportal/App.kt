@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.papsign.ktor.openapigen.OpenAPIGen
 import com.papsign.ktor.openapigen.model.info.InfoModel
+import com.papsign.ktor.openapigen.route.apiRouting
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -12,9 +13,7 @@ import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
-import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -57,7 +56,6 @@ fun main() {
 fun Application.server(dbConfig: DbConfig
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    install(MicrometerMetrics) { registry = prometheus }
     commonKtorModule(
         prometheus,
         AzureConfig(),
@@ -86,49 +84,17 @@ fun Application.server(dbConfig: DbConfig
         }
     }
 
-    install(ContentNegotiation) {
-        jackson {
-            registerModule(JavaTimeModule())
-            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        }
-    }
-
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
     //val motor = module(dataSource) // Todo: implementer motor
-
-    swaggerDoc()
 
     routing {
         actuator(prometheus/*, dialogmeldingStatusStream*/)
 
         authenticate(AZURE) {
-            apiRoute {
+            apiRouting {
                 syfo(BehandlerDialogmeldingBestilling(monitor, dataSource), dataSource)
             }
-        }
-    }
-}
-
-/**
- * Triks for å få NormalOpenAPIRoute til å virke med auth
- */
-@KtorDsl
-fun Route.apiRoute(config: NormalOpenAPIRoute.() -> Unit) {
-    NormalOpenAPIRoute(
-        this,
-        application.plugin(OpenAPIGen).globalModuleProvider
-    ).apply(config)
-}
-
-private fun Application.swaggerDoc() {
-    install(OpenAPIGen) {
-        // this serves OpenAPI definition on /openapi.json
-        serveOpenApiJson = true
-        // this serves Swagger UI on /swagger-ui/index.html
-        serveSwaggerUi = true
-        info {
-            title = "AAP - Integrasjonportal"
         }
     }
 }

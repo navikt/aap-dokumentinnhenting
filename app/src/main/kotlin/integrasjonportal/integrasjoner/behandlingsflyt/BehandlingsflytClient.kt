@@ -6,7 +6,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import org.slf4j.LoggerFactory
-import integrasjonportal.util.http.HttpClientFactory
 import integrasjonportal.util.metrics.cacheHit
 import integrasjonportal.util.metrics.cacheMiss
 
