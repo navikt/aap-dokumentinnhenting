@@ -43,7 +43,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.9")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
-    implementation("org.flywaydb:flyway-database-postgresql:10.18.2")
+    implementation("org.flywaydb:flyway-database-postgresql:10.20.0")
     implementation("com.zaxxer:HikariCP:6.0.0")
 
     //Felleskomponenter
