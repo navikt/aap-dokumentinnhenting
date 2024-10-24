@@ -50,7 +50,7 @@ class SyfoKafkaTest {
     }
 
     @Test
-    fun `should update status when record matches`() {
+    fun kanTaImotStatusOppdateringer() {
         val uuid = UUID.randomUUID()
         val sakId = "sakId"
         val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "personIdent", sakId)
@@ -64,7 +64,7 @@ class SyfoKafkaTest {
     }
 
     @Test
-    fun `kan serialisere og deserialisere`() {
+    fun kanSerialisereOgDeserialisere() {
         val dto = DialogmeldingStatusDTO(
             uuid = UUID.randomUUID().toString(),
             createdAt = OffsetDateTime.now(),
