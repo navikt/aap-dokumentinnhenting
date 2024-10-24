@@ -1,4 +1,5 @@
 package integrasjonportal.syfo
+
 import integrasjonportal.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import integrasjonportal.integrasjoner.syfo.status.*
 import integrasjonportal.repositories.DialogmeldingRepository
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.util.*
 
-class SyfoKafkaTest {
+class SyfoKafkaStreamTest {
     private lateinit var testDriver: TopologyTestDriver
     private lateinit var inputTopic: TestInputTopic<String, DialogmeldingStatusDTO>
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
