@@ -61,7 +61,7 @@ class SyfoKafkaStreamTest {
 
         inputTopic.pipeInput("key", incomingRecord)
         val oppdatertHendelse = hentRepositoryData(sakId)
-        assertEquals(oppdatertHendelse[0].status, MeldingStatusType.BESTILT)
+        assertEquals(uuid, oppdatertHendelse[0].dialogmeldingUuid)
     }
 
     @Test

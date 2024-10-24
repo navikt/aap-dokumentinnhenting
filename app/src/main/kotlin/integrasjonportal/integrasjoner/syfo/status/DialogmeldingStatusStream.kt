@@ -14,6 +14,7 @@ const val SYFO_STATUS_DIALOGMELDING_TOPIC = "teamsykefravr.behandler-dialogmeldi
 private const val TEMA = "AAP" // what here
 private const val MOTTATT = "MOTTATT" // what here
 private const val EESSI = "EESSI" // what here
+private const val EESSI = "OPPFØLGING" // what here
 */
 
 // TODO:
