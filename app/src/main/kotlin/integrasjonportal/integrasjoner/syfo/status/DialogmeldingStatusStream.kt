@@ -19,7 +19,6 @@ private const val EESSI = "EESSI" // what here
 
 // TODO:
 //  Feilhåndtering (Må bruke jobbmotor), 1 steg for write to stream, 1 steg for write to db
-//  Må få lagd repo db, og kunne hente disse ut til filtrering kontinuerlig
 //  Må avklare om syfo kan pushe tagsene over på det mottatte dokumentet, slik at postmottak faktisk kan hente det ut
 
 class DialogmeldingStatusStream(
@@ -28,6 +27,7 @@ class DialogmeldingStatusStream(
 ) {
     private val log = LoggerFactory.getLogger(DialogmeldingStatusStream::class.java)
     val topology: Topology
+    val dialogMeldinger = emptyList<String>() //TODO: Må kunne hente disse ut til filtrering kontinuerlig
 
     init {
         val streamBuilder = StreamsBuilder()
@@ -35,7 +35,7 @@ class DialogmeldingStatusStream(
             SYFO_STATUS_DIALOGMELDING_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingStatusDTOSerde())
         )
-            .filter { _, record -> record.bestillingUuid == "" } // Eller blir det dialogmeldingUUid? Hva er forskjell?
+            .filter { _, record -> dialogMeldinger.contains(record.bestillingUuid) }
             .foreach { _, record -> oppdaterStatus(record) }
 
         topology = streamBuilder.build()
@@ -56,10 +56,9 @@ class TransactionContext(
 class TransactionProvider(
     val datasource: DataSource
 ) {
-    //Todo: jobb-implementasjon i block her?
     fun inTransaction(block: TransactionContext.() -> Unit) {
         datasource.transaction {
-            TransactionContext(DialogmeldingRepository(it))
+            TransactionContext(DialogmeldingRepository(it)).block()
         }
     }
 }

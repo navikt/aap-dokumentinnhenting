@@ -9,7 +9,7 @@ plugins {
 }
 
 val ktorVersion = "3.0.0"
-val kafkaVersion = "3.8.0"
+val kafkaVersion = "3.7.0"
 val komponenterVersjon = "1.0.25"
 val confluentVersion = "7.7.1"
 
@@ -59,7 +59,6 @@ dependencies {
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
     implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
-    implementation("org.apache.kafka:kafka_2.13:$kafkaVersion")
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
 
     // Test

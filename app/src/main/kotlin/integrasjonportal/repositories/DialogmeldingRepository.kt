@@ -34,6 +34,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             setParams {
                 setUUID(1, UUID.fromString(melding.bestillingUuid))
                 setString(2, melding.status.toString())
+                setUUID(3, UUID.fromString(melding.bestillingUuid))
             }
         }
     }
@@ -55,10 +56,9 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getString("BEHANDLER_REF"),
                     it.getString("PERSON_ID"),
                     it.getString("SAK_ID"),
-                    it.getUUID("BESTILLING_UUID")
+                    it.getUUIDOrNull("BESTILLING_UUID")
                 )
             }
         }
-
     }
 }

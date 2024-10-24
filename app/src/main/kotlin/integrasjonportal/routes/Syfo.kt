@@ -16,8 +16,8 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.syfo(service: BehandlerDialogmeldingBestilling, dataSource: DataSource
 ) {
     route("/syfo") {
-        route("/dialogmeldingbestilling").post<Unit, Unit, BehandlingsflytToDialogmeldingDTO> { _, req ->
-            service.dialogmeldingBestilling(req)
+        route("/dialogmeldingbestilling").post<Unit, String, BehandlingsflytToDialogmeldingDTO> { _, req ->
+            respond (service.dialogmeldingBestilling(req))
         }
 
         route("/status/{saksnummer}").get<HentDialogmeldingStatusDto, List<DialogmeldingStatusTilBehandslingsflytDTO>> { req ->

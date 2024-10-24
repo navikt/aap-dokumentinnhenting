@@ -1,11 +1,9 @@
 package integrasjonportal.integrasjoner.syfo.bestilling
 
 import integrasjonportal.integrasjoner.syfo.status.TransactionProvider
-import integrasjonportal.repositories.DialogmeldingRepository
 import integrasjonportal.util.kafka.config.ProducerConfig
 import io.ktor.events.*
 import io.ktor.server.application.*
-import no.nav.aap.komponenter.dbconnect.transaction
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
@@ -28,8 +26,7 @@ class BehandlerDialogmeldingBestilling(
         }
     }
 
-    //TODO: Få noe retur på dette slik at behandlingsflyt har litt peiling på hva som skjer?
-    fun dialogmeldingBestilling(dto: BehandlingsflytToDialogmeldingDTO) {
+    fun dialogmeldingBestilling(dto: BehandlingsflytToDialogmeldingDTO): String {
         val mappedBestilling = mapToDialogMeldingBestilling(dto)
         val config = ProducerConfig().properties()
         val producer = KafkaProducer<String, DialogmeldingToBehandlerBestillingDTO>(config)
@@ -43,8 +40,10 @@ class BehandlerDialogmeldingBestilling(
                 DialogmeldingRecord(UUID.fromString(mappedBestilling.dialogmeldingUuid), dto.behandlerRef, dto.personIdent, dto.sakId)
             )
 
+            return mappedBestilling.dialogmeldingUuid
         } catch (e: Exception) {
             log.error("Feilet ved sending til topic $SYFO_BESTILLING_DIALOGMELDING_TOPIC", e)
+            return e.toString()
         }
     }
 
@@ -62,7 +61,6 @@ class BehandlerDialogmeldingBestilling(
             dto.dialogmeldingVedlegg
         )
     }
-
 
     private fun skrivDialogmeldingTilRepository(melding: DialogmeldingRecord) {
         log.info("Mottatt dialogmelding-bestilling på sak ${melding.sakId}")
