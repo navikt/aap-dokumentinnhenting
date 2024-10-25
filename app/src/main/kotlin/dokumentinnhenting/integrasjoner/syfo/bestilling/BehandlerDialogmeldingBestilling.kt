@@ -51,8 +51,8 @@ class BehandlerDialogmeldingBestilling(
             UUID.randomUUID().toString(),
             null, // Trenger vi denne?
             UUID.randomUUID().toString(), // Trenger vi denne?
-            dto.dialogmeldingType, // TODO: AVKLAR -> "DIALOG_NOTAT"?,
-            dto.dialogmeldingKodeverk, // TODO: AVKLAR -> " "HENVENDELSE"?,
+            dto.dialogmeldingType,
+            dto.dialogmeldingKodeverk,
             dto.dialogmeldingKode,
             dto.dialogmeldingTekst,
             dto.dialogmeldingVedlegg
