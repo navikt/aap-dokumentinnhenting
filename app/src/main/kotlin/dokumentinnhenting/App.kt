@@ -121,9 +121,9 @@ fun Application.module(dataSource: DataSource): Motor {
 }*/
 
 class DbConfig(
-    val url: String = requiredConfigForKey("DB_INTEGRASJONPORTAL_JDBC_URL"),
-    val username: String = requiredConfigForKey("DB_INTEGRASJONPORTAL_USERNAME"),
-    val password: String = requiredConfigForKey("DB_INTEGRASJONPORTAL_PASSWORD"),
+    val url: String = requiredConfigForKey("DB_DOKUMENTINNHENTING_JDBC_URL"),
+    val username: String = requiredConfigForKey("DB_DOKUMENTINNHENTING_USERNAME"),
+    val password: String = requiredConfigForKey("DB_DOKUMENTINNHENTING_PASSWORD"),
 )
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {

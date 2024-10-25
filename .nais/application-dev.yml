@@ -32,8 +32,8 @@ spec:
         tier: db-f1-micro
         cascadingDelete: true
         databases:
-          - name: integrasjonportal
-            envVarPrefix: DB_INTEGRASJONPORTAL
+          - name: dokumentinnhenting
+            envVarPrefix: DB_DOKUMENTINNHENTING
   resources:
     limits:
       memory: 1024Mi
