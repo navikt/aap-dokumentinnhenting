@@ -1,7 +1,7 @@
 val komponenterVersjon = "1.0.25"
 
 plugins {
-    id("integrasjonportal.conventions")
+    id("dokumentinnhenting.conventions")
 }
 
 dependencies {

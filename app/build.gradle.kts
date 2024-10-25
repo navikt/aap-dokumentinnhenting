@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.ByteArrayOutputStream
 
 plugins {
-    id("integrasjonportal.conventions")
+    id("dokumentinnhenting.conventions")
     kotlin("jvm")
     id("io.ktor.plugin") version "3.0.0"
     application
@@ -14,7 +14,7 @@ val komponenterVersjon = "1.0.25"
 val confluentVersion = "7.7.1"
 
 application {
-    mainClass.set("integrasjonportal.AppKt")
+    mainClass.set("dokumentinnhenting.AppKt")
 }
 
 dependencies {

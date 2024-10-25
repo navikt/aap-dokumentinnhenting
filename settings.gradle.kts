@@ -1,4 +1,4 @@
-rootProject.name = "integrasjonportal"
+rootProject.name = "dokumentinnhenting"
 
 include(
     "app",

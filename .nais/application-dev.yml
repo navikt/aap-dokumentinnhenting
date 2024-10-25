@@ -1,11 +1,11 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: integrasjonportal
+  name: dokumentinnhenting
   namespace: aap
   labels:
     team: aap
-    sub: integrasjonportal
+    sub: dokumentinnhenting
 spec:
   image: {{image}}
   replicas:
@@ -14,7 +14,7 @@ spec:
     max: 1
     min: 1
   ingresses:
-    - https://aap-integrasjonportal.intern.dev.nav.no
+    - https://aap-dokumentinnhenting.intern.dev.nav.no
   azure:
     application:
       enabled: true
@@ -30,6 +30,7 @@ spec:
     sqlInstances:
       - type: POSTGRES_16
         tier: db-f1-micro
+        cascadingDelete: true
         databases:
           - name: integrasjonportal
             envVarPrefix: DB_INTEGRASJONPORTAL
