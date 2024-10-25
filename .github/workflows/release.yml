@@ -39,3 +39,12 @@ jobs:
     with:
       cluster: dev-gcp
       manifest: .nais/application-dev.yml
+
+  salsa:
+    uses: nais/docker-build-push@v0
+    id: docker-push
+    with:
+      team: aap
+      salsa: true
+      identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+      project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
