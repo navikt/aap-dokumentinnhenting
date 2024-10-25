@@ -30,7 +30,6 @@ spec:
     sqlInstances:
       - type: POSTGRES_16
         tier: db-f1-micro
-        cascadingDelete: true
         databases:
           - name: dokumentinnhenting
             envVarPrefix: DB_DOKUMENTINNHENTING
