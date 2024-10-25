@@ -9,7 +9,6 @@ data class DialogmeldingStatusTilBehandslingsflytDTO(
     val behandlerRef: String,
     val personId: String,
     val sakId: String,
-    val bestillingUuid: UUID?,
 )
 
 data class HentDialogmeldingStatusDto(@PathParam("saksnummer") val saksnummer: String)
