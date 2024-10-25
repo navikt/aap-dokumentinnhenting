@@ -59,7 +59,6 @@ dependencies {
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
     implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
-    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
 
     // Test
     testImplementation(kotlin("test"))

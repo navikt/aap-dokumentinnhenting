@@ -6,7 +6,6 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.streams.StreamsConfig
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import org.apache.kafka.common.serialization.StringSerializer
-import io.confluent.kafka.serializers.KafkaAvroSerializer
 
 import java.util.*
 
@@ -19,7 +18,7 @@ data class ProducerConfig(
     fun properties(): Properties = Properties().apply {
         put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
         put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name)
-        put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer::class.java.name)
+        put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name)
         schemaRegistry?.let { putAll(it.properties()) }
         ssl?.let { putAll(it.properties()) }
         put(ProducerConfig.ACKS_CONFIG, "all")
