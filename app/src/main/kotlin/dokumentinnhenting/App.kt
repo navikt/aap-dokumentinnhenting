@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import no.nav.aap.komponenter.server.AZURE
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestilling
+import dokumentinnhenting.integrasjoner.syfo.status.dialogmeldingStatusStream
 import dokumentinnhenting.routes.syfo
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -57,11 +58,6 @@ fun Application.server(dbConfig: DbConfig
         InfoModel(title = "AAP - Dokumentinnhenting")
     )
 
-    /*
-    * Services
-    * */
-    //val dialogmeldingStatusStream = dialogmeldingStatusStream(prometheus)
-
     install(StatusPages) {
         val logger = LoggerFactory.getLogger(App::class.java)
         exception<BehandlingsflytException> { call, cause ->
@@ -83,8 +79,10 @@ fun Application.server(dbConfig: DbConfig
     Migrering.migrate(dataSource)
     //val motor = module(dataSource) // Todo: implementer motor
 
+    val dialogmeldingStatusStream = dialogmeldingStatusStream(prometheus, dataSource)
+
     routing {
-        actuator(prometheus/*, dialogmeldingStatusStream*/)
+        actuator(prometheus, dialogmeldingStatusStream)
 
         authenticate(AZURE) {
             apiRouting {

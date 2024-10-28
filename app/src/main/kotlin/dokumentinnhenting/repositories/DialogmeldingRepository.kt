@@ -38,6 +38,16 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
+    fun hentAlleSakIder(): List<String> {
+        val query = """
+            SELECT SAK_ID FROM DIALOGMELDING
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setRowMapper { it.getString("SAK_ID") }
+        }
+    }
+
     fun hentBySakId(sakId: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
         val query = """
             SELECT * FROM DIALOGMELDING

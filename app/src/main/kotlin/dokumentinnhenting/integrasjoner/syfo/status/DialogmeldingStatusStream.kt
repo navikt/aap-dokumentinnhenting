@@ -9,7 +9,9 @@ import org.apache.kafka.streams.kstream.Consumed
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
-const val SYFO_STATUS_DIALOGMELDING_TOPIC = "teamsykefravr.behandler-dialogmelding-status"
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 /*
 private const val TEMA = "AAP" // what here
 private const val MOTTATT = "MOTTATT" // what here
@@ -21,16 +23,21 @@ private const val EESSI = "OPPFØLGING" // what here
 //  Feilhåndtering (Må bruke jobbmotor), 1 steg for write to stream, 1 steg for write to db
 //  Må avklare om syfo kan pushe tagsene over på det mottatte dokumentet, slik at postmottak faktisk kan hente det ut
 
+const val SYFO_STATUS_DIALOGMELDING_TOPIC = "teamsykefravr.behandler-dialogmelding-status"
+
 class DialogmeldingStatusStream(
-    datasource: DataSource,
-    private val transactionProvider: TransactionProvider = TransactionProvider(datasource)
+    private val datasource: DataSource,
+    private val transactionProvider: TransactionProvider = TransactionProvider(datasource),
 ) {
     private val log = LoggerFactory.getLogger(DialogmeldingStatusStream::class.java)
     val topology: Topology
-    val dialogMeldinger = emptyList<String>() //TODO: Må kunne hente disse ut til filtrering kontinuerlig
+
+    @Volatile
+    private var dialogMeldinger: MutableList<String> = hentSakListe().toMutableList()
 
     init {
         val streamBuilder = StreamsBuilder()
+
         streamBuilder.stream(
             SYFO_STATUS_DIALOGMELDING_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingStatusDTOSerde())
@@ -39,12 +46,30 @@ class DialogmeldingStatusStream(
             .foreach { _, record -> oppdaterStatus(record) }
 
         topology = streamBuilder.build()
+
+        scheduleDialogMeldingerRefresh()
     }
 
-    // TODO: Er det hensiktmessig å batche her eller ei?
+
+    private fun scheduleDialogMeldingerRefresh() {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
+            { dialogMeldinger = hentSakListe().toMutableList() },
+            0, 1, TimeUnit.MINUTES
+        )
+
+    }
+
+    //TODO: Hensiktsmessig å batche?
     private fun oppdaterStatus(record: DialogmeldingStatusDTO) {
         transactionProvider.inTransaction {
             dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
+        }
+    }
+
+    private fun hentSakListe(): List<String> {
+        return datasource.transaction { connection ->
+            val repository = DialogmeldingRepository(connection)
+            repository.hentAlleSakIder()
         }
     }
 }
