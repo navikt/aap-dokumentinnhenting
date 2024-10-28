@@ -45,18 +45,30 @@ class BehandlerDialogmeldingBestilling(
     }
 
     private fun mapToDialogMeldingBestilling(dto: BehandlingsflytToDialogmeldingDTO): DialogmeldingToBehandlerBestillingDTO {
+        val brevTekst = genererBrev(dto)
+        val kodeStruktur = mapDialogmeldingKodeStruktur(dto.dokumentasjonType)
         return DialogmeldingToBehandlerBestillingDTO(
             dto.behandlerRef,
             dto.personIdent,
             UUID.randomUUID().toString(),
             null, // Trenger vi denne?
             UUID.randomUUID().toString(), // Trenger vi denne?
-            dto.dialogmeldingType,
-            dto.dialogmeldingKodeverk,
-            dto.dialogmeldingKode,
-            dto.dialogmeldingTekst,
+            kodeStruktur.dialogmeldingType,
+            kodeStruktur.dialogmeldingKodeverk,
+            kodeStruktur.dialogmeldingKode,
+            brevTekst,
             dto.dialogmeldingVedlegg
         )
+    }
+
+    private fun mapDialogmeldingKodeStruktur(dokumentasjonType: DokumentasjonType): DialogmeldingKodeStruktur {
+        return when (dokumentasjonType) {
+            DokumentasjonType.L40 -> DialogmeldingKodeStruktur(DialogmeldingType.DIALOG_FORESPORSEL, DialogmeldingKodeverk.FORESPORSEL, 1)
+            DokumentasjonType.L8 -> DialogmeldingKodeStruktur(DialogmeldingType.DIALOG_FORESPORSEL, DialogmeldingKodeverk.FORESPORSEL, 1)
+            DokumentasjonType.MELDING_FRA_NAV -> DialogmeldingKodeStruktur(DialogmeldingType.DIALOG_NOTAT, DialogmeldingKodeverk.HENVENDELSE, 8)
+            DokumentasjonType.RETUR_LEGEERKLÆRING -> DialogmeldingKodeStruktur(DialogmeldingType.DIALOG_NOTAT, DialogmeldingKodeverk.HENVENDELSE, 3)
+            DokumentasjonType.L120 -> TODO() // TODO: Neste fase, lage brev og mapping for 120
+        }
     }
 
     private fun skrivDialogmeldingTilRepository(melding: DialogmeldingRecord) {
@@ -65,4 +77,10 @@ class BehandlerDialogmeldingBestilling(
             dialogmeldingRepository.opprettDialogmelding(melding)
         }
     }
+
+    private data class DialogmeldingKodeStruktur(
+        val dialogmeldingType: DialogmeldingType,
+        val dialogmeldingKodeverk: DialogmeldingKodeverk,
+        val dialogmeldingKode: Int
+    )
 }

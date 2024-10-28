@@ -47,11 +47,9 @@ class SyfoKafkaBestillingTest {
             behandlerRef = "behandlerRef",
             personIdent = "12345678910",
             sakId = sakId,
-            dialogmeldingType = DialogmeldingType.DIALOG_NOTAT,
-            dialogmeldingKodeverk = DialogmeldingKodeverk.HENVENDELSE,
-            dialogmeldingKode = 1234,
             dialogmeldingTekst = "tekst",
-            dialogmeldingVedlegg = null
+            dialogmeldingVedlegg = null,
+            dokumentasjonType = DokumentasjonType.L8
         )
 
         val dialogmeldingUuid = behandlerDialogmeldingBestilling.dialogmeldingBestilling(dto)
