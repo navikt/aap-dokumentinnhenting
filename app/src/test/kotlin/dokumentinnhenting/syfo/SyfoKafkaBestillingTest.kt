@@ -47,8 +47,8 @@ class SyfoKafkaBestillingTest {
             behandlerRef = "behandlerRef",
             personIdent = "12345678910",
             sakId = sakId,
-            dialogmeldingType = "DIALOG_NOTAT",
-            dialogmeldingKodeverk = "HENVENDELSE",
+            dialogmeldingType = DialogmeldingType.DIALOG_NOTAT,
+            dialogmeldingKodeverk = DialogmeldingKodeverk.HENVENDELSE,
             dialogmeldingKode = 1234,
             dialogmeldingTekst = "tekst",
             dialogmeldingVedlegg = null
