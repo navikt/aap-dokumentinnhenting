@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
+//TODO: Få inn navn på person her, ikke bare ident x2
 fun genererBrev(dto: BehandlingsflytToDialogmeldingDTO): String {
     return when (dto.dokumentasjonType) {
         DokumentasjonType.L8 -> brev8L(dto.personIdent, dto.personIdent, dto.dialogmeldingTekst, dto.behandlerRef)
