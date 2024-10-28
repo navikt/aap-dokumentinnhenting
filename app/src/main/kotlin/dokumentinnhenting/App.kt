@@ -26,9 +26,10 @@ import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.commonKtorModule
+import saf
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
-
+internal val logger: Logger = LoggerFactory.getLogger("app")
 class App
 
 val SYSTEMBRUKER = Bruker("Kelvin")
@@ -88,6 +89,7 @@ fun Application.server(dbConfig: DbConfig
         authenticate(AZURE) {
             apiRouting {
                 syfo(BehandlerDialogmeldingBestilling(monitor, dataSource), dataSource)
+                saf()
             }
         }
     }
