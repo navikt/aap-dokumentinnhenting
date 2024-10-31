@@ -1,5 +1,7 @@
 package dokumentinnhenting
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
@@ -19,10 +21,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import no.nav.aap.komponenter.server.AZURE
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestilling
 import dokumentinnhenting.integrasjoner.syfo.status.dialogmeldingStatusStream
 import dokumentinnhenting.routes.syfo
-import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
@@ -46,10 +46,11 @@ fun main() {
         connectionGroupSize = 8
         workerGroupSize = 8
         callGroupSize = 16
-    }) { server(DbConfig()) }.start(wait = true)
+    }, module = Application::server).start(wait = true)
 }
 
-fun Application.server(dbConfig: DbConfig
+fun Application.server(
+    config: Config = Config(),
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     commonKtorModule(
@@ -75,18 +76,18 @@ fun Application.server(dbConfig: DbConfig
         }
     }
 
-    val dataSource = initDatasource(dbConfig)
+    val dataSource = initDatasource(config.DbConfig)
     Migrering.migrate(dataSource)
     //val motor = module(dataSource) // Todo: implementer motor
 
-    val dialogmeldingStatusStream = dialogmeldingStatusStream(prometheus, dataSource)
+    //val dialogmeldingStatusStream = dialogmeldingStatusStream(prometheus, dataSource)
 
     routing {
-        actuator(prometheus, dialogmeldingStatusStream)
+        actuator(prometheus)
 
         authenticate(AZURE) {
             apiRouting {
-                syfo(BehandlerDialogmeldingBestilling(monitor, dataSource), dataSource)
+                syfo(dataSource,monitor)
                 saf()
             }
         }
@@ -119,12 +120,6 @@ fun Application.module(dataSource: DataSource): Motor {
 
     return motor
 }*/
-
-class DbConfig(
-    val url: String = requiredConfigForKey("NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_JDBC_URL"),
-    val username: String = requiredConfigForKey("NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_USERNAME"),
-    val password: String = requiredConfigForKey("NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_PASSWORD"),
-)
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
     jdbcUrl = dbConfig.url

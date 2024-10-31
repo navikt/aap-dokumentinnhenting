@@ -22,7 +22,7 @@ class TestApp {
 
 fun main() {
     val postgres = postgreSQLContainer()
-    val fakes = Fakes(azurePort = 8081)
+    val fakes = Fakes()
 
     // Starter server
     embeddedServer(Netty, port = 8080) {
@@ -35,7 +35,13 @@ fun main() {
         // jdbc URL contains the host and port and database name.
         println("jdbcUrl: ${postgres.jdbcUrl}. Password: ${postgres.password}. Username: ${postgres.username}.")
         server(
-            dbConfig
+            Config(
+                DbConfig(
+                    url = postgres.jdbcUrl,
+                    username = postgres.username,
+                    password = postgres.password
+                )
+            )
         )
         module(fakes)
 
@@ -54,7 +60,7 @@ private fun Application.module(fakes: Fakes) {
     }
 }
 
-private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
+fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
     val postgres = PostgreSQLContainer<Nothing>("postgres:16")
     postgres.waitingFor(HostPortWaitStrategy().withStartupTimeout(Duration.of(60L, ChronoUnit.SECONDS)))
     postgres.start()

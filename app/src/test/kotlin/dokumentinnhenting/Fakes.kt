@@ -1,5 +1,7 @@
 package dokumentinnhenting
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import dokumentinnhenting.integrasjoner.saf.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
@@ -15,7 +17,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
-class Fakes(azurePort: Int): AutoCloseable {
+class Fakes: AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
     private val azure = embeddedServer(Netty, port = 0, module = { azureFake() }).start()
     private val saf = embeddedServer(Netty, port = 0, module = {safFake()}).start()
@@ -32,6 +34,9 @@ class Fakes(azurePort: Int): AutoCloseable {
         System.setProperty("integrasjon.saf.url.rest", "http://localhost:${safPort()}/rest")
         System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${safPort()}/graphql")
         System.setProperty("integrasjon.saf.scope", "saf")
+        // KAFKA
+
+
     }
 
     fun azurePort(): Int {
@@ -54,7 +59,10 @@ class Fakes(azurePort: Int): AutoCloseable {
 
     private fun Application.safFake(){
         install(ContentNegotiation) {
-            jackson()
+            jackson{
+                registerModule(JavaTimeModule())
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            }
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
