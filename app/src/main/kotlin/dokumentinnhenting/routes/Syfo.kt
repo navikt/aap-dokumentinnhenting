@@ -18,7 +18,7 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource, monitor: Events
 ) {
     route("/syfo") {
         route("/dialogmeldingbestilling").post<Unit, String, BehandlingsflytToDialogmeldingDTO> { _, req ->
-            val service =BehandlerDialogmeldingBestilling(monitor, dataSource)
+            val service = BehandlerDialogmeldingBestilling(monitor, dataSource)
             respond (service.dialogmeldingBestilling(req))
         }
 
