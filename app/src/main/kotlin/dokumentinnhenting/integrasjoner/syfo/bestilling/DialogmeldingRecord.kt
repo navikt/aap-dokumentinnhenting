@@ -6,5 +6,9 @@ data class DialogmeldingRecord (
     val dialogmeldingUuid: UUID,
     val behandlerRef: String,
     val personIdent: String,
-    val sakId: String
+    val saksnummer: String,
+    val dokumentasjonType: DokumentasjonType,
+    val behandlerNavn: String,
+    val veilederNavn: String,
+    val fritekst: String,
 )

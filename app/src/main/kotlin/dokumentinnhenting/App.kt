@@ -1,7 +1,5 @@
 package dokumentinnhenting
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
@@ -23,11 +21,18 @@ import no.nav.aap.komponenter.server.AZURE
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.status.dialogmeldingStatusStream
 import dokumentinnhenting.routes.syfo
+import dokumentinnhenting.util.motor.ProsesseringsJobber
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.commonKtorModule
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.api.motorApi
+import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
+import no.nav.aap.motor.retry.RetryService
 import saf
+import javax.sql.DataSource
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
@@ -78,28 +83,28 @@ fun Application.server(
 
     val dataSource = initDatasource(config.DbConfig)
     Migrering.migrate(dataSource)
-    //val motor = module(dataSource) // Todo: implementer motor
+    val motor = module(dataSource)
 
-    //val dialogmeldingStatusStream = dialogmeldingStatusStream(prometheus, dataSource)
+    dialogmeldingStatusStream(prometheus, dataSource)
 
     routing {
-        actuator(prometheus)
+        actuator(prometheus, motor)
 
         authenticate(AZURE) {
             apiRouting {
-                syfo(dataSource,monitor)
+                syfo(dataSource)
                 saf()
+                motorApi(dataSource)
             }
         }
     }
 }
 
-/*
 fun Application.module(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
-        logInfoProvider = BehandlingsflytLogInfoProvider,
+        logInfoProvider = NoExtraLogInfoProvider,
         jobber = ProsesseringsJobber.alle()
     )
 
@@ -107,19 +112,19 @@ fun Application.module(dataSource: DataSource): Motor {
         RetryService(dbConnection).enable()
     }
 
-    environment.monitor.subscribe(ApplicationStarted) {
+    monitor.subscribe(ApplicationStarted) {
         motor.start()
     }
-    environment.monitor.subscribe(ApplicationStopped) { application ->
+    monitor.subscribe(ApplicationStopped) { application ->
         application.environment.log.info("Server har stoppet")
         motor.stop()
         // Release resources and unsubscribe from events
-        application.environment.monitor.unsubscribe(ApplicationStarted) {}
-        application.environment.monitor.unsubscribe(ApplicationStopped) {}
+        application.monitor.unsubscribe(ApplicationStarted) {}
+        application.monitor.unsubscribe(ApplicationStopped) {}
     }
 
     return motor
-}*/
+}
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
     jdbcUrl = dbConfig.url

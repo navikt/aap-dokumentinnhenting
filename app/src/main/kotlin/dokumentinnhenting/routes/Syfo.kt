@@ -5,27 +5,30 @@ import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestilling
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDialogmeldingDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
-import io.ktor.events.*
 import no.nav.aap.komponenter.dbconnect.transaction
+import java.util.*
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.syfo(dataSource: DataSource, monitor: Events
+fun NormalOpenAPIRoute.syfo(dataSource: DataSource
 ) {
     route("/syfo") {
-        route("/dialogmeldingbestilling").post<Unit, String, BehandlingsflytToDialogmeldingDTO> { _, req ->
-            val service = BehandlerDialogmeldingBestilling(monitor, dataSource)
-            respond (service.dialogmeldingBestilling(req))
+        route("/dialogmeldingbestilling").post<Unit, UUID, BehandlingsflytToDialogmeldingDTO> { _, req ->
+            val response = dataSource.transaction { connection ->
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                service.dialogmeldingBestilling(req)
+            }
+            respond (response)
         }
 
         route("/status/{saksnummer}").get<HentDialogmeldingStatusDto, List<DialogmeldingStatusTilBehandslingsflytDTO>> { req ->
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
-                repository.hentBySakId(req.saksnummer)
+                repository.hentBySaksnummer(req.saksnummer)
             }
             respond(response)
         }

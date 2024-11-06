@@ -1,6 +1,7 @@
 package dokumentinnhenting.syfo
 
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -53,14 +54,14 @@ class SyfoKafkaStreamTest {
     @Test
     fun kanTaImotStatusOppdateringer() {
         val uuid = UUID.randomUUID()
-        val sakId = "sakId"
-        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "personIdent", sakId)
+        val saksnummer = "saksnummer"
+        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "veiledernavn", "fritekst")
         setupRepositoryData(existingRecord)
 
         val incomingRecord = DialogmeldingStatusDTO(uuid.toString(), OffsetDateTime.now(), MeldingStatusType.BESTILT, "tekst", uuid.toString())
 
         inputTopic.pipeInput("key", incomingRecord)
-        val oppdatertHendelse = hentRepositoryData(sakId)
+        val oppdatertHendelse = hentRepositoryData(saksnummer)
         assertEquals(uuid, oppdatertHendelse[0].dialogmeldingUuid)
     }
 
@@ -89,10 +90,10 @@ class SyfoKafkaStreamTest {
         }
     }
 
-    private fun hentRepositoryData(sakId: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
+    private fun hentRepositoryData(saksnummer: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
         return InitTestDatabase.dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
-            dialogmeldingRepository.hentBySakId(sakId)
+            dialogmeldingRepository.hentBySaksnummer(saksnummer)
         }
     }
 }

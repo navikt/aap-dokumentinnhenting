@@ -12,17 +12,6 @@ import javax.sql.DataSource
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-/*
-private const val TEMA = "AAP" // what here
-private const val MOTTATT = "MOTTATT" // what here
-private const val EESSI = "EESSI" // what here
-private const val EESSI = "OPPFØLGING" // what here
-*/
-
-// TODO:
-//  Feilhåndtering (Må bruke jobbmotor), 1 steg for write to stream, 1 steg for write to db
-//  Må avklare om syfo kan pushe tagsene over på det mottatte dokumentet, slik at postmottak faktisk kan hente det ut
-
 const val SYFO_STATUS_DIALOGMELDING_TOPIC = "teamsykefravr.behandler-dialogmelding-status"
 
 class DialogmeldingStatusStream(
@@ -69,7 +58,7 @@ class DialogmeldingStatusStream(
     private fun hentSakListe(): List<String> {
         return datasource.transaction { connection ->
             val repository = DialogmeldingRepository(connection)
-            repository.hentAlleSakIder()
+            repository.hentalleSaksnumre()
         }
     }
 }
