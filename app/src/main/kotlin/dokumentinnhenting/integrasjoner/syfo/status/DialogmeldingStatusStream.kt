@@ -42,7 +42,11 @@ class DialogmeldingStatusStream(
 
     private fun scheduleDialogMeldingerRefresh() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-            { dialogMeldinger = hentSakListe().toMutableList() },
+            {
+                log.info("Henter saksliste...")
+                dialogMeldinger = hentSakListe().toMutableList()
+                log.info("Fant ${dialogMeldinger.count()}")
+            },
             0, 1, TimeUnit.MINUTES
         )
 
