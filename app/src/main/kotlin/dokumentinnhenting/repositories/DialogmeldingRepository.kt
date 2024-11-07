@@ -59,13 +59,13 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentalleSaksnumre(): List<String> {
+    fun hentalleDialogIder(): List<String> {
         val query = """
-            SELECT SAKSNUMMER FROM DIALOGMELDING
+            SELECT DIALOGMELDING_UUID FROM DIALOGMELDING
         """.trimIndent()
 
         return connection.queryList(query) {
-            setRowMapper { it.getString("SAKSNUMMER") }
+            setRowMapper { it.getString("DIALOGMELDING_UUID") }
         }
     }
 

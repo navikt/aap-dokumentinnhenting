@@ -62,7 +62,7 @@ class DialogmeldingStatusStream(
     private fun hentSakListe(): List<String> {
         return datasource.transaction { connection ->
             val repository = DialogmeldingRepository(connection)
-            repository.hentalleSaksnumre()
+            repository.hentalleDialogIder()
         }
     }
 }
