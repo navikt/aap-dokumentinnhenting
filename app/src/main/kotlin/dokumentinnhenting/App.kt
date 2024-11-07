@@ -92,10 +92,12 @@ fun Application.server(
 
         authenticate(AZURE) {
             apiRouting {
-                syfo(dataSource)
                 saf()
                 motorApi(dataSource)
             }
+        }
+        apiRouting {
+            syfo(dataSource)
         }
     }
 }
