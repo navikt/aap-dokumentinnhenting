@@ -3,7 +3,9 @@ package dokumentinnhenting.syfo
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.integrasjoner.syfo.status.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
+import dokumentinnhenting.util.motor.syfo.syfosteg.SyfoSteg
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 
@@ -36,7 +38,7 @@ class SyfoKafkaBestillingTest {
     }
 
     @Test
-    fun kanSendeBestilling() {
+    fun kanKjøreSteg() {
         val saksnummer = "saksnummer"
         val dto = BehandlingsflytToDialogmeldingDTO(
             behandlerRef = "behandlerRef",
@@ -52,8 +54,17 @@ class SyfoKafkaBestillingTest {
         lateinit var dialogmeldingUuid: UUID
 
         InitTestDatabase.dataSource.transaction { connection ->
+
+            //Første del, lagring av dialogmelding i repository
+            dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(FlytJobbRepository(connection), DialogmeldingRepository(connection))
+
+            //Andre del, henter data i steg og sender til kafka
             dialogmeldingUuid = behandlerDialogmeldingBestillingService.dialogmeldingBestilling(dto)
+            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, mockProducer)
+            steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
+
+            jobbRepository = FlytJobbRepository(connection)
         }
 
         verify(exactly = 1) {
