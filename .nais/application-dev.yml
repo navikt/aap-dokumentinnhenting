@@ -14,7 +14,7 @@ spec:
     max: 1
     min: 1
   ingresses:
-    - https://aap-dokumentinnhenting.intern.dev.nav.no
+    - "https://aap-dokumentinnhenting.intern.dev.nav.no"
   azure:
     application:
       enabled: true
