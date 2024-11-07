@@ -1,5 +1,7 @@
 package dokumentinnhenting.util.motor.syfo.syfosteg
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.config.ProducerConfig
@@ -14,10 +16,11 @@ const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-b
 class BestillLegeerklæringSteg(
    // monitor: Events, //TODO: Få denne inn
     private val dialogmeldingRepository: DialogmeldingRepository,
-    private val producer: KafkaProducer<String, DialogmeldingToBehandlerBestillingDTO> = KafkaProducer(ProducerConfig().properties())
-): SyfoSteg.Utfører {
-    private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
+    private val producer: KafkaProducer<String, String> = KafkaProducer(ProducerConfig().properties()),
 
+): SyfoSteg.Utfører {
+    private val objectMapper = jacksonObjectMapper()
+    private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
     //TODO: Få denne inn
     /*
     init {
@@ -41,7 +44,9 @@ class BestillLegeerklæringSteg(
         val funnetBestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
         val mappedBestilling = mapToDialogMeldingBestilling(dialogmeldingUuid, funnetBestilling)
 
-        val record = ProducerRecord(SYFO_BESTILLING_DIALOGMELDING_TOPIC, mappedBestilling.dialogmeldingUuid, mappedBestilling)
+        val jsonValue = objectMapper.writeValueAsString(mappedBestilling)
+
+        val record = ProducerRecord(SYFO_BESTILLING_DIALOGMELDING_TOPIC, mappedBestilling.dialogmeldingUuid, jsonValue)
         try {
             producer.send(record).get()
         } catch (e: Exception) {

@@ -24,7 +24,7 @@ import javax.sql.DataSource
 
 class SyfoKafkaBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
-    private val mockProducer = mockk<KafkaProducer<String, DialogmeldingToBehandlerBestillingDTO>>(relaxed = true)
+    private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
     @BeforeEach
