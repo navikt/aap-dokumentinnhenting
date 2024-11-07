@@ -11,6 +11,7 @@ import no.nav.aap.komponenter.dbtest.InitTestDatabase
 
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -25,7 +26,6 @@ class SyfoKafkaBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
     private val mockProducer = mockk<KafkaProducer<String, DialogmeldingToBehandlerBestillingDTO>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
-    private lateinit var jobbRepository: FlytJobbRepository
 
     @BeforeEach
     fun setup() {
@@ -63,8 +63,6 @@ class SyfoKafkaBestillingTest {
             dialogmeldingUuid = behandlerDialogmeldingBestillingService.dialogmeldingBestilling(dto)
             val steg = BestillLegeerklæringSteg(dialogmeldingRepository, mockProducer)
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
-
-            jobbRepository = FlytJobbRepository(connection)
         }
 
         verify(exactly = 1) {
