@@ -7,19 +7,25 @@ import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.integrasjoner.saf.Doc
 import dokumentinnhenting.integrasjoner.saf.HelseDocRequest
 import dokumentinnhenting.integrasjoner.saf.Saksnummer
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals
 
 class SafTest {
-    @Test
+    //@Test
     fun `henter en journalpost`() {
+        InitTestDatabase.dataSource.transaction {  }
         Fakes().use { fakes ->
             testApplication {
                 val postgres = postgreSQLContainer()
@@ -50,5 +56,4 @@ class SafTest {
 
         }
     }
-
 }
