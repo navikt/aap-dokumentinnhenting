@@ -55,6 +55,7 @@ class DialogmeldingStatusStream(
     //TODO: Hensiktsmessig å batche?
     private fun oppdaterStatus(record: DialogmeldingStatusDTO) {
         transactionProvider.inTransaction {
+            log.info("Oppdaterer status på ${record.bestillingUuid} med status ${record.status}")
             dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
         }
     }
