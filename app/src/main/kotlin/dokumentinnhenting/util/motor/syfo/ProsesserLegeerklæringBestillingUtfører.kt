@@ -19,7 +19,7 @@ class ProsesserLegeerklæringBestillingUtfører (
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return ProsesserLegeerklæringBestillingUtfører(
                 ProsesserStegSyfoService.konstruer(
-                    connection = connection,
+                    connection = connection
                 )
             )
         }
