@@ -11,7 +11,7 @@ import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import java.net.URI
 
 class SyfoGateway {
-    private val syfoUri = requiredConfigForKey("integrasjon.syfo.base.url" + "/api/v1/behandler")
+    private val syfoUri = requiredConfigForKey("integrasjon.syfo.base.url")
     private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.syfo.scope"))
 
     private val client = RestClient.withDefaultResponseHandler(
@@ -28,7 +28,7 @@ class SyfoGateway {
         )
 
         try {
-            return requireNotNull(client.get(uri = URI.create("$syfoUri/search"), request = request, mapper = { body, _ -> DefaultJsonMapper.fromJson(body)} ))
+            return requireNotNull(client.get(uri = URI.create("$syfoUri/api/v1/behandler"), request = request, mapper = { body, _ -> DefaultJsonMapper.fromJson(body)} ))
         } catch (e : Exception) {
             throw RuntimeException("Feil ved oppslag av behandler i syfo: ${e.message}")
         }
