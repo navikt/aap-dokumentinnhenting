@@ -7,6 +7,9 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDialogmeldingDTO
+import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
+import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
+import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
@@ -31,6 +34,11 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
                 repository.hentBySaksnummer(req.saksnummer)
             }
             respond(response)
+        }
+
+        route("/behandleroppslag/search").post<Unit, List<BehandlerOppslagResponse>, FritekstRequest> { _, req ->
+            val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
+            respond(behandlere)
         }
     }
 }

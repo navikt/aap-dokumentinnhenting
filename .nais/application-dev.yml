@@ -66,9 +66,9 @@ spec:
       value: http://behandlingsflyt
     - name: BEHANDLINGSFLYT_SCOPE
       value: api://dev-gcp.aap.behandlingsflyt/.default
-    - name: SYFO_BASE_URL
+    - name: INTEGRASJON_SYFO_BASE_URL
       value: http://isdialogmelding.teamsykefravr
-    - name: SYFO_SCOPE
+    - name: INTEGRASJON_SYFO_SCOPE
       value: dev-gcp:teamsykefravr:isdialogmelding
     - name: INTEGRASJON_SAF_URL_GRAPHQL
       value: https://saf-q2.dev-fss-pub.nais.io/graphql
@@ -81,8 +81,10 @@ spec:
       rules:
         - application: behandlingsflyt
         - application: paw-patrol
+        - application: saksbehandling
     outbound:
       rules:
+        - application: saksbehandling
         - application: isdialogmelding
           namespace: teamsykefravr
       external:
