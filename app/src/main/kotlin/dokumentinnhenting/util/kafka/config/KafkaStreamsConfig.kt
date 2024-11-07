@@ -13,7 +13,7 @@ data class ProducerConfig(
     val brokers: String = requiredConfigForKey("KAFKA_BROKERS"),
     val schemaRegistry: SchemaRegistryConfig? = SchemaRegistryConfig(),
     val ssl: SslConfig? = SslConfig(),
-    val compressionType: String = "snappy",
+    // val compressionType: String = "snappy", - DISABLED
 ) {
     fun properties(): Properties = Properties().apply {
         put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
@@ -22,7 +22,7 @@ data class ProducerConfig(
         schemaRegistry?.let { putAll(it.properties()) }
         ssl?.let { putAll(it.properties()) }
         put(ProducerConfig.ACKS_CONFIG, "all")
-        put(ProducerConfig.COMPRESSION_TYPE_CONFIG, compressionType)
+        // put(ProducerConfig.COMPRESSION_TYPE_CONFIG, compressionType) - DISABLED
     }
 }
 
@@ -31,7 +31,7 @@ data class StreamsConfig(
     val brokers: String = requiredConfigForKey("KAFKA_BROKERS"),
     val ssl: SslConfig? = SslConfig(),
     val schemaRegistry: SchemaRegistryConfig? = SchemaRegistryConfig(),
-    val compressionType: String = "snappy",
+    //val compressionType: String = "snappy", - DISABLED
     val additionalProperties: Properties = Properties(),
 ) {
     fun streamsProperties(): Properties = Properties().apply {
@@ -59,8 +59,8 @@ data class StreamsConfig(
         this[StreamsConfig.producerPrefix(ProducerConfig.BATCH_SIZE_CONFIG)] = 0 // do not batch
         this[StreamsConfig.producerPrefix(ProducerConfig.LINGER_MS_CONFIG)] = 0 // send immediately
 
-        // Configuration for message size
-        this[StreamsConfig.producerPrefix(ProducerConfig.COMPRESSION_TYPE_CONFIG)] = compressionType
+        // Configuration for message size - DISABLED
+        //this[StreamsConfig.producerPrefix(ProducerConfig.COMPRESSION_TYPE_CONFIG)] = compressionType
 
         /*
          * Enable exactly onces semantics:
