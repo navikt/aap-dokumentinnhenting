@@ -1,6 +1,6 @@
 package dokumentinnhenting.repositories
 
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDialogmeldingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
@@ -92,7 +92,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentByDialogId(dialogmeldingUuid: UUID): BehandlingsflytToDialogmeldingDTO {
+    fun hentByDialogId(dialogmeldingUuid: UUID): BehandlingsflytToDokumentInnhentingBestillingDTO {
         val query = """
             SELECT * FROM DIALOGMELDING
             WHERE DIALOGMELDING_UUID = ?
@@ -103,11 +103,12 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(1, dialogmeldingUuid)
             }
             setRowMapper {
-                BehandlingsflytToDialogmeldingDTO(
+                BehandlingsflytToDokumentInnhentingBestillingDTO(
                     it.getString("BEHANDLER_REF"),
                     it.getString("BEHANDLER_NAVN"),
                     it.getString("VEILEDER_NAVN"),
                     it.getString("PERSON_ID"),
+                    it.getString("PERSON_NAVN"),
                     it.getString("FRITEKST"),
                     null,
                     it.getString("SAKSNUMMER"),

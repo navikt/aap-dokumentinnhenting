@@ -1,6 +1,5 @@
 package dokumentinnhenting.util.motor.syfo.syfosteg
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
@@ -57,8 +56,8 @@ class BestillLegeerklæringSteg(
         return SyfoSteg.Resultat.FULLFØRT
     }
 
-    private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, dto: BehandlingsflytToDialogmeldingDTO): DialogmeldingToBehandlerBestillingDTO {
-        val brevTekst = genererBrev(dto)
+    private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, dto: BehandlingsflytToDokumentInnhentingBestillingDTO): DialogmeldingToBehandlerBestillingDTO {
+        val brevTekst = genererBrev(BrevGenereringRequest(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn, dto.dokumentasjonType))
         val kodeStruktur = mapDialogmeldingKodeStruktur(dto.dokumentasjonType)
         return DialogmeldingToBehandlerBestillingDTO(
             dto.behandlerRef,

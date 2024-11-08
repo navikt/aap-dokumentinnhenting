@@ -1,16 +1,16 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
-fun genererBrev(dto: BehandlingsflytToDialogmeldingDTO): String {
+fun genererBrev(dto: BrevGenereringRequest): String {
     return when (dto.dokumentasjonType) {
-        DokumentasjonType.L8 -> brev8L(dto.personIdent, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
-        DokumentasjonType.L40 -> brev40L(dto.personIdent, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
+        DokumentasjonType.L8 -> brev8L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
+        DokumentasjonType.L40 -> brev40L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.L120 -> brev120()
-        DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personIdent, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
+        DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring()
     }
 }
 
-fun brev8L(navn: String, fnr: String, fritekst: String, veileder: String): String {
+private fun brev8L(navn: String, fnr: String, fritekst: String, veileder: String): String {
     return """
         Spørsmål om tilleggsopplysninger vedrørende pasient\n
         Gjelder pasient: $navn, $fnr.\n
@@ -26,7 +26,7 @@ fun brev8L(navn: String, fnr: String, fritekst: String, veileder: String): Strin
         Nav
     """.trimIndent()
 }
-fun brev40L(navn: String, fnr: String, fritekst: String, veileder: String): String {
+private fun brev40L(navn: String, fnr: String, fritekst: String, veileder: String): String {
     return """
         Forespørsel om legeerklæring ved arbeidsuførhet\n
         Gjelder pasient: $navn, $fnr.\n
@@ -42,7 +42,7 @@ fun brev40L(navn: String, fnr: String, fritekst: String, veileder: String): Stri
         Nav
     """.trimIndent()
 }
-fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String, veileder: String): String {
+private fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String, veileder: String): String {
     return """
         Melding fra Nav\n
         Gjelder pasient: $navn, $fnr.\n
@@ -52,11 +52,23 @@ fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String, veileder: Str
         Nav
     """.trimIndent()
 }
-fun brevReturLegeerklæring(): String {
+private fun brevReturLegeerklæring(): String {
     //TODO: Implement me
     return "Implement me"
 }
-fun brev120(): String {
+private fun brev120(): String {
     //TODO: Implement me
     return "Implement me"
 }
+
+data class BrevPreviewResponse(
+    val konstruertBrev: String
+)
+
+data class BrevGenereringRequest(
+    val personNavn: String,
+    val personIdent: String,
+    val dialogmeldingTekst: String,
+    val veilederNavn: String,
+    val dokumentasjonType: DokumentasjonType
+)

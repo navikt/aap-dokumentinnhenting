@@ -23,7 +23,7 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    fun dialogmeldingBestilling(dto: BehandlingsflytToDialogmeldingDTO): UUID {
+    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDTO): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = DialogmeldingRecord(
             dialogmeldingUuid,

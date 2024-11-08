@@ -5,13 +5,12 @@ import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDialogmeldingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
-import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDto
+import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDTO
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.transaction
 import java.util.*
@@ -20,7 +19,7 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.syfo(dataSource: DataSource
 ) {
     route("/syfo") {
-        route("/dialogmeldingbestilling").post<Unit, UUID, BehandlingsflytToDialogmeldingDTO> { _, req ->
+        route("/dialogmeldingbestilling").post<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO> { _, req ->
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
                 service.dialogmeldingBestilling(req)
@@ -28,7 +27,7 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
             respond (response)
         }
 
-        route("/status/{saksnummer}").get<HentDialogmeldingStatusDto, List<DialogmeldingStatusTilBehandslingsflytDTO>> { req ->
+        route("/status/{saksnummer}").get<HentDialogmeldingStatusDTO, List<DialogmeldingStatusTilBehandslingsflytDTO>> { req ->
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
                 repository.hentBySaksnummer(req.saksnummer)
@@ -39,6 +38,11 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
         route("/behandleroppslag/search").post<Unit, List<BehandlerOppslagResponse>, FritekstRequest> { _, req ->
             val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
             respond(behandlere)
+        }
+
+        route("/brevpreview").post<Unit, BrevPreviewResponse, BrevGenereringRequest> { _, req ->
+            val brevPreviewResponse = BrevPreviewResponse(genererBrev(req))
+            respond(brevPreviewResponse)
         }
     }
 }

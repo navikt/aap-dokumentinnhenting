@@ -13,4 +13,4 @@ data class DialogmeldingStatusTilBehandslingsflytDTO(
     val opprettet: LocalDateTime
 )
 
-data class HentDialogmeldingStatusDto(@PathParam("saksnummer") val saksnummer: String)
+data class HentDialogmeldingStatusDTO(@PathParam("saksnummer") val saksnummer: String)

@@ -11,7 +11,6 @@ import no.nav.aap.komponenter.dbtest.InitTestDatabase
 
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
-import javax.sql.DataSource
 
 class SyfoKafkaBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
@@ -40,9 +38,10 @@ class SyfoKafkaBestillingTest {
     @Test
     fun kanKjøreSteg() {
         val saksnummer = "saksnummer"
-        val dto = BehandlingsflytToDialogmeldingDTO(
+        val dto = BehandlingsflytToDokumentInnhentingBestillingDTO(
             behandlerRef = "behandlerRef",
             personIdent = "12345678910",
+            personNavn = "personNavn",
             saksnummer = saksnummer,
             dialogmeldingTekst = "tekst",
             dialogmeldingVedlegg = null,
