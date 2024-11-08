@@ -44,7 +44,6 @@ class SyfoKafkaBestillingTest {
             personNavn = "personNavn",
             saksnummer = saksnummer,
             dialogmeldingTekst = "tekst",
-            dialogmeldingVedlegg = null,
             dokumentasjonType = DokumentasjonType.L8,
             behandlerNavn = "behandlerNavn",
             veilederNavn = "veilederNavn"
