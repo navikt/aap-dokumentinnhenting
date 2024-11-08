@@ -22,7 +22,7 @@ import java.util.*
 
 class SyfoKafkaBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
-    private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
+    private val mockProducer = mockk<KafkaProducer<UUID, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
     @BeforeEach
@@ -64,9 +64,9 @@ class SyfoKafkaBestillingTest {
         }
 
         verify(exactly = 1) {
-            mockProducer.send(withArg { record: ProducerRecord<String, DialogmeldingToBehandlerBestillingDTO> ->
+            mockProducer.send(withArg { record: ProducerRecord<UUID, DialogmeldingToBehandlerBestillingDTO> ->
                 assert(record.topic() == SYFO_BESTILLING_DIALOGMELDING_TOPIC)
-                assert(record.key() == dialogmeldingUuid.toString())
+                assert(record.key() == dialogmeldingUuid)
             })
         }
 

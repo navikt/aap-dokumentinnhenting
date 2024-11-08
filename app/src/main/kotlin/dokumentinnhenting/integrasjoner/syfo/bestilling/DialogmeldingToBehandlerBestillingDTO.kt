@@ -1,9 +1,11 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
+import java.util.*
+
 data class DialogmeldingToBehandlerBestillingDTO(
     val behandlerRef: String,
     val personIdent: String,
-    val dialogmeldingUuid: String,
+    val dialogmeldingUuid: UUID,
     val dialogmeldingRefParent: String?,
     val dialogmeldingRefConversation: String,
     val dialogmeldingType: DialogmeldingType,

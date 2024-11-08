@@ -15,7 +15,7 @@ const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-b
 class BestillLegeerklæringSteg(
    // monitor: Events, //TODO: Få denne inn
     private val dialogmeldingRepository: DialogmeldingRepository,
-    private val producer: KafkaProducer<String, String> = KafkaProducer(ProducerConfig().properties()),
+    private val producer: KafkaProducer<UUID, String> = KafkaProducer(ProducerConfig().properties()),
 
 ): SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
@@ -62,7 +62,7 @@ class BestillLegeerklæringSteg(
         return DialogmeldingToBehandlerBestillingDTO(
             dto.behandlerRef,
             dto.personIdent,
-            dialogmeldingUuid.toString(),
+            dialogmeldingUuid,
             null, // Trenger vi denne?
             UUID.randomUUID().toString(), // Trenger vi denne?
             kodeStruktur.dialogmeldingType,
