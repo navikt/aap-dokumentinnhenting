@@ -94,10 +94,8 @@ fun Application.server(
             apiRouting {
                 saf()
                 motorApi(dataSource)
+                syfo(dataSource)
             }
-        }
-        apiRouting {
-            syfo(dataSource)
         }
     }
 }

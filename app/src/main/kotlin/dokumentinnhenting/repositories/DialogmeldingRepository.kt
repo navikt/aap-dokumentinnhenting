@@ -32,14 +32,15 @@ class DialogmeldingRepository(private val connection: DBConnection) {
     fun oppdaterDialogmeldingStatus(melding: DialogmeldingStatusDTO) {
         val query = """
             UPDATE DIALOGMELDING
-            SET STATUS = ?
+            SET STATUS = ?, STATUS_TEKST = ?
             WHERE DIALOGMELDING_UUID = ?
         """.trimIndent()
 
         connection.execute(query) {
             setParams {
                 setString(1, melding.status.toString())
-                setUUID(2, UUID.fromString(melding.bestillingUuid))
+                setString(2, melding.tekst)
+                setUUID(3, UUID.fromString(melding.bestillingUuid))
             }
         }
     }
@@ -83,6 +84,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 DialogmeldingStatusTilBehandslingsflytDTO(
                     it.getUUID("DIALOGMELDING_UUID"),
                     it.getEnumOrNull("STATUS"),
+                    it.getStringOrNull("STATUS_TEKST"),
                     it.getString("BEHANDLER_REF"),
                     it.getString("PERSON_ID"),
                     it.getString("SAKSNUMMER"),

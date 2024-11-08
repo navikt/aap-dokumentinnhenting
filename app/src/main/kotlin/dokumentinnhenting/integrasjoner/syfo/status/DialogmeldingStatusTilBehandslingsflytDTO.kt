@@ -7,6 +7,7 @@ import java.util.*
 data class DialogmeldingStatusTilBehandslingsflytDTO(
     val dialogmeldingUuid: UUID,
     val status: MeldingStatusType?,
+    val statusTekst: String?,
     val behandlerRef: String,
     val personId: String,
     val saksnummer: String,
