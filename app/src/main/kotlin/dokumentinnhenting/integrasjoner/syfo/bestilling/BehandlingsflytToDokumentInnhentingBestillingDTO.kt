@@ -7,7 +7,6 @@ data class BehandlingsflytToDokumentInnhentingBestillingDTO(
     val personIdent: String,
     val personNavn: String,
     val dialogmeldingTekst: String,
-    val dialogmeldingVedlegg: ByteArray?,    //Vedlegg til dialogmeldingen, en PDF på byte-array format.
     val saksnummer: String,
     val dokumentasjonType: DokumentasjonType
 )

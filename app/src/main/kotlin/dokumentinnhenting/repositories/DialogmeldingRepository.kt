@@ -112,7 +112,6 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getString("PERSON_ID"),
                     it.getString("PERSON_NAVN"),
                     it.getString("FRITEKST"),
-                    null,
                     it.getString("SAKSNUMMER"),
                     it.getEnum("DOKUMENTASJONTYPE")
                 )
