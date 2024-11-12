@@ -7,6 +7,7 @@ fun genererBrev(dto: BrevGenereringRequest): String {
         DokumentasjonType.L120 -> brev120()
         DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring()
+        DokumentasjonType.PURRING -> brevPurring()
     }
 }
 
@@ -54,11 +55,16 @@ private fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String, veile
 }
 private fun brevReturLegeerklæring(): String {
     //TODO: Implement me
-    return "Implement me"
+    return "Implement me brevReturLegeerklæring"
 }
 private fun brev120(): String {
     //TODO: Implement me
-    return "Implement me"
+    return "Implement me brev120"
+}
+
+private fun brevPurring(): String {
+    //TODO: Implement me
+    return "Implement me purrebrev"
 }
 
 data class BrevPreviewResponse(

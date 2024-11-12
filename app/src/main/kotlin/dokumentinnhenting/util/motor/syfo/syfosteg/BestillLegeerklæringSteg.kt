@@ -79,6 +79,7 @@ class BestillLegeerklæringSteg(
             DokumentasjonType.L8 -> DialogmeldingKodeStruktur(DialogmeldingType.DIALOG_FORESPORSEL, DialogmeldingKodeverk.FORESPORSEL, 1)
             DokumentasjonType.MELDING_FRA_NAV -> DialogmeldingKodeStruktur(DialogmeldingType.DIALOG_NOTAT, DialogmeldingKodeverk.HENVENDELSE, 8)
             DokumentasjonType.RETUR_LEGEERKLÆRING -> DialogmeldingKodeStruktur(DialogmeldingType.DIALOG_NOTAT, DialogmeldingKodeverk.HENVENDELSE, 3)
+            DokumentasjonType.PURRING -> DialogmeldingKodeStruktur(DialogmeldingType.DIALOG_FORESPORSEL, DialogmeldingKodeverk.FORESPORSEL, 2)
             DokumentasjonType.L120 -> TODO() // TODO: Neste fase, lage brev og mapping for 120
         }
     }
