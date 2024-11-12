@@ -4,6 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
@@ -12,6 +13,8 @@ import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDTO
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.util.BestillingCache
+import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import java.util.*
 import javax.sql.DataSource
@@ -20,7 +23,12 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
 ) {
     route("/syfo") {
         route("/dialogmeldingbestilling").post<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO> { _, req ->
+            if (BestillingCache.contains(req.saksnummer)) {
+                respondWithStatus(HttpStatusCode.TooManyRequests)
+            }
+
             val response = dataSource.transaction { connection ->
+                BestillingCache.add(req.saksnummer)
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
                 service.dialogmeldingBestilling(req)
             }
@@ -45,4 +53,4 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
             respond(brevPreviewResponse)
         }
     }
-}
+    }
