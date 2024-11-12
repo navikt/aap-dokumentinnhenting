@@ -55,7 +55,7 @@ class SyfoKafkaStreamTest {
     fun kanTaImotStatusOppdateringer() {
         val uuid = UUID.randomUUID()
         val saksnummer = "saksnummer"
-        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "veiledernavn", "fritekst")
+        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "veiledernavn", "fritekst", UUID.randomUUID())
         setupRepositoryData(existingRecord)
 
         val incomingRecord = DialogmeldingStatusDTO(uuid.toString(), OffsetDateTime.now(), MeldingStatusType.BESTILT, "tekst", uuid.toString())

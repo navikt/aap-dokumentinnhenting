@@ -1,45 +1,42 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt
 
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(BehandlingsflytClient::class.java)
+import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
+import no.nav.aap.komponenter.httpklient.httpclient.Header
+import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
+import java.net.URI
+import java.util.*
 
 class BehandlingsflytClient(
-   // private val behandlingsflytConfig: BehandlingsflytConfig,
-  //  private val prometheus: PrometheusMeterRegistry
-) {/* TODO: Skriv om denne til å bruke lib om den skal brukes
-    private val httpClient = HttpClientFactory.create()
+) {
+    private val uri = requiredConfigForKey("behandlingsflyt.base.url")
+    private val config = ClientConfig(scope = requiredConfigForKey("behandlingsflyt.scope"))
 
+    private val client = RestClient.withDefaultResponseHandler(
+        config = config,
+        tokenProvider = ClientCredentialsTokenProvider,
+    )
 
-    suspend fun hentIdenterForBehandling(currentToken: String, behandlingsnummer: String): IdenterRespons {
-        prometheus.cacheMiss(BEHANDLINGSFLYT).increment()
+    fun taSakAvVent(behandlingsReferanse: UUID, taAvVentRequest: TaAvVentRequest) {
+        val request = PostRequest(
+            additionalHeaders = listOf(
+                Header("Accept", "application/json"),
+            ),
+            body = taAvVentRequest
+        )
 
-        val token = azureTokenProvider.getOnBehalfOfToken(currentToken)
-        val url = "${behandlingsflytConfig.baseUrl}/pip/api/behandling/${behandlingsnummer}/identer"
-        log.info("Kaller behandlingsflyt med URL: $url")
-
-        val respons = httpClient.get(url) {
-            bearerAuth(token)
-            contentType(ContentType.Application.Json)
-        }
-
-        val body = respons.body<IdenterRespons>()
-
-        return when (respons.status) {
-            HttpStatusCode.OK -> {
-                val identer = body
-                identer
-            }
-
-            else -> throw BehandlingsflytException("Feil ved henting av identer fra behandlingsflyt: ${respons.status} : ${respons.bodyAsText()}")
+        try {
+            return requireNotNull(client.post(uri = URI.create("$uri/api/behandling/$behandlingsReferanse/ta-av-vent"), request = request, mapper = { body, _ -> DefaultJsonMapper.fromJson(body)} ))
+        } catch (e : Exception) {
+            throw BehandlingsflytException("Feil ved forsøk på å ta sak av vent i behandlingsflyt: ${e.message}")
         }
     }
-*/
-    companion object {
-        private const val IDENTER_SAK_PREFIX = "identer_sak"
-        private const val IDENTER_BEHANDLING_PREFIX = "identer_behandling"
-        private const val BEHANDLINGSFLYT = "Behandlingsflyt"
-    }
+
+    data class TaAvVentRequest(
+        val behandlingVersjon: Long,
+        val begrunnelse: String,
+    )
 }
-
-data class IdenterRespons(val søker: List<String>, val barn: List<String>)

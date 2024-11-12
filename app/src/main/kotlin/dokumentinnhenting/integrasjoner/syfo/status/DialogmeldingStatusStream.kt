@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.status
 
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.transaction
 import org.apache.kafka.common.serialization.Serdes
@@ -7,6 +8,7 @@ import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.Consumed
 import org.slf4j.LoggerFactory
+import java.util.*
 import javax.sql.DataSource
 
 import java.util.concurrent.Executors
@@ -57,6 +59,9 @@ class DialogmeldingStatusStream(
         transactionProvider.inTransaction {
             log.info("Oppdaterer status på ${record.bestillingUuid} med status ${record.status}")
             dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
+            if (record.status == MeldingStatusType.AVVIST) {
+                taSakAvVent(record)
+            }
         }
     }
 
@@ -64,6 +69,16 @@ class DialogmeldingStatusStream(
         return datasource.transaction { connection ->
             val repository = DialogmeldingRepository(connection)
             repository.hentalleDialogIder()
+        }
+    }
+
+    private fun taSakAvVent(record: DialogmeldingStatusDTO) {
+        return datasource.transaction { connection ->
+            val repository = DialogmeldingRepository(connection)
+            val sak = repository.hentByDialogId(UUID.fromString(record.bestillingUuid))
+
+            val behandlingsflytClient = BehandlingsflytClient()
+            behandlingsflytClient.taSakAvVent(sak.behandlingsReferanse, BehandlingsflytClient.TaAvVentRequest(0L, "Avvist hos SYFO med begrunnelse: ${record.tekst}"))
         }
     }
 }

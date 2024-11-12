@@ -53,4 +53,4 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
             respond(brevPreviewResponse)
         }
     }
-    }
+}

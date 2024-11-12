@@ -1,5 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
+import java.util.*
+
 data class BehandlingsflytToDokumentInnhentingBestillingDTO(
     val behandlerRef: String,
     val behandlerNavn: String,
@@ -8,7 +10,8 @@ data class BehandlingsflytToDokumentInnhentingBestillingDTO(
     val personNavn: String,
     val dialogmeldingTekst: String,
     val saksnummer: String,
-    val dokumentasjonType: DokumentasjonType
+    val dokumentasjonType: DokumentasjonType,
+    val behandlingsReferanse: UUID
 )
 
 enum class DokumentasjonType {

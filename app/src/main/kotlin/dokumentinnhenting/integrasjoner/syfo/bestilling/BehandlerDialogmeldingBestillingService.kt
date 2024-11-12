@@ -33,7 +33,8 @@ class BehandlerDialogmeldingBestillingService(
             dto.dokumentasjonType,
             dto.behandlerNavn,
             dto.veilederNavn,
-            dto.dialogmeldingTekst
+            dto.dialogmeldingTekst,
+            dto.behandlingsReferanse
         )
 
         val id = skrivDialogmeldingTilRepository(dialogMeldingRecord)

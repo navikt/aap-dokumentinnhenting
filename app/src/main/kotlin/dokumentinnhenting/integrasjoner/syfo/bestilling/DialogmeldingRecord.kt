@@ -11,4 +11,5 @@ data class DialogmeldingRecord (
     val behandlerNavn: String,
     val veilederNavn: String,
     val fritekst: String,
+    val behandlingsReferanse: UUID
 )

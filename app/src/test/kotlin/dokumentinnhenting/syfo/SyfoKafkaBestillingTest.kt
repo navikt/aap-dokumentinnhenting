@@ -46,7 +46,8 @@ class SyfoKafkaBestillingTest {
             dialogmeldingTekst = "tekst",
             dokumentasjonType = DokumentasjonType.L8,
             behandlerNavn = "behandlerNavn",
-            veilederNavn = "veilederNavn"
+            veilederNavn = "veilederNavn",
+            behandlingsReferanse = UUID.randomUUID()
         )
 
         lateinit var dialogmeldingUuid: UUID
