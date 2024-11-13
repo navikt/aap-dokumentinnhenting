@@ -87,6 +87,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getEnumOrNull("STATUS"),
                     it.getStringOrNull("STATUS_TEKST"),
                     it.getString("BEHANDLER_REF"),
+                    it.getString("BEHANDLER_NAVN"),
                     it.getString("PERSON_ID"),
                     it.getString("SAKSNUMMER"),
                     it.getLocalDateTime("OPPRETTET_TID"),

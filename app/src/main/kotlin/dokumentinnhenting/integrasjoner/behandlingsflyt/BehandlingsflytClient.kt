@@ -10,8 +10,7 @@ import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import java.net.URI
 import java.util.*
 
-class BehandlingsflytClient(
-) {
+class BehandlingsflytClient {
     private val uri = requiredConfigForKey("behandlingsflyt.base.url")
     private val config = ClientConfig(scope = requiredConfigForKey("behandlingsflyt.scope"))
 
