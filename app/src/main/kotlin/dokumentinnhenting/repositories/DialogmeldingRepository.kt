@@ -77,9 +77,9 @@ class DialogmeldingRepository(private val connection: DBConnection) {
     fun hentAlleDialogmeldingerYngreEnn2mMnd():List<DialogMeldingBestillingPersoner>{
         val query = """
             SELECT PERSON_ID, SAKSNUMMER, STATUS, OPPRETTET_TID FROM DIALOGMELDING
-            WHERE OPPRETTET_TID > NOW() - INTERVAL '2 months' AND STATUS = 'OK'
+            WHERE OPPRETTET_TID > NOW() - INTERVAL '2 months'
         """.trimIndent()
-
+        
         return connection.queryList(query){
             setRowMapper {
                 DialogMeldingBestillingPersoner(
@@ -169,7 +169,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         val saksnummer: String,
         val flytStatus: ProsesseringSyfoStatus?,
     )
-
+    
     data class DialogMeldingBestillingPersoner(
         val personId: String,
         val saksnummer: String,
