@@ -2,33 +2,32 @@ package dokumentinnhenting.syfo
 
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.integrasjoner.syfo.status.*
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
-import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
-
-import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.TestInputTopic
-import org.apache.kafka.streams.TopologyTestDriver
-import org.junit.jupiter.api.AfterEach
+import dokumentinnhenting.integrasjoner.syfo.status.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import no.nav.aap.komponenter.dbconnect.transaction
+import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.streams.TopologyTestDriver
+import org.apache.kafka.streams.TestInputTopic
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
+import java.time.LocalDateTime
 import java.util.*
 
-class SyfoKafkaStreamTest {
+class DialogmeldingMottakStreamTest {
     private lateinit var testDriver: TopologyTestDriver
-    private lateinit var inputTopic: TestInputTopic<String, DialogmeldingStatusDTO>
+    private lateinit var inputTopic: TestInputTopic<String, DialogmeldingMottakDTO>
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
     @BeforeEach
     fun setup() {
         InitTestDatabase.migrate()
         val dataSource = InitTestDatabase.dataSource
-        val transactionProvider = TransactionProvider(dataSource)
 
-        val dialogmeldingStatusStream = DialogmeldingStatusStream(dataSource, transactionProvider)
+        val dialogmeldingStatusStream = DialogmeldingMottakStream(dataSource)
 
         val topology = dialogmeldingStatusStream.topology
 
@@ -40,9 +39,9 @@ class SyfoKafkaStreamTest {
         testDriver = TopologyTestDriver(topology, props)
 
         inputTopic = testDriver.createInputTopic(
-            SYFO_STATUS_DIALOGMELDING_TOPIC,
+            SYFO_DIALOGMELDING_MOTTAK_TOPIC,
             Serdes.String().serializer(),
-            dialogmeldingStatusDTOSerde().serializer()
+            dialogmeldingMottakDTOSerde().serializer()
         )
     }
 
@@ -52,35 +51,50 @@ class SyfoKafkaStreamTest {
     }
 
     @Test
-    fun kanTaImotStatusOppdateringer() {
+    fun kanTaImotDialogmeldinger() {
         val uuid = UUID.randomUUID()
         val saksnummer = "saksnummer"
         val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "veiledernavn", "fritekst", UUID.randomUUID())
         setupRepositoryData(existingRecord)
 
-        val incomingRecord = DialogmeldingStatusDTO(uuid.toString(), OffsetDateTime.now(), MeldingStatusType.BESTILT, "tekst", uuid.toString())
+        val incomingRecord = DialogmeldingMottakDTO(
+            "msgId",
+            "msgType",
+            "navLogId",
+            LocalDateTime.now(),
+            "conversationRef",
+            "parentRef",
+            "personIdentPasient",
+            "pasientAktoerId",
+            "personIdentBehandler",
+            "behandlerAktoerId",
+            "legekontorOrgNr",
+            "legekontorHerId",
+            "legekontorReshId",
+            "legekontorOrgName",
+            "legehpr",
+            Dialogmelding(
+                "id",
+                null,
+                null,
+                HenvendelseFraLegeHenvendelse(
+                    TemaKode("kodeverkOID", "dn", "v","kat","kod","tittel"),
+                    "tekstNotatInnhold",
+                    "dokIdNotat",
+                    null,
+                    null
+                ),
+                "navnHelsepersonell",
+                LocalDateTime.now()
+            ),
+            1,
+            "journalpostId",
+            "fellesformatXML"
+        )
 
         inputTopic.pipeInput("key", incomingRecord)
         val oppdatertHendelse = hentRepositoryData(saksnummer)
         assertEquals(uuid, oppdatertHendelse[0].dialogmeldingUuid)
-    }
-
-    @Test
-    fun kanSerialisereOgDeserialisere() {
-        val dto = DialogmeldingStatusDTO(
-            uuid = UUID.randomUUID().toString(),
-            createdAt = OffsetDateTime.now(),
-            status = MeldingStatusType.BESTILT,
-            tekst = "tekst",
-            bestillingUuid = UUID.randomUUID().toString()
-        )
-
-        val serde = dialogmeldingStatusDTOSerde()
-
-        val serialized = serde.serializer().serialize(SYFO_STATUS_DIALOGMELDING_TOPIC, dto)
-        val deserialized = serde.deserializer().deserialize(SYFO_STATUS_DIALOGMELDING_TOPIC, serialized)
-
-        assertEquals(dto, deserialized)
     }
 
     private fun setupRepositoryData(record: DialogmeldingRecord) {

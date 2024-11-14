@@ -19,7 +19,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import no.nav.aap.komponenter.server.AZURE
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
-import dokumentinnhenting.integrasjoner.syfo.status.dialogmeldingStatusStream
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingMottakStream
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
 import dokumentinnhenting.routes.syfo
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -86,6 +87,7 @@ fun Application.server(
     val motor = module(dataSource)
 
     dialogmeldingStatusStream(prometheus, dataSource)
+    dialogmeldingMottakStream(prometheus, dataSource)
 
     routing {
         actuator(prometheus, motor)

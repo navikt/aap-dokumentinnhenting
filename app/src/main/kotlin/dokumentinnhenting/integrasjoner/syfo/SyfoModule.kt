@@ -1,5 +1,7 @@
-package dokumentinnhenting.integrasjoner.syfo.status
+package dokumentinnhenting.integrasjoner.syfo
 
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakStream
+import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusStream
 import dokumentinnhenting.util.kafka.KafkaStream
 import io.ktor.server.application.*
 import io.micrometer.core.instrument.MeterRegistry
@@ -14,6 +16,18 @@ fun Application.dialogmeldingStatusStream(registry: MeterRegistry, dataSource: D
   if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
   val config = StreamsConfig()
   val stream = KafkaStream(DialogmeldingStatusStream(dataSource).topology, config, registry)
+  stream.start()
+
+  monitor.subscribe(ApplicationStopped) {
+    stream.close()
+  }
+  return stream
+}
+
+fun Application.dialogmeldingMottakStream(registry: MeterRegistry, dataSource: DataSource): Stream {
+  if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
+  val config = StreamsConfig()
+  val stream = KafkaStream(DialogmeldingMottakStream(dataSource).topology, config, registry)
   stream.start()
 
   monitor.subscribe(ApplicationStopped) {

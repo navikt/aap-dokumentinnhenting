@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
 
-class SyfoKafkaBestillingTest {
+class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
     private val mockProducer = mockk<KafkaProducer<UUID, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
