@@ -111,7 +111,8 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getString("PERSON_ID"),
                     it.getString("SAKSNUMMER"),
                     it.getLocalDateTime("OPPRETTET_TID"),
-                    it.getUUID("BEHANDLINGSREFERANSE")
+                    it.getUUID("BEHANDLINGSREFERANSE"),
+                    it.getString("FRITEKST")
                 )
             }
         }

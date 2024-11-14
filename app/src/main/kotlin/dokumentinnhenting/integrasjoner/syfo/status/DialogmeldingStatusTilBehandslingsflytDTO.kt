@@ -13,7 +13,8 @@ data class DialogmeldingStatusTilBehandslingsflytDTO(
     val personId: String,
     val saksnummer: String,
     val opprettet: LocalDateTime,
-    val behandlingsReferanse: UUID
+    val behandlingsReferanse: UUID,
+    val fritekst: String
 )
 
 data class HentDialogmeldingStatusDTO(@PathParam("saksnummer") val saksnummer: String)
