@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-behandler-dialogmelding-bestilling"
+const val KILDE = "AAP"
 
 class BestillLegeerklæringSteg(
    // monitor: Events, //TODO: Få denne inn
@@ -69,7 +70,8 @@ class BestillLegeerklæringSteg(
             kodeStruktur.dialogmeldingKodeverk,
             kodeStruktur.dialogmeldingKode,
             brevTekst,
-            null
+            null,
+            KILDE
         )
     }
 

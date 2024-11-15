@@ -13,6 +13,7 @@ data class DialogmeldingToBehandlerBestillingDTO(
     val dialogmeldingKode: Int,
     val dialogmeldingTekst: String,
     val dialogmeldingVedlegg: ByteArray? = null,
+    val kilde: String
 )
 
 enum class DialogmeldingType {
