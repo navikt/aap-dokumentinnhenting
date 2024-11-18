@@ -27,6 +27,7 @@ private fun brev8L(navn: String, fnr: String, fritekst: String, veileder: String
         Nav
     """.trimIndent()
 }
+
 private fun brev40L(navn: String, fnr: String, fritekst: String, veileder: String): String {
     return """
         Forespørsel om legeerklæring ved arbeidsuførhet\n
@@ -43,6 +44,7 @@ private fun brev40L(navn: String, fnr: String, fritekst: String, veileder: Strin
         Nav
     """.trimIndent()
 }
+
 private fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String, veileder: String): String {
     return """
         Melding fra Nav\n
@@ -53,10 +55,12 @@ private fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String, veile
         Nav
     """.trimIndent()
 }
+
 private fun brevReturLegeerklæring(): String {
     //TODO: Implement me
     return "Implement me brevReturLegeerklæring"
 }
+
 private fun brev120(): String {
     //TODO: Implement me
     return "Implement me brev120"

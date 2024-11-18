@@ -3,6 +3,7 @@ package dokumentinnhenting
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import dokumentinnhenting.integrasjoner.saf.*
+import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -13,14 +14,17 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.komponenter.config.requiredConfigForKey
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import java.util.*
 
 class Fakes: AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
     private val azure = embeddedServer(Netty, port = 0, module = { azureFake() }).start()
     private val saf = embeddedServer(Netty, port = 0, module = {safFake()}).start()
+    private val syfo = embeddedServer(Netty, port = 0, module = {syfoFake()}).start()
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -34,9 +38,16 @@ class Fakes: AutoCloseable {
         System.setProperty("integrasjon.saf.url.rest", "http://localhost:${safPort()}/rest")
         System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${safPort()}/graphql")
         System.setProperty("integrasjon.saf.scope", "saf")
-        // KAFKA
 
+        // Syfo
+        System.setProperty("integrasjon.syfo.base.url", "http://localhost:${syfoPort()}")
+        System.setProperty("integrasjon.syfo.scope", "scope")
+        System.setProperty("kafka.truststore.path", "trust")
+        System.setProperty("kafka.keystore.path", "store")
+        System.setProperty("kafka.credstore.password", "password")
 
+        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+        System.setProperty("nais.cluster.name", "LOCAL")
     }
 
     fun azurePort(): Int {
@@ -47,9 +58,14 @@ class Fakes: AutoCloseable {
         return saf.engine.port()
     }
 
+    fun syfoPort(): Int {
+        return syfo.engine.port()
+    }
+
     override fun close() {
         azure.stop(0L, 0L)
         saf.stop(0L,0L)
+        syfo.stop(0, 0L)
     }
 
     private fun NettyApplicationEngine.port(): Int =
@@ -105,6 +121,35 @@ class Fakes: AutoCloseable {
                         extensions = null
                     )
                 )
+            }
+        }
+    }
+
+    private fun Application.syfoFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@syfoFake.log.info("SYFO :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+            }
+        }
+        routing{
+            route("/syfo") {
+                get("/behandleroppslag/search") {
+                    call.respond(listOf(
+                        BehandlerOppslagResponse(
+                            "type1", UUID.randomUUID().toString(), "32341234123", "Peppa", "The", "Pig", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "11223344"
+                        ),
+                        BehandlerOppslagResponse(
+                            "type2", UUID.randomUUID().toString(), "22341234123", "Ola", "Brunost", "Fårepølse", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "44332211"
+                        ),
+                        BehandlerOppslagResponse(
+                            "type3", UUID.randomUUID().toString(), "12341234123", "Kari", "", "Tau", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "22113344"
+                        ),
+                    ))
+                }
             }
         }
     }

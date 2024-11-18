@@ -3,22 +3,10 @@ package dokumentinnhenting
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.time.Duration
 import java.time.temporal.ChronoUnit
-
-class TestApp {
-    @Test
-    @EnabledIfEnvironmentVariable(named = "TEST_APP", matches = "RUN")
-    fun `kjør test-app`() {
-        // For å kjøre test-app fra kommandolinjen, kjør
-        // cd app && TEST_APP=RUN ../gradlew test --tests TestApp --info
-        main()
-    }
-}
 
 fun main() {
     val postgres = postgreSQLContainer()
