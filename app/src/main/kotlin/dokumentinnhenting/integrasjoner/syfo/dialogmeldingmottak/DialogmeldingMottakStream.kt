@@ -31,7 +31,7 @@ class DialogmeldingMottakStream(private val datasource: DataSource) {
             Consumed.with(Serdes.String(), dialogmeldingMottakDTOSerde())
         )
             .filter { _, record -> bestillinger.map { it.personId }.contains(record.personIdentPasient) }
-            .foreach { _, record -> TODO() }
+            .foreach { _, record -> return@foreach } //TODO: Denne må implementeres
 
         topology = streamBuilder.build()
 
