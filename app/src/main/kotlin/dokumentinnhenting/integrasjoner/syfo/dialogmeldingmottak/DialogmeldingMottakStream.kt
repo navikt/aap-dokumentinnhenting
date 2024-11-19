@@ -1,6 +1,5 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak
 
-import dokumentinnhenting.integrasjoner.syfo.status.TransactionProvider
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.transaction
 import org.apache.kafka.common.serialization.Serdes
@@ -18,10 +17,6 @@ class DialogmeldingMottakStream(private val datasource: DataSource) {
     private val log = LoggerFactory.getLogger(DialogmeldingMottakStream::class.java)
     val topology: Topology
 
-    @Volatile
-    private var bestillinger: MutableList<DialogmeldingRepository.DialogMeldingBestillingPersoner> =
-        hentBestillingsListe().toMutableList()
-
 
     init {
         val streamBuilder = StreamsBuilder()
@@ -30,31 +25,20 @@ class DialogmeldingMottakStream(private val datasource: DataSource) {
             SYFO_DIALOGMELDING_MOTTAK_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingMottakDTOSerde())
         )
-            .filter { _, record -> bestillinger.map { it.personId }.contains(record.personIdentPasient) }
-            .foreach { _, record -> return@foreach } //TODO: Denne må implementeres
+            .mapValues { _, record -> record to hentBestillingsListe(record.personIdentPasient) }
+            .filter({ _, (record, saksnummer) -> saksnummer != null })
+            .foreach { _, (record, saksnummer) -> return@foreach } //TODO: Denne må implementeres
 
         topology = streamBuilder.build()
 
-        scheduleDialogMeldingerRefresh()
     }
 
-    private fun scheduleDialogMeldingerRefresh() {
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-            {
-                log.info("Henter bestillinger...")
-                bestillinger = hentBestillingsListe().toMutableList()
-                log.info("Fant bestillinger: ${bestillinger.count()}")
-            },
-            0, 1, TimeUnit.MINUTES
-        )
-
-    }
-
-    private fun hentBestillingsListe(): List<DialogmeldingRepository.DialogMeldingBestillingPersoner> {
+    private fun hentBestillingsListe(personId:String): String? {
         return datasource.transaction { connection ->
             val repository = DialogmeldingRepository(connection)
-            repository.hentAlleDialogmeldingerYngreEnn2mMnd()
+            repository.hentSisteBestillgByPIDYngreEnn2mMnd(personId)
         }
     }
 
 }
+

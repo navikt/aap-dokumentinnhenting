@@ -7,9 +7,7 @@ import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehand
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.util.*
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class DialogmeldingRepository(private val connection: DBConnection) {
     fun opprettDialogmelding(melding: DialogmeldingRecord): UUID {
@@ -74,19 +72,19 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentAlleDialogmeldingerYngreEnn2mMnd():List<DialogMeldingBestillingPersoner>{
+    fun hentSisteBestillgByPIDYngreEnn2mMnd(personId: String): String? {
         val query = """
-            SELECT PERSON_ID, SAKSNUMMER, STATUS, OPPRETTET_TID FROM DIALOGMELDING
-            WHERE OPPRETTET_TID > NOW() - INTERVAL '2 months'
+            SELECT SAKSNUMMER FROM DIALOGMELDING
+            WHERE OPPRETTET_TID > NOW() - INTERVAL '2 months' AND PERSON_ID = ?
+            ORDER BY OPPRETTET_TID DESC LIMIT 1
         """.trimIndent()
         
-        return connection.queryList(query){
+        return connection.queryFirstOrNull(query){
+            setParams {
+                setString(1, personId)
+            }
             setRowMapper {
-                DialogMeldingBestillingPersoner(
-                    it.getString("PERSON_ID"),
-                    it.getString("SAKSNUMMER"),
-                    it.getLocalDateTime("OPPRETTET_TID")
-                )
+                it.getString("SAKSNUMMER")
             }
         }
     }
