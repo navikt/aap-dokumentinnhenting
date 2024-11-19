@@ -16,7 +16,7 @@ const val KILDE = "AAP"
 class BestillLegeerklæringSteg(
    // monitor: Events, //TODO: Få denne inn
     private val dialogmeldingRepository: DialogmeldingRepository,
-    private val producer: KafkaProducer<UUID, String> = KafkaProducer(ProducerConfig().properties()),
+    private val producer: KafkaProducer<String, String> = KafkaProducer(ProducerConfig().properties())
 
 ): SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
@@ -46,7 +46,8 @@ class BestillLegeerklæringSteg(
 
         val jsonValue = objectMapper.writeValueAsString(mappedBestilling)
 
-        val record = ProducerRecord(SYFO_BESTILLING_DIALOGMELDING_TOPIC, mappedBestilling.dialogmeldingUuid, jsonValue)
+        val record = ProducerRecord(SYFO_BESTILLING_DIALOGMELDING_TOPIC, mappedBestilling.dialogmeldingUuid.toString(), jsonValue)
+
         try {
             producer.send(record).get()
         } catch (e: Exception) {

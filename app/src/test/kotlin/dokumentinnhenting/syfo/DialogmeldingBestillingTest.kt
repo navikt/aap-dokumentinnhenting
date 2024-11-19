@@ -19,10 +19,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
+import javax.print.DocFlavor.STRING
 
 class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
-    private val mockProducer = mockk<KafkaProducer<UUID, String>>(relaxed = true)
+    private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
     @BeforeEach
@@ -65,9 +66,9 @@ class DialogmeldingBestillingTest {
         }
 
         verify(exactly = 1) {
-            mockProducer.send(withArg { record: ProducerRecord<UUID, DialogmeldingToBehandlerBestillingDTO> ->
+            mockProducer.send(withArg { record: ProducerRecord<String, DialogmeldingToBehandlerBestillingDTO> ->
                 assert(record.topic() == SYFO_BESTILLING_DIALOGMELDING_TOPIC)
-                assert(record.key() == dialogmeldingUuid)
+                assert(record.key() == dialogmeldingUuid.toString())
             })
         }
 
