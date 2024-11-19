@@ -11,9 +11,6 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
 
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-
 const val SYFO_STATUS_DIALOGMELDING_TOPIC = "teamsykefravr.behandler-dialogmelding-status"
 
 class DialogmeldingStatusStream(
@@ -23,9 +20,6 @@ class DialogmeldingStatusStream(
     private val log = LoggerFactory.getLogger(DialogmeldingStatusStream::class.java)
     val topology: Topology
 
-    @Volatile
-    private var dialogMeldinger: MutableList<String> = hentSakListe().toMutableList()
-
     init {
         val streamBuilder = StreamsBuilder()
 
@@ -33,25 +27,10 @@ class DialogmeldingStatusStream(
             SYFO_STATUS_DIALOGMELDING_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingStatusDTOSerde())
         )
-            .filter { _, record -> dialogMeldinger.contains(record.bestillingUuid) }
+            .filter { _, record -> hentSakListe().contains(record.bestillingUuid) }
             .foreach { _, record -> oppdaterStatus(record) }
 
         topology = streamBuilder.build()
-
-        scheduleDialogMeldingerRefresh()
-    }
-
-
-    private fun scheduleDialogMeldingerRefresh() {
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-            {
-                log.info("Henter saksliste...")
-                dialogMeldinger = hentSakListe().toMutableList()
-                log.info("Fant ${dialogMeldinger.count()}")
-            },
-            0, 1, TimeUnit.MINUTES
-        )
-
     }
 
     //TODO: Hensiktsmessig å batche?
