@@ -2,19 +2,60 @@ package dokumentinnhenting.integrasjoner.saf
 
 import java.time.LocalDateTime
 
-fun dokumentFilter(dokumenter: List<Doc>): List<Doc> {
+fun dokumentFilterDokumentSøk(dokumenter: List<Doc>): List<Doc> {
     return dokumenter.filter { doc ->
-        dialogmeldingJournalførtPåAAP(doc) || sykemelding(doc)
+        dialogmeldingJournalførtPåAAPYngreEnnEttÅr(doc) || dialogmeldingJournalførtPåAAPEldreEnEttÅr(doc) || sykemeldingYngreEnnEttÅr(doc)
     }
 }
 
-fun dialogmeldingJournalførtPåAAP(dokument:Doc):Boolean {
+fun dokumentFilterAutomatiskJournalføring(dokumenter: List<Doc>): List<Doc>{
+    return dokumenter.filter { doc ->
+        dialogmeldingJournalførtPåAAPYngreEnnEttÅr(doc) || sykemeldingYngreEnnEttÅr(doc)
+    }
+}
+
+fun dialogmeldingJournalførtPåAAPEldreEnEttÅr (dokument:Doc):Boolean {
     val brevkoderDialogmeldingAAP = listOf("900007", "900006")
     return dokument.brevkode in brevkoderDialogmeldingAAP
-            && dokument.datoOpprettet > LocalDateTime.now().minusYears(1)
+            && eldreEnnEttÅr(dokument.datoOpprettet)
+}
+
+fun dialogmeldingJournalførtPåAAPYngreEnnEttÅr (dokument:Doc):Boolean {
+    val brevkoderDialogmeldingAAP = listOf("900007", "900006")
+    return dokument.brevkode in brevkoderDialogmeldingAAP
+            && yngreEnnEttÅr(dokument.datoOpprettet)
+}
+
+
+fun sykemeldingEldreEnnEttÅr(dokument: Doc): Boolean {
+    return dokument.brevkode == "NAV 08-07.04 A"
+            && eldreEnnEttÅr(dokument.datoOpprettet)
+}
+
+fun sykemeldingYngreEnnEttÅr(dokument: Doc): Boolean {
+    return dokument.brevkode == "NAV 08-07.04 A"
+            && yngreEnnEttÅr(dokument.datoOpprettet)
+}
+
+fun LegeerklæringEldreEnEttÅr(dokument: Doc): Boolean {
+    val brevkoderLegeerklæring = listOf("NAV 08-07.08", "L9")
+    val relevanteTema = listOf("AAP", "OPP", "SYK")
+    return dokument.brevkode in brevkoderLegeerklæring
+            && eldreEnnEttÅr(dokument.datoOpprettet)
+            && dokument.tema in relevanteTema
 
 }
 
-fun sykemelding(dokument: Doc): Boolean {
-    return dokument.brevkode == "NAV 08-07.04 A" && dokument.datoOpprettet > LocalDateTime.now().minusYears(1)
+fun sykemelding39Uker(dokument: Doc): Boolean {
+    return dokument.brevkode == "NAV 08-07.04 R"
+            && dokument.datoOpprettet > LocalDateTime.now().minusMonths(3)
+}
+
+
+fun eldreEnnEttÅr(oprettet: LocalDateTime): Boolean {
+    return oprettet < LocalDateTime.now().minusYears(1)
+}
+
+fun yngreEnnEttÅr(opprettet: LocalDateTime): Boolean {
+    return opprettet > LocalDateTime.now().minusYears(1)
 }

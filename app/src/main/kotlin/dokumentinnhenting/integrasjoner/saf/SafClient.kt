@@ -43,6 +43,7 @@ object SafClient {
                     .map {
                         Doc(
                             journalpostId = journalpost.journalpostId,
+                            tema = journalpost.temanavn ?: journalpost.behandlingstemanavn ?: "Ukjent",
                             dokumentInfoId = dok.dokumentInfoId,
                             tittel = dok.tittel,
                             brevkode = dok.brevkode,
@@ -61,6 +62,7 @@ object SafClient {
 }
 
 data class Doc(
+    val tema: String,
     val dokumentInfoId: String,
     val journalpostId: String,
     val brevkode: String?,
@@ -97,7 +99,6 @@ query ($fagsakId: String!)
       antallRetur
       kanal
       innsynsregelBeskrivelse
-      behandlingstema
       dokumenter {
         dokumentInfoId
         tittel
