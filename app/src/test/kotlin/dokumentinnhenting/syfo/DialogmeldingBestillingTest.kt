@@ -19,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
-import javax.print.DocFlavor.STRING
 
 class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
@@ -54,7 +53,6 @@ class DialogmeldingBestillingTest {
         lateinit var dialogmeldingUuid: UUID
 
         InitTestDatabase.dataSource.transaction { connection ->
-
             //Første del, lagring av dialogmelding i repository
             dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(FlytJobbRepository(connection), DialogmeldingRepository(connection))

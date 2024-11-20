@@ -1,5 +1,6 @@
 package dokumentinnhenting.util.motor.syfo
 
+import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -8,10 +9,12 @@ import java.util.*
 
 class ProsesserLegeerklæringBestillingUtfører (
     private val prosesserStegService: ProsesserStegSyfoService,
+    private val dialogmeldingRepository: DialogmeldingRepository
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val dialogmeldingUuId = UUID.fromString(input.parameter(BESTILLING_REFERANSE_PARAMETER_ID))
-        prosesserStegService.prosesserBestilling(dialogmeldingUuId)
+        val bestillingId = dialogmeldingRepository.låsBestilling(dialogmeldingUuId)
+        prosesserStegService.prosesserBestilling(bestillingId)
     }
 
     companion object : Jobb {
@@ -20,7 +23,8 @@ class ProsesserLegeerklæringBestillingUtfører (
             return ProsesserLegeerklæringBestillingUtfører(
                 ProsesserStegSyfoService.konstruer(
                     connection = connection
-                )
+                ),
+                DialogmeldingRepository(connection)
             )
         }
 

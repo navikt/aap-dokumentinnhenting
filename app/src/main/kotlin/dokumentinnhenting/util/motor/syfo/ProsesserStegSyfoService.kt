@@ -37,7 +37,7 @@ class ProsesserStegSyfoService (
             val stegResultat = steg.konstruer(connection).utfør(SyfoSteg.Kontekst(dialogmeldingUUID))
 
             if (stegResultat == SyfoSteg.Resultat.STOPP) {
-                return
+                throw RuntimeException("Stoppet i steg ${steg.javaClass.name}, $bestillingStatus")
             }
 
             dialogmeldingRepository.oppdaterFlytStatus(dialogmeldingUUID, flyt.utfall(steg))

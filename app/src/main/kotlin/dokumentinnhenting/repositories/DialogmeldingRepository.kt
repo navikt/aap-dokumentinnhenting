@@ -162,6 +162,19 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
+    fun låsBestilling(dialogmeldingUuid: UUID): UUID {
+        val query = """SELECT ID FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ? FOR UPDATE"""
+
+        return connection.queryFirst(query) {
+            setParams {
+                setUUID(1, dialogmeldingUuid)
+            }
+            setRowMapper {
+                it.getUUID("DIALOGMELDING_UUID")
+            }
+        }
+    }
+
     data class SyfoBestillingFlytStatus(
         val dialogmeldingUuid: UUID,
         val saksnummer: String,
