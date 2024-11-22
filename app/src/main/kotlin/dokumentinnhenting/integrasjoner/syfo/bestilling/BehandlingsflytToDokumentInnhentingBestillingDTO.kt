@@ -11,8 +11,7 @@ data class BehandlingsflytToDokumentInnhentingBestillingDTO(
     val dialogmeldingTekst: String,
     val saksnummer: String,
     val dokumentasjonType: DokumentasjonType,
-    val behandlingsReferanse: UUID,
-    val dialogmeldingPurringUUID: UUID? = null
+    val behandlingsReferanse: UUID
 )
 
 enum class DokumentasjonType {

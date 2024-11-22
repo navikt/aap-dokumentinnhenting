@@ -23,12 +23,24 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDTO): UUID {
-        if (dto.dokumentasjonType == DokumentasjonType.PURRING) {
-            dialogmeldingRepository.hentBestillingEldreEnn14Dager(requireNotNull(dto.dialogmeldingPurringUUID)) ?:
-                throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
-        }
+    fun dialogmeldingPurring(dto: LegeerklæringPurringDTO): UUID {
+        val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(requireNotNull(dto.dialogmeldingUuid))
+            ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
 
+        return dialogmeldingBestilling(BehandlingsflytToDokumentInnhentingBestillingDTO(
+            bestilling.behandlerRef,
+            bestilling.behandlerNavn,
+            bestilling.veilederNavn,
+            bestilling.personIdent,
+            bestilling.personNavn,
+            bestilling.fritekst,
+            bestilling.saksnummer,
+            DokumentasjonType.PURRING,
+            bestilling.behandlingsReferanse
+        ))
+    }
+
+    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDTO): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = DialogmeldingRecord(
             dialogmeldingUuid,

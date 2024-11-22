@@ -1,6 +1,7 @@
 package dokumentinnhenting.repositories
 
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
@@ -89,9 +90,9 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentBestillingEldreEnn14Dager(dialogmeldingUuid: UUID): LocalDateTime? {
+    fun hentBestillingEldreEnn14Dager(dialogmeldingUuid: UUID): DialogmeldingFullRecord? {
         val query = """
-            SELECT DIALOGMELDING_UUID FROM DIALOGMELDING
+            SELECT * FROM DIALOGMELDING
             WHERE OPPRETTET_TID < NOW() - INTERVAL '14 days' AND DIALOGMELDING_UUID = ?
         """.trimIndent()
 
@@ -100,7 +101,22 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(1, dialogmeldingUuid)
             }
             setRowMapper {
-                it.getLocalDateTime("OPPRETTET_TID")
+                DialogmeldingFullRecord(
+                    it.getUUID("DIALOGMELDING_UUID"),
+                    it.getString("BEHANDLER_REF"),
+                    it.getString("BEHANDLER_NAVN"),
+                    it.getString("VEILEDER_NAVN"),
+                    it.getString("PERSON_ID"),
+                    it.getEnum("DOKUMENTASJONTYPE"),
+                    it.getString("FRITEKST"),
+                    it.getString("SAKSNUMMER"),
+                    it.getEnumOrNull("STATUS"),
+                    it.getEnumOrNull("FLYTSTATUS"),
+                    it.getString("PERSON_NAVN"),
+                    it.getStringOrNull("STATUS_TEKST"),
+                    it.getUUID("BEHANDLINGSREFERANSE"),
+                    it.getLocalDateTime("OPPRETTET_TID")
+                )
             }
         }
     }

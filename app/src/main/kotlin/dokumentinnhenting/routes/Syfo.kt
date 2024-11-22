@@ -35,6 +35,14 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
             respond (response)
         }
 
+        route("/purring").post<Unit, UUID, LegeerklæringPurringDTO> { _, req ->
+            val response = dataSource.transaction { connection ->
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                service.dialogmeldingPurring(req)
+            }
+            respond (response)
+        }
+
         route("/status/{saksnummer}").get<HentDialogmeldingStatusDTO, List<DialogmeldingStatusTilBehandslingsflytDTO>> { req ->
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)

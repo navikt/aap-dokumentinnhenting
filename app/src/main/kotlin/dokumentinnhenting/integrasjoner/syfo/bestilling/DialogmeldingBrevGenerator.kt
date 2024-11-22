@@ -1,6 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
 import java.time.LocalDate
+import java.util.*
 
 fun genererBrev(dto: BrevGenereringRequest): String {
     return when (dto.dokumentasjonType) {
@@ -9,7 +10,7 @@ fun genererBrev(dto: BrevGenereringRequest): String {
         DokumentasjonType.L120 -> brev120()
         DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
-        DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.veilederNavn, dto.datoBestilt)
+        DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.veilederNavn)
     }
 }
 
@@ -78,7 +79,8 @@ private fun brev120(): String {
     return "Implement me brev120"
 }
 
-private fun brevPurring(navn: String, fnr: String, veileder: String, dato: LocalDate): String {
+private fun brevPurring(navn: String, fnr: String, veileder: String): String {
+    val dato = LocalDate.now()
     return """
         Påminnelse om manglende svar vedrørerende pasient\n
         Gjelder $navn, f.nr. $fnr\n.
@@ -101,5 +103,5 @@ data class BrevGenereringRequest(
     val dialogmeldingTekst: String,
     val veilederNavn: String,
     val dokumentasjonType: DokumentasjonType,
-    val datoBestilt: LocalDate
+    val dialogmeldingPurringUUID: UUID? = null
 )

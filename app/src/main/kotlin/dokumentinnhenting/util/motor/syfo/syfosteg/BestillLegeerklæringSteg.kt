@@ -60,7 +60,7 @@ class BestillLegeerklæringSteg(
     }
 
     private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, dto: BehandlingsflytToDokumentInnhentingBestillingDTO): DialogmeldingToBehandlerBestillingDTO {
-        val brevTekst = genererBrev(BrevGenereringRequest(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn, dto.dokumentasjonType, LocalDate.now()))
+        val brevTekst = genererBrev(BrevGenereringRequest(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn, dto.dokumentasjonType))
         val kodeStruktur = mapDialogmeldingKodeStruktur(dto.dokumentasjonType)
         return DialogmeldingToBehandlerBestillingDTO(
             dto.behandlerRef,
