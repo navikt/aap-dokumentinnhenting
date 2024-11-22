@@ -78,13 +78,29 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             WHERE OPPRETTET_TID > NOW() - INTERVAL '2 months' AND PERSON_ID = ?
             ORDER BY OPPRETTET_TID DESC LIMIT 1
         """.trimIndent()
-        
+
         return connection.queryFirstOrNull(query){
             setParams {
                 setString(1, personId)
             }
             setRowMapper {
                 it.getString("SAKSNUMMER")
+            }
+        }
+    }
+
+    fun hentBestillingEldreEnn14Dager(dialogmeldingUuid: UUID): LocalDateTime? {
+        val query = """
+            SELECT DIALOGMELDING_UUID FROM DIALOGMELDING
+            WHERE OPPRETTET_TID < NOW() - INTERVAL '14 days' AND DIALOGMELDING_UUID = ?
+        """.trimIndent()
+
+        return connection.queryFirstOrNull(query){
+            setParams {
+                setUUID(1, dialogmeldingUuid)
+            }
+            setRowMapper {
+                it.getLocalDateTime("OPPRETTET_TID")
             }
         }
     }

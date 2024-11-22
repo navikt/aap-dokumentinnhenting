@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.*
 
 const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-behandler-dialogmelding-bestilling"
@@ -59,7 +60,7 @@ class BestillLegeerklæringSteg(
     }
 
     private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, dto: BehandlingsflytToDokumentInnhentingBestillingDTO): DialogmeldingToBehandlerBestillingDTO {
-        val brevTekst = genererBrev(BrevGenereringRequest(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn, dto.dokumentasjonType))
+        val brevTekst = genererBrev(BrevGenereringRequest(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn, dto.dokumentasjonType, LocalDate.now()))
         val kodeStruktur = mapDialogmeldingKodeStruktur(dto.dokumentasjonType)
         return DialogmeldingToBehandlerBestillingDTO(
             dto.behandlerRef,

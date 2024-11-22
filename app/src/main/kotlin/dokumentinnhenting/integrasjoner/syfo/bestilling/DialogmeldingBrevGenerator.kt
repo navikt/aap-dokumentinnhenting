@@ -1,13 +1,15 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
+import java.time.LocalDate
+
 fun genererBrev(dto: BrevGenereringRequest): String {
     return when (dto.dokumentasjonType) {
         DokumentasjonType.L8 -> brev8L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.L40 -> brev40L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.L120 -> brev120()
         DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
-        DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring()
-        DokumentasjonType.PURRING -> brevPurring()
+        DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
+        DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.veilederNavn, dto.datoBestilt)
     }
 }
 
@@ -56,9 +58,19 @@ private fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String, veile
     """.trimIndent()
 }
 
-private fun brevReturLegeerklæring(): String {
-    //TODO: Implement me
-    return "Implement me brevReturLegeerklæring"
+private fun brevReturLegeerklæring(navn: String, fnr: String, fritekst: String, veileder: String): String {
+    return """ 
+        Retur av Legeerklæring ved arbeidsuførhet\n
+        Gjelder $navn, $fnr.\n
+        Vi har mottatt Legeerklæring ved arbeidsuførhet (NAV 08-07.08). Vi ber om at du sender oss en ny legeerklæring snarest mulig.\n
+        Erklæringen kan ikke honoreres fordi den ikke inneholder tilstrekkelige opplysninger til bruk i den videre behandlingen av saken.\n
+        $fritekst\n
+        Hvis du har spørsmål til utfyllingen, henvises det til "Orientering til legen om bruk og utfylling av Legeerklæring ved arbeidsuførhet" (se nav.no).\n
+        Dersom du allerede har sendt inn regning for den mangelfulle erklæringen, forutsetter vi at det ikke blir sendt regning for ny utfylt Legeerklæring ved arbeidsuførhet.\n
+        Med vennlig hilsen\n
+        $veileder\n
+        NAV
+    """.trimIndent()
 }
 
 private fun brev120(): String {
@@ -66,9 +78,17 @@ private fun brev120(): String {
     return "Implement me brev120"
 }
 
-private fun brevPurring(): String {
-    //TODO: Implement me
-    return "Implement me purrebrev"
+private fun brevPurring(navn: String, fnr: String, veileder: String, dato: LocalDate): String {
+    return """
+        Påminnelse om manglende svar vedrørerende pasient\n
+        Gjelder $navn, f.nr. $fnr\n.
+        Vi viser til tidligere forespørsel av $dato angående din pasient.\n
+        Vi kan ikke se å ha mottatt svar på vår henvendelse og ber om at denne besvares snarest.\n
+        Hvis opplysningene er sendt oss i løpet av de siste dagene, kan du se bort fra denne meldingen.\n
+        Med vennlig hilsen\n
+        $veileder\n
+        NAV
+    """.trimIndent()
 }
 
 data class BrevPreviewResponse(
@@ -80,5 +100,6 @@ data class BrevGenereringRequest(
     val personIdent: String,
     val dialogmeldingTekst: String,
     val veilederNavn: String,
-    val dokumentasjonType: DokumentasjonType
+    val dokumentasjonType: DokumentasjonType,
+    val datoBestilt: LocalDate
 )
