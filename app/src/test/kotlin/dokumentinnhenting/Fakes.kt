@@ -14,7 +14,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.komponenter.config.requiredConfigForKey
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -47,7 +46,6 @@ class Fakes: AutoCloseable {
         System.setProperty("kafka.credstore.password", "password")
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
-        System.setProperty("nais.cluster.name", "LOCAL")
     }
 
     fun azurePort(): Int {
