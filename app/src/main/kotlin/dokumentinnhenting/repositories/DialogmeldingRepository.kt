@@ -200,7 +200,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
     }
 
     fun låsBestilling(dialogmeldingUuid: UUID): UUID {
-        val query = """SELECT ID FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ? FOR UPDATE"""
+        val query = """SELECT DIALOGMELDING_UUID FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ? FOR UPDATE"""
 
         return connection.queryFirst(query) {
             setParams {
