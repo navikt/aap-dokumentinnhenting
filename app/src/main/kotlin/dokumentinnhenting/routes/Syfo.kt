@@ -59,7 +59,7 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
         route("/brevpreview").post<Unit, BrevPreviewResponse, BrevGenereringRequest> { _, req ->
             val response = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
-                val tidligereBestilling = req.tidligeBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
+                val tidligereBestilling = req.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
 
                 val brevPreviewResponse = BrevPreviewResponse(genererBrev(
                     BrevGenerering(

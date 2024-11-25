@@ -8,5 +8,5 @@ data class BrevGenereringRequest(
     val dialogmeldingTekst: String,
     val veilederNavn: String,
     val dokumentasjonType: DokumentasjonType,
-    val tidligeBestillingReferanse: UUID? = null,
+    val tidligereBestillingReferanse: UUID? = null,
 )
