@@ -57,8 +57,18 @@ fun NormalOpenAPIRoute.syfo(dataSource: DataSource
         }
 
         route("/brevpreview").post<Unit, BrevPreviewResponse, BrevGenereringRequest> { _, req ->
-            val brevPreviewResponse = BrevPreviewResponse(genererBrev(req))
-            respond(brevPreviewResponse)
+            val response = dataSource.transaction { connection ->
+                val dialogmeldingRepository = DialogmeldingRepository(connection)
+                val tidligereBestilling = req.tidligeBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
+
+                val brevPreviewResponse = BrevPreviewResponse(genererBrev(
+                    BrevGenerering(
+                        req.personNavn, req.personIdent, req.dialogmeldingTekst, req.veilederNavn, req.dokumentasjonType, tidligereBestilling?.opprettet
+                    )
+                ))
+                brevPreviewResponse
+            }
+            respond(response)
         }
     }
 }

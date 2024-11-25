@@ -36,7 +36,8 @@ class BehandlerDialogmeldingBestillingService(
             bestilling.fritekst,
             bestilling.saksnummer,
             DokumentasjonType.PURRING,
-            bestilling.behandlingsReferanse
+            bestilling.behandlingsReferanse,
+            bestilling.dialogmeldingUuid
         ))
     }
 
@@ -51,7 +52,8 @@ class BehandlerDialogmeldingBestillingService(
             dto.behandlerNavn,
             dto.veilederNavn,
             dto.dialogmeldingTekst,
-            dto.behandlingsReferanse
+            dto.behandlingsReferanse,
+            dto.tidligereBestillingReferanse
         )
 
         val id = skrivDialogmeldingTilRepository(dialogMeldingRecord)

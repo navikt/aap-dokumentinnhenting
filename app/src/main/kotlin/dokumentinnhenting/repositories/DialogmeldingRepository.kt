@@ -13,8 +13,10 @@ import java.util.*
 class DialogmeldingRepository(private val connection: DBConnection) {
     fun opprettDialogmelding(melding: DialogmeldingRecord): UUID {
         val query = """
-            INSERT INTO DIALOGMELDING (dialogmelding_uuid, behandler_ref, person_id, saksnummer, dokumentasjontype, behandler_navn, veileder_navn, fritekst, behandlingsReferanse)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO DIALOGMELDING (
+                dialogmelding_uuid, behandler_ref, person_id, saksnummer, dokumentasjontype, behandler_navn, veileder_navn, fritekst, behandlingsReferanse, tidligere_bestilling_referanse
+                )
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeReturnKey(query) {
             setParams {
@@ -27,6 +29,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setString(7, melding.veilederNavn)
                 setString(8, melding.fritekst)
                 setUUID(9, melding.behandlingsReferanse)
+                setUUID(10, melding.tidligereBestillingReferanse)
             }
         }
         return melding.dialogmeldingUuid
@@ -115,7 +118,8 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getString("PERSON_NAVN"),
                     it.getStringOrNull("STATUS_TEKST"),
                     it.getUUID("BEHANDLINGSREFERANSE"),
-                    it.getLocalDateTime("OPPRETTET_TID")
+                    it.getLocalDateTime("OPPRETTET_TID"),
+                    it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE")
                 )
             }
         }
@@ -169,6 +173,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getString("SAKSNUMMER"),
                     it.getEnum("DOKUMENTASJONTYPE"),
                     it.getUUID("BEHANDLINGSREFERANSE"),
+                    it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE")
                 )
             }
         }

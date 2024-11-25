@@ -1,16 +1,15 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
-import java.time.LocalDate
-import java.util.*
+import java.time.LocalDateTime
 
-fun genererBrev(dto: BrevGenereringRequest): String {
+fun genererBrev(dto: BrevGenerering): String {
     return when (dto.dokumentasjonType) {
         DokumentasjonType.L8 -> brev8L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.L40 -> brev40L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.L120 -> brev120()
         DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
         DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
-        DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.veilederNavn)
+        DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.veilederNavn, dto.tidligereBestillingDato)
     }
 }
 
@@ -79,12 +78,12 @@ private fun brev120(): String {
     return "Implement me brev120"
 }
 
-private fun brevPurring(navn: String, fnr: String, veileder: String): String {
-    val dato = LocalDate.now()
+private fun brevPurring(navn: String, fnr: String, veileder: String, tidligereBestillingDato: LocalDateTime?): String {
+    val tidligereDato = requireNotNull(tidligereBestillingDato).toLocalDate()
     return """
         Påminnelse om manglende svar vedrørerende pasient\n
         Gjelder $navn, f.nr. $fnr\n.
-        Vi viser til tidligere forespørsel av $dato angående din pasient.\n
+        Vi viser til tidligere forespørsel av $tidligereDato angående din pasient.\n
         Vi kan ikke se å ha mottatt svar på vår henvendelse og ber om at denne besvares snarest.\n
         Hvis opplysningene er sendt oss i løpet av de siste dagene, kan du se bort fra denne meldingen.\n
         Med vennlig hilsen\n
@@ -97,11 +96,11 @@ data class BrevPreviewResponse(
     val konstruertBrev: String
 )
 
-data class BrevGenereringRequest(
+data class BrevGenerering(
     val personNavn: String,
     val personIdent: String,
     val dialogmeldingTekst: String,
     val veilederNavn: String,
     val dokumentasjonType: DokumentasjonType,
-    val dialogmeldingPurringUUID: UUID? = null
+    val tidligereBestillingDato: LocalDateTime? = null,
 )

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.*
 
 class DialogmeldingBestillingTest {
@@ -72,6 +73,49 @@ class DialogmeldingBestillingTest {
 
         val lagretBestilling = hentRepositoryData(saksnummer)
         assertEquals(dialogmeldingUuid, lagretBestilling[0].dialogmeldingUuid)
+    }
+
+    @Test
+    fun FeilerOmPurringManglerTilhørendeLegeerklæring() {
+        InitTestDatabase.dataSource.transaction { connection ->
+            dialogmeldingRepository = DialogmeldingRepository(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(FlytJobbRepository(connection), DialogmeldingRepository(connection))
+
+            assertThrows<RuntimeException> { behandlerDialogmeldingBestillingService.dialogmeldingPurring(LegeerklæringPurringDTO(UUID.randomUUID()))}
+        }
+    }
+
+    @Test
+    fun FeilerOmLegeerklæringPurringErUnder14Dager() {
+        lateinit var dialogmeldingLegerklæringUuid: UUID
+        val saksnummer = "saksnummer"
+        val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDTO(
+            behandlerRef = "behandlerRef",
+            personIdent = "12345678910",
+            personNavn = "personNavn",
+            saksnummer = saksnummer,
+            dialogmeldingTekst = "tekst",
+            dokumentasjonType = DokumentasjonType.L8,
+            behandlerNavn = "behandlerNavn",
+            veilederNavn = "veilederNavn",
+            behandlingsReferanse = UUID.randomUUID()
+        )
+
+        InitTestDatabase.dataSource.transaction { connection ->
+            dialogmeldingRepository = DialogmeldingRepository(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(FlytJobbRepository(connection), DialogmeldingRepository(connection))
+
+            dialogmeldingLegerklæringUuid = behandlerDialogmeldingBestillingService.dialogmeldingBestilling(legeerklæring)
+            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, mockProducer)
+            steg.utfør(SyfoSteg.Kontekst(dialogmeldingLegerklæringUuid))
+        }
+
+        InitTestDatabase.dataSource.transaction { connection ->
+            dialogmeldingRepository = DialogmeldingRepository(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(FlytJobbRepository(connection), DialogmeldingRepository(connection))
+
+            assertThrows<RuntimeException> { behandlerDialogmeldingBestillingService.dialogmeldingPurring(LegeerklæringPurringDTO(dialogmeldingLegerklæringUuid)) }
+        }
     }
 
     private fun hentRepositoryData(saksnummer: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
