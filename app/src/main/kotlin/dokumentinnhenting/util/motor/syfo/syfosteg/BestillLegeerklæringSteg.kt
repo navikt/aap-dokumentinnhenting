@@ -58,14 +58,14 @@ class BestillLegeerklæringSteg(
         return SyfoSteg.Resultat.FULLFØRT
     }
 
-    private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, dto: BehandlingsflytToDokumentInnhentingBestillingDTO): DialogmeldingToBehandlerBestillingDTO {
-        val tidligereBestilling = dto.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
+    private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, record: DialogmeldingFullRecord): DialogmeldingToBehandlerBestillingDTO {
+        val tidligereBestilling = record.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
 
-        val brevTekst = genererBrev(BrevGenerering(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn, dto.dokumentasjonType, tidligereBestilling))
-        val kodeStruktur = mapDialogmeldingKodeStruktur(dto.dokumentasjonType)
+        val brevTekst = genererBrev(BrevGenerering(record.personNavn, record.personIdent, record.fritekst, record.veilederNavn, record.dokumentasjonType, tidligereBestilling))
+        val kodeStruktur = mapDialogmeldingKodeStruktur(record.dokumentasjonType)
         return DialogmeldingToBehandlerBestillingDTO(
-            dto.behandlerRef,
-            dto.personIdent,
+            record.behandlerRef,
+            record.personIdent,
             dialogmeldingUuid,
             null, // Trenger vi denne?
             UUID.randomUUID().toString(), // Trenger vi denne?

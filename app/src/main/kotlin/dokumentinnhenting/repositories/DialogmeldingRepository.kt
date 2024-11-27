@@ -152,7 +152,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentByDialogId(dialogmeldingUuid: UUID): BehandlingsflytToDokumentInnhentingBestillingDTO {
+    fun hentByDialogId(dialogmeldingUuid: UUID): DialogmeldingFullRecord {
         val query = """
             SELECT * FROM DIALOGMELDING
             WHERE DIALOGMELDING_UUID = ?
@@ -163,16 +163,21 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(1, dialogmeldingUuid)
             }
             setRowMapper {
-                BehandlingsflytToDokumentInnhentingBestillingDTO(
+                DialogmeldingFullRecord(
+                    it.getUUID("DIALOGMELDING_UUID"),
                     it.getString("BEHANDLER_REF"),
                     it.getString("BEHANDLER_NAVN"),
                     it.getString("VEILEDER_NAVN"),
                     it.getString("PERSON_ID"),
-                    it.getString("PERSON_NAVN"),
+                    it.getEnum("DOKUMENTASJONTYPE"),
                     it.getString("FRITEKST"),
                     it.getString("SAKSNUMMER"),
-                    it.getEnum("DOKUMENTASJONTYPE"),
+                    it.getEnumOrNull("STATUS"),
+                    it.getEnumOrNull("FLYTSTATUS"),
+                    it.getString("PERSON_NAVN"),
+                    it.getStringOrNull("STATUS_TEKST"),
                     it.getUUID("BEHANDLINGSREFERANSE"),
+                    it.getLocalDateTime("OPPRETTET_TID"),
                     it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE")
                 )
             }

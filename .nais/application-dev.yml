@@ -76,6 +76,10 @@ spec:
       value: https://saf-q2.dev-fss-pub.nais.io/rest
     - name: INTEGRASJON_SAF_SCOPE
       value: api://dev-fss.teamdokumenthandtering.saf/.default
+    - name: BREV_BASE_URL
+      value: http://brev
+    - name: BREV_SCOPE
+      value: api://dev-gcp.aap.brev/.default
   accessPolicy:
     inbound:
       rules:
@@ -85,7 +89,9 @@ spec:
     outbound:
       rules:
         - application: behandlingsflyt
+        - application: brev
         - application: isdialogmelding
           namespace: teamsykefravr
       external:
         - host: saf.dev-fss-pub.nais.io
+        - host: dokarkiv-q2.dev-fss-pub.nais.io
