@@ -26,6 +26,10 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    constraints {
+        implementation("io.netty:netty-common:4.1.115.Final")
+    }
+
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("no.nav.aap.brev:kontrakt:0.0.29")
 
@@ -68,6 +72,11 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.26.3")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.testcontainers:postgresql:1.20.2")
+    constraints {
+        implementation("org.apache.commons:commons-compress:1.27.1") {
+            because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
+        }
+    }
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("io.mockk:mockk:1.13.13")
 }
