@@ -1,5 +1,6 @@
 package dokumentinnhenting.util.motor
 
+import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
 import no.nav.aap.motor.Jobb
 
@@ -9,7 +10,8 @@ import no.nav.aap.motor.Jobb
 object ProsesseringsJobber {
     fun alle(): List<Jobb> {
         return listOf(
-            ProsesserLegeerklæringBestillingUtfører
+            ProsesserLegeerklæringBestillingUtfører,
+            OppdaterLegeerklæringStatusUtfører
         )
     }
 }

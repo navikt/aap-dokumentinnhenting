@@ -4,16 +4,17 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.util.motor.ProsesseringsJobber
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.testutil.TestUtil
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TopologyTestDriver
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -25,10 +26,7 @@ class DialogmeldingStatusStreamTest {
     @BeforeEach
     fun setup() {
         InitTestDatabase.migrate()
-        val dataSource = InitTestDatabase.dataSource
-        val transactionProvider = TransactionProvider(dataSource)
-
-        val dialogmeldingStatusStream = DialogmeldingStatusStream(dataSource, transactionProvider)
+        val dialogmeldingStatusStream = DialogmeldingStatusStream(dataSource)
 
         val topology = dialogmeldingStatusStream.topology
 
@@ -51,6 +49,24 @@ class DialogmeldingStatusStreamTest {
         InitTestDatabase.clean()
     }
 
+    companion object {
+        val dataSource = InitTestDatabase.dataSource
+        val motor = Motor(dataSource, 2, jobber = ProsesseringsJobber.alle())
+        val util = TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron() != null }.map { it.type() })
+
+        @BeforeAll
+        @JvmStatic
+        internal fun beforeAll() {
+            motor.start()
+        }
+
+        @AfterAll
+        @JvmStatic
+        internal fun afterAll() {
+            motor.stop()
+        }
+    }
+
     @Test
     fun kanTaImotStatusOppdateringer() {
         val uuid = UUID.randomUUID()
@@ -61,8 +77,10 @@ class DialogmeldingStatusStreamTest {
         val incomingRecord = DialogmeldingStatusDTO(uuid.toString(), OffsetDateTime.now(), MeldingStatusType.BESTILT, "tekst", uuid.toString())
 
         inputTopic.pipeInput("key", incomingRecord)
+        util.ventPåSvar()
         val oppdatertHendelse = hentRepositoryData(saksnummer)
-        assertEquals(uuid, oppdatertHendelse[0].dialogmeldingUuid)
+
+        assertEquals(MeldingStatusType.BESTILT, oppdatertHendelse[0].status)
     }
 
     @Test

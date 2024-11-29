@@ -9,6 +9,7 @@ import java.util.*
 class ProsesserStegSyfoService (
     private val connection: DBConnection
 ) {
+
     private val log = LoggerFactory.getLogger(ProsesserStegSyfoService::class.java)
     private val dialogmeldingRepository = DialogmeldingRepository(connection)
 
@@ -17,11 +18,10 @@ class ProsesserStegSyfoService (
             return ProsesserStegSyfoService(connection)
         }
     }
-
     private val flyt = ProsesseringSyfoFlyt.Builder()
         .med(steg = StartLegeerklæringBestillingSteg, utfall = ProsesseringSyfoStatus.STARTET)
         .med(steg = BestillLegeerklæringSteg, utfall = ProsesseringSyfoStatus.SENDT_TIL_SYFO)
-        //.med(steg = JournalførBestillingSteg, utfall = ProsesseringSyfoStatus.JOURNALFØRT)
+        .med(steg = JournalførBestillingSteg, utfall = ProsesseringSyfoStatus.JOURNALFØRT)
         .med(steg = FerdigLegeerklæringBestillingSteg, utfall = ProsesseringSyfoStatus.FERDIG)
         .build()
 
