@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.brev
 
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.genererBrev
 import no.nav.aap.brev.kontrakt.*
 import no.nav.aap.komponenter.config.requiredConfigForKey
@@ -23,9 +24,9 @@ class BrevClient {
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.brev.scope"))
     private val client = RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
 
-    fun journalførBestilling(bestilling: DialogmeldingFullRecord, tidlereBestillingDato: LocalDateTime? ): JournalpostIdResponse {
-       /* val uri = baseUri.resolve("/api/journalforbrev")
-        val body = konstruerBrev(bestilling, tidlereBestillingDato)
+    fun journalførBestilling(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime? ): JournalpostIdResponse {
+        val uri = baseUri.resolve("/api/journalforbrev")
+        val body = konstruerBrev(bestilling, tidligereBestillingDato)
         val httpRequest = PostRequest(
             body = body,
             additionalHeaders = listOf(
@@ -33,65 +34,68 @@ class BrevClient {
                 Header("Accept", "application/json")
             )
         )
-        return requireNotNull(client.post(uri, httpRequest))*/
-        return JournalpostIdResponse("")
+        return requireNotNull(client.post(uri, httpRequest))
     }
 
-    /*
-    private fun konstruerBrev(bestilling: DialogmeldingFullRecord, tidlereBestillingDato: LocalDateTime?): JournalførBrevRequest {
-        val pdfBrev = mapPdfBrev(bestilling, tidlereBestillingDato)
+    private fun konstruerBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): JournalførBrevRequest {
+        val tittel = when(bestilling.dokumentasjonType) {
+            DokumentasjonType.L40 -> "Forespørsel om legeerklæring og arbeidsuførhet"
+            DokumentasjonType.L8 -> "Forespørsel om tilleggsopplysninger"
+            DokumentasjonType.L120 -> "Forespørsel om spesialisterklæring"
+            DokumentasjonType.MELDING_FRA_NAV -> "Melding fra NAV"
+            DokumentasjonType.RETUR_LEGEERKLÆRING -> "Retur legeerklæring"
+            DokumentasjonType.PURRING -> "Purring på forespørsel om legeerklæring"
+        }
+        val pdfBrev = mapPdfBrev(bestilling, tidligereBestillingDato, tittel)
+
         val request = JournalførBrevRequest(
-            "FNR",
-            "NAVN",
+            "",
+            bestilling.behandlerNavn,
             bestilling.saksnummer,
             bestilling.dialogmeldingUuid,
-            "tittel",
+            tittel,
             bestilling.dokumentasjonType.toString(),
             pdfBrev
         )
         return request
     }
-    */
 
-/*
-    private fun mapPdfBrev(bestilling: DialogmeldingFullRecord, tidlereBestillingDato: LocalDateTime?): PdfBrev {
-
+    //Todo: Flytte hele greien til sanity så vi faktisk får noe fornuftig stuktur? Brev skal også refaktorere bruken av denne
+    private fun mapPdfBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?, tittel: String): PdfBrev {
+        bestilling.dokumentasjonType
         val brev = genererBrev(
             BrevGenerering(
-                bestilling.personNavn, bestilling.personIdent, bestilling.fritekst, bestilling.veilederNavn, bestilling.dokumentasjonType, tidlereBestillingDato
+                bestilling.personNavn, bestilling.personIdent, bestilling.fritekst, bestilling.veilederNavn, bestilling.dokumentasjonType, tidligereBestillingDato
             )
         )
-
-        val brevIAvsnitt = brev.split("\n")
+        val brevIAvsnitt = brev.split("\n").map{it.replace("""\n""", "")}
 
         return PdfBrev(
-            mottaker = Mottaker(navn = personinfo.navn, ident = personinfo.fnr),
-            saksnummer = saksnummer.nummer,
-            dato = dato,
-            overskrift = brev.overskrift,
-            tekstbolker = brev.tekstbolker.map { // TODO: her må vi splitte de selv...Generer tekst, split
+            mottaker = Mottaker(navn = bestilling.behandlerNavn, ident = ""),
+            saksnummer = bestilling.saksnummer,
+            dato = bestilling.opprettet.toLocalDate(),
+            overskrift = tittel,
+            tekstbolker = listOf(
                 Tekstbolk(
-                    overskrift = it.overskrift,
-                    innhold = it.innhold.map {
+                    overskrift = tittel,
+                    innhold = listOf(
                         Innhold(
-                            overskrift = it.overskrift,
-                            blokker = it.blokker.map {
+                            overskrift = "",
+                            blokker = listOf (
                                 Blokk(
-                                    innhold = it.innhold.mapNotNull {
-                                        when (it) {
-                                            is BlokkInnhold.FormattertTekst -> FormattertTekst(
-                                                tekst = it.tekst,
-                                                formattering = it.formattering
-                                            )
-
-                                            else -> null
-                                        }
+                                    innhold = brevIAvsnitt.map {
+                                        FormattertTekst(
+                                            tekst = it,
+                                            formattering = listOf()
+                                        )
                                     },
-                                    type = it.type
+                                    type =  BlokkType.AVSNITT
                                 )
-                            })
-                    })
-            },
+                            )
+                        )
+                    )
+                )
+            )
         )
-    }*/
+    }
 }
