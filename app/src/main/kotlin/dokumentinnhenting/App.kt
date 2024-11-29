@@ -87,7 +87,7 @@ fun Application.server(
     val motor = module(dataSource)
 
     dialogmeldingStatusStream(prometheus, dataSource)
-    dialogmeldingMottakStream(prometheus, dataSource)
+    //dialogmeldingMottakStream(prometheus, dataSource)
 
     routing {
         actuator(prometheus, motor)

@@ -8,6 +8,6 @@
         <appender-ref ref="json"/>
     </root>
 
-    <logger name="org.apache.kafka" level="ERROR" />
+    <logger name="org.apache.kafka" level="WARN" />
 
 </configuration>
