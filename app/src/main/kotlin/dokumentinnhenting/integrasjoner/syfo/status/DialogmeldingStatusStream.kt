@@ -28,7 +28,7 @@ class DialogmeldingStatusStream(
             SYFO_STATUS_DIALOGMELDING_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingStatusDTOSerde())
         )
-            .filter { _, record -> hentSakListe().contains(record.bestillingUuid) }
+            .filter { _, record -> hentSakListe().contains(record.bestillingUuid) } // Todo: Gjøre om disse?
             .foreach { _, record -> oppdaterStatus(record) }
 
         topology = streamBuilder.build()
