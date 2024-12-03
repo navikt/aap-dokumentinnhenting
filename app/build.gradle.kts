@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 plugins {
     id("dokumentinnhenting.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.0.0"
+    id("io.ktor.plugin") version "3.0.1"
     application
 }
 
