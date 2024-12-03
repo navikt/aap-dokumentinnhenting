@@ -4,6 +4,7 @@ Modul for å bestille og hente ut diverse dokumenter fra andre tjenester.
 #### P.d.d:
 - Bestilling av legeerklæring og dialogmeldinger med tilhørende status via SYFO
 - Uthenting av legeerklæring fra JOARK
+- Behandleroppslag via SYFO
 
 ## Komme i gang
 Bruker gradle wrapper, så bare klon og kjør `./gradlew build`
