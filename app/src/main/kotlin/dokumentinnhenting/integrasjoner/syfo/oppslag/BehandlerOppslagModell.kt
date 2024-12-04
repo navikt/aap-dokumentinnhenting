@@ -13,6 +13,7 @@ data class BehandlerOppslagResponse(
     val postnummer: String?,
     val poststed: String?,
     val telefon: String?,
+    val hprId: String?
 )
 
 data class FritekstRequest(
