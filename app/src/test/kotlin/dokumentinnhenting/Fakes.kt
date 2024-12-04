@@ -138,13 +138,13 @@ class Fakes: AutoCloseable {
                 get("/behandleroppslag/search") {
                     call.respond(listOf(
                         BehandlerOppslagResponse(
-                            "type1", UUID.randomUUID().toString(), "32341234123", "Peppa", "The", "Pig", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "11223344"
+                            "type1", UUID.randomUUID().toString(), "32341234123", "Peppa", "The", "Pig", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "11223344", ""
                         ),
                         BehandlerOppslagResponse(
-                            "type2", UUID.randomUUID().toString(), "22341234123", "Ola", "Brunost", "Fårepølse", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "44332211"
+                            "type2", UUID.randomUUID().toString(), "22341234123", "Ola", "Brunost", "Fårepølse", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "44332211", ""
                         ),
                         BehandlerOppslagResponse(
-                            "type3", UUID.randomUUID().toString(), "12341234123", "Kari", "", "Tau", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "22113344"
+                            "type3", UUID.randomUUID().toString(), "12341234123", "Kari", "", "Tau", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "22113344", ""
                         ),
                     ))
                 }

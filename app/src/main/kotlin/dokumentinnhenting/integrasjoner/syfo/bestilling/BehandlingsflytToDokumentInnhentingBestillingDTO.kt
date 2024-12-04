@@ -5,6 +5,7 @@ import java.util.*
 data class BehandlingsflytToDokumentInnhentingBestillingDTO(
     val behandlerRef: String,
     val behandlerNavn: String,
+    val behandlerHprNr: String? = "",
     val veilederNavn: String,
     val personIdent: String,
     val personNavn: String,
@@ -14,6 +15,7 @@ data class BehandlingsflytToDokumentInnhentingBestillingDTO(
     val behandlingsReferanse: UUID,
     val tidligereBestillingReferanse: UUID? = null
 )
+
 
 enum class DokumentasjonType {
     L40, L8, L120, MELDING_FRA_NAV, RETUR_LEGEERKLÆRING, PURRING

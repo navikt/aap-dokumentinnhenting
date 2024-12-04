@@ -30,6 +30,7 @@ class BehandlerDialogmeldingBestillingService(
         return dialogmeldingBestilling(BehandlingsflytToDokumentInnhentingBestillingDTO(
             bestilling.behandlerRef,
             bestilling.behandlerNavn,
+            "",
             bestilling.veilederNavn,
             bestilling.personIdent,
             bestilling.personNavn,
