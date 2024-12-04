@@ -1,6 +1,7 @@
 package dokumentinnhenting.util.motor.syfo.syfosteg
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import dokumentinnhenting.integrasjoner.saf.SafRestClient
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.config.ProducerConfig
@@ -14,20 +15,12 @@ const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-b
 const val KILDE = "AAP"
 
 class BestillLegeerklæringSteg(
-   // monitor: Events, //TODO: Få denne inn
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val producer: KafkaProducer<String, String> = KafkaProducer(ProducerConfig().properties())
 
 ): SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
     private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
-    //TODO: Få denne inn
-    /*
-    init {
-        monitor.subscribe(ApplicationStopped) {
-            producer.close()
-        }
-    }*/
 
     override fun utfør(kontekst: SyfoSteg.Kontekst): SyfoSteg.Resultat {
         log.info("BestillLegeerklæringSteg")
@@ -41,7 +34,7 @@ class BestillLegeerklæringSteg(
     }
 
     fun sendBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
-        val funnetBestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
+        val funnetBestilling = requireNotNull(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid))
         val mappedBestilling = mapToDialogMeldingBestilling(dialogmeldingUuid, funnetBestilling)
 
         val jsonValue = objectMapper.writeValueAsString(mappedBestilling)
@@ -59,21 +52,22 @@ class BestillLegeerklæringSteg(
     }
 
     private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, record: DialogmeldingFullRecord): DialogmeldingToBehandlerBestillingDTO {
-        val tidligereBestilling = record.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
+        val pdfBrev: ByteArray = SafRestClient().hentDokumentMedJournalpostId(
+            requireNotNull(record.journalpostId), requireNotNull(record.dokumentId)
+        )
 
-        val brevTekst = genererBrev(BrevGenerering(record.personNavn, record.personIdent, record.fritekst, record.veilederNavn, record.dokumentasjonType, tidligereBestilling))
         val kodeStruktur = mapDialogmeldingKodeStruktur(record.dokumentasjonType)
         return DialogmeldingToBehandlerBestillingDTO(
             record.behandlerRef,
             record.personIdent,
             dialogmeldingUuid,
-            null, // Trenger vi denne?
-            UUID.randomUUID().toString(), // Trenger vi denne?
+            null,
+            UUID.randomUUID().toString(),
             kodeStruktur.dialogmeldingType,
             kodeStruktur.dialogmeldingKodeverk,
             kodeStruktur.dialogmeldingKode,
-            brevTekst,
             null,
+            pdfBrev,
             KILDE
         )
     }

@@ -21,7 +21,7 @@ class OppdaterLegeerklæringStatusUtfører (
         dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
 
         if (record.status == MeldingStatusType.AVVIST) {
-            val sak = dialogmeldingRepository.hentByDialogId(bestillingId)
+            val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
             val behandlingsflytClient = BehandlingsflytClient()
             behandlingsflytClient.taSakAvVent(sak.behandlingsReferanse, BehandlingsflytClient.TaAvVentRequest(0L, "Avvist hos SYFO med begrunnelse: ${record.tekst}"))
         }

@@ -20,7 +20,7 @@ import java.net.URI
 import java.time.LocalDateTime
 
 class BrevClient {
-    private val baseUri = URI.create(requiredConfigForKey("integrasjon.brev.url"))
+    private val baseUri = URI.create(requiredConfigForKey("integrasjon.brev.base.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.brev.scope"))
     private val client = RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
 
@@ -49,7 +49,7 @@ class BrevClient {
         val pdfBrev = mapPdfBrev(bestilling, tidligereBestillingDato, tittel)
 
         val request = JournalførBrevRequest(
-            "",
+            bestilling.behandlerHprNr,
             bestilling.behandlerNavn,
             bestilling.saksnummer,
             bestilling.dialogmeldingUuid,
@@ -71,7 +71,7 @@ class BrevClient {
         val brevIAvsnitt = brev.split("\n").map{it.replace("""\n""", "")}
 
         return PdfBrev(
-            mottaker = Mottaker(navn = bestilling.behandlerNavn, ident = ""),
+            mottaker = Mottaker(navn = bestilling.behandlerNavn, ident = bestilling.behandlerHprNr),
             saksnummer = bestilling.saksnummer,
             dato = bestilling.opprettet.toLocalDate(),
             overskrift = tittel,

@@ -11,6 +11,7 @@ import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.Consumed
 import org.slf4j.LoggerFactory
+import java.util.*
 import javax.sql.DataSource
 
 const val SYFO_STATUS_DIALOGMELDING_TOPIC = "teamsykefravr.behandler-dialogmelding-status"
@@ -28,7 +29,7 @@ class DialogmeldingStatusStream(
             SYFO_STATUS_DIALOGMELDING_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingStatusDTOSerde())
         )
-            .filter { _, record -> hentSakListe().contains(record.bestillingUuid) } // Todo: Gjøre om disse?
+            .filter { _, record -> bestillingEksisterer(record.bestillingUuid) }
             .foreach { _, record -> oppdaterStatus(record) }
 
         topology = streamBuilder.build()
@@ -37,21 +38,28 @@ class DialogmeldingStatusStream(
     private fun oppdaterStatus(record: DialogmeldingStatusDTO) {
         datasource.transaction{ connection ->
             val jobbRepository = FlytJobbRepository(connection)
+            val dialogmeldingRepository = DialogmeldingRepository(connection)
+
             log.info("Oppdaterer status på ${record.bestillingUuid} med status ${record.status}")
+
+            val lagretBestilling = requireNotNull(dialogmeldingRepository.hentByDialogId(UUID.fromString(record.bestillingUuid)))
 
             val jobb =
                 JobbInput(OppdaterLegeerklæringStatusUtfører)
                     .medCallId()
                     .medPayload(DefaultJsonMapper.toJson(record))
+                    .forSak(lagretBestilling.id)
 
             jobbRepository.leggTil(jobb)
         }
     }
 
-    private fun hentSakListe(): List<String> {
+    private fun bestillingEksisterer(bestillingUuid: String): Boolean {
         return datasource.transaction { connection ->
             val repository = DialogmeldingRepository(connection)
-            repository.hentalleDialogIder()
+            val record = repository.hentByDialogId(UUID.fromString(bestillingUuid))
+
+            record?.dialogmeldingUuid.toString() == bestillingUuid
         }
     }
 }

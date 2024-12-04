@@ -14,7 +14,7 @@ class JournalførBestillingSteg(
 
     override fun utfør(kontekst: SyfoSteg.Kontekst): SyfoSteg.Resultat {
         log.info("JournalførBestillingSteg")
-        return sendBestilling(kontekst.referanse)
+        return journaførBestilling(kontekst.referanse)
     }
 
     companion object : SyfoSteg {
@@ -26,12 +26,13 @@ class JournalførBestillingSteg(
         }
     }
 
-    fun sendBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
-        val funnetBestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
-        val tidligereTilhørendeBestillingsdato = funnetBestilling.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
+    fun journaførBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
+        val bestilling = requireNotNull(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid))
+        val tidligereTilhørendeBestillingsdato = bestilling.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
 
         try {
-            brevClient.journalførBestilling(funnetBestilling, tidligereTilhørendeBestillingsdato)
+            val journalpostResponse = brevClient.journalførBestilling(bestilling, tidligereTilhørendeBestillingsdato)
+            dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, requireNotNull(journalpostResponse.journalpostId), requireNotNull(journalpostResponse.dokumentId))
         } catch (e: Exception) {
             log.error("Feilet ved journalføring av dokument $dialogmeldingUuid", e)
             return SyfoSteg.Resultat.STOPP

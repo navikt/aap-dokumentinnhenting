@@ -1,6 +1,5 @@
 package dokumentinnhenting.repositories
 
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
@@ -14,9 +13,11 @@ class DialogmeldingRepository(private val connection: DBConnection) {
     fun opprettDialogmelding(melding: DialogmeldingRecord): UUID {
         val query = """
             INSERT INTO DIALOGMELDING (
-                dialogmelding_uuid, behandler_ref, person_id, saksnummer, dokumentasjontype, behandler_navn, veileder_navn, fritekst, behandlingsReferanse, tidligere_bestilling_referanse
+                dialogmelding_uuid, behandler_ref, person_id, saksnummer, 
+                dokumentasjontype, behandler_navn, veileder_navn, fritekst, 
+                behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr
                 )
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeReturnKey(query) {
             setParams {
@@ -30,6 +31,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setString(8, melding.fritekst)
                 setUUID(9, melding.behandlingsReferanse)
                 setUUID(10, melding.tidligereBestillingReferanse)
+                setString(11, melding.behandlerHprNr)
             }
         }
         return melding.dialogmeldingUuid
@@ -47,6 +49,22 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setString(1, melding.status.toString())
                 setString(2, melding.tekst)
                 setUUID(3, UUID.fromString(melding.bestillingUuid))
+            }
+        }
+    }
+
+    fun leggTilJournalpostPåBestilling(dialogmeldingUuid: UUID, journalpostId: String, dokumentId: String) {
+        val query = """
+            UPDATE DIALOGMELDING
+            SET JOURNALPOST_ID = ?, DOKUMENT_ID = ?
+            WHERE DIALOGMELDING_UUID = ?
+        """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setString(1, journalpostId)
+                setString(2, dokumentId)
+                setUUID(3, dialogmeldingUuid)
             }
         }
     }
@@ -108,6 +126,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getUUID("DIALOGMELDING_UUID"),
                     it.getString("BEHANDLER_REF"),
                     it.getString("BEHANDLER_NAVN"),
+                    it.getString("BEHANDLER_HPR_NR"),
                     it.getString("VEILEDER_NAVN"),
                     it.getString("PERSON_ID"),
                     it.getEnum("DOKUMENTASJONTYPE"),
@@ -119,7 +138,10 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getStringOrNull("STATUS_TEKST"),
                     it.getUUID("BEHANDLINGSREFERANSE"),
                     it.getLocalDateTime("OPPRETTET_TID"),
-                    it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE")
+                    it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
+                    it.getStringOrNull("JOURNALPOST_ID"),
+                    it.getStringOrNull("DOKUMENT_ID"),
+                    it.getLong("ID")
                 )
             }
         }
@@ -152,13 +174,13 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentByDialogId(dialogmeldingUuid: UUID): DialogmeldingFullRecord {
+    fun hentByDialogId(dialogmeldingUuid: UUID): DialogmeldingFullRecord? {
         val query = """
             SELECT * FROM DIALOGMELDING
             WHERE DIALOGMELDING_UUID = ?
         """.trimIndent()
 
-        return connection.queryFirst(query) {
+        return connection.queryFirstOrNull(query) {
             setParams {
                 setUUID(1, dialogmeldingUuid)
             }
@@ -167,6 +189,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getUUID("DIALOGMELDING_UUID"),
                     it.getString("BEHANDLER_REF"),
                     it.getString("BEHANDLER_NAVN"),
+                    it.getString("BEHANDLER_HPR_NR"),
                     it.getString("VEILEDER_NAVN"),
                     it.getString("PERSON_ID"),
                     it.getEnum("DOKUMENTASJONTYPE"),
@@ -178,7 +201,10 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getStringOrNull("STATUS_TEKST"),
                     it.getUUID("BEHANDLINGSREFERANSE"),
                     it.getLocalDateTime("OPPRETTET_TID"),
-                    it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE")
+                    it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
+                    it.getStringOrNull("JOURNALPOST_ID"),
+                    it.getStringOrNull("DOKUMENT_ID"),
+                    it.getLong("ID")
                 )
             }
         }
