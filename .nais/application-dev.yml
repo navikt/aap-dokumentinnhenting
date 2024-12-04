@@ -76,9 +76,9 @@ spec:
       value: https://saf-q2.dev-fss-pub.nais.io/rest
     - name: INTEGRASJON_SAF_SCOPE
       value: api://dev-fss.teamdokumenthandtering.saf/.default
-    - name: BREV_BASE_URL
+    - name: INTEGASJON_BREV_BASE_URL
       value: http://brev
-    - name: BREV_SCOPE
+    - name: INTEGASJON_BREV_SCOPE
       value: api://dev-gcp.aap.brev/.default
   accessPolicy:
     inbound:
