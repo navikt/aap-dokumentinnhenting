@@ -20,7 +20,7 @@ import java.net.URI
 import java.time.LocalDateTime
 
 class BrevClient {
-    private val baseUri = URI.create(requiredConfigForKey("integrasjon.base.brev.url"))
+    private val baseUri = URI.create(requiredConfigForKey("integrasjon.brev.base.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.brev.scope"))
     private val client = RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
 
