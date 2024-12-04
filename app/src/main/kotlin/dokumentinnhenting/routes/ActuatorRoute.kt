@@ -1,7 +1,5 @@
 package dokumentinnhenting.routes
 
-import dokumentinnhenting.util.kafka.Stream
-import io.ktor.client.utils.EmptyContent.status
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
