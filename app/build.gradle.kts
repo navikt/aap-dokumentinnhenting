@@ -12,6 +12,7 @@ val ktorVersion = "3.0.2"
 val kafkaVersion = "3.9.0"
 val komponenterVersjon = "1.0.72"
 val confluentVersion = "7.7.1"
+val behandlingsflytVersjon = "0.0.64"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -60,6 +61,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
+    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
