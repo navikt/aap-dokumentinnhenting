@@ -120,6 +120,9 @@ class Fakes: AutoCloseable {
                     )
                 )
             }
+            get("/hentdokument/journalpostid/dokumentid/${Variantformat.ARKIV}") {
+                call.respond("")
+            }
         }
     }
 
