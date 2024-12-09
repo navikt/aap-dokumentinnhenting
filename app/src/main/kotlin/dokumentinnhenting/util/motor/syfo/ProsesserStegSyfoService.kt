@@ -20,7 +20,7 @@ class ProsesserStegSyfoService (
     }
     private val flyt = ProsesseringSyfoFlyt.Builder()
         .med(steg = StartLegeerklæringBestillingSteg, utfall = ProsesseringSyfoStatus.STARTET)
-        //.med(steg = JournalførBestillingSteg, utfall = ProsesseringSyfoStatus.JOURNALFØRT)
+        .med(steg = JournalførBestillingSteg, utfall = ProsesseringSyfoStatus.JOURNALFØRT)
         .med(steg = BestillLegeerklæringSteg, utfall = ProsesseringSyfoStatus.SENDT_TIL_SYFO)
         .med(steg = FerdigLegeerklæringBestillingSteg, utfall = ProsesseringSyfoStatus.FERDIG)
         .build()

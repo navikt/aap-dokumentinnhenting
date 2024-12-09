@@ -8,10 +8,11 @@ plugins {
     application
 }
 
-val ktorVersion = "3.0.1"
+val ktorVersion = "3.0.2"
 val kafkaVersion = "3.9.0"
 val komponenterVersjon = "1.0.72"
 val confluentVersion = "7.7.1"
+val behandlingsflytVersjon = "0.0.64"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -41,14 +42,14 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation(project(":dbflyway"))
-    implementation("no.nav:ktor-openapi-generator:1.0.46")
+    implementation("no.nav:ktor-openapi-generator:1.0.50")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.5")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.1")
     implementation("ch.qos.logback:logback-classic:1.5.9")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
-    implementation("org.flywaydb:flyway-database-postgresql:10.20.1")
+    implementation("org.flywaydb:flyway-database-postgresql:11.0.1")
     implementation("com.zaxxer:HikariCP:6.0.0")
 
     //Felleskomponenter
@@ -60,6 +61,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
+    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
     // kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
