@@ -9,8 +9,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import java.net.URI
-import java.util.*
-
 class BehandlingsflytClient {
     private val uri = requiredConfigForKey("behandlingsflyt.base.url")
     private val config = ClientConfig(scope = requiredConfigForKey("behandlingsflyt.scope"))
@@ -34,23 +32,4 @@ class BehandlingsflytClient {
             throw BehandlingsflytException("Feil ved forsøk på å ta sak av vent i behandlingsflyt: ${e.message}")
         }
     }
-
-    fun ekspederBestilling(ekspederRequest: EkspederBestillingRequest) {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = ekspederRequest
-        )
-        try {// Todo: Switche denne over til nye i behandlingsflyt når brev er klar
-            return requireNotNull(client.post(uri = URI.create("$uri/api/somethingCoolHere"), request = request, mapper = { body, _ -> DefaultJsonMapper.fromJson(body)} ))
-        } catch (e : Exception) {
-            throw BehandlingsflytException("Feil ved forsøk på å ekspedere bestilling i behandlingsflyt: ${e.message}")
-        }
-    }
-
-    data class EkspederBestillingRequest(
-        val journalpostId: String,
-        val dokumentId: String
-    )
 }

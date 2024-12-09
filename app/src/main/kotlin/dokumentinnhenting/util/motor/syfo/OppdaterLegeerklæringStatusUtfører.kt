@@ -1,6 +1,7 @@
 package dokumentinnhenting.util.motor.syfo
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.brev.BrevClient
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
@@ -41,9 +42,13 @@ class OppdaterLegeerklæringStatusUtfører (
         }
         else if (record.status == MeldingStatusType.OK) {
             val sak = dialogmeldingRepository.hentByDialogId(bestillingId)
-            val behandlingsflytClient = BehandlingsflytClient()
-            //behandlingsflytClient.ekspederBestilling() //Todo: få inn journalpostId og dokumentId når brev er klar
-            //TODO: Trigge noe bestilling av brev i behandlingsflyt
+            val brevClient = BrevClient()
+            brevClient.ekspederBestilling(
+                BrevClient.EkspederBestillingRequest(
+                    requireNotNull(sak?.journalpostId), (requireNotNull(sak?.journalpostId))
+                )
+            )
+            // TODO: Trigg ny jobb når behandlingsflyt bestilling er ferdig
         }
     }
 

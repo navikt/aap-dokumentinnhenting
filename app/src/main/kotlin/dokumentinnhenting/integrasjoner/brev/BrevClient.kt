@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.brev
 
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
@@ -32,6 +33,26 @@ class BrevClient {
         )
         return requireNotNull(client.post(uri, httpRequest))
     }
+
+    fun ekspederBestilling(ekspederRequest: EkspederBestillingRequest) {
+        val uri =  baseUri.resolve("/api/dokumentinnhenting/ekspeder-journalpost-behandler-bestilling")
+        val request = PostRequest(
+            body = ekspederRequest,
+            additionalHeaders = listOf(
+                Header("Accept", "application/json"),
+            ),
+        )
+        try {
+            client.post(uri = uri, request = request, mapper = { _, _ -> } )
+        } catch (e : Exception) {
+            throw BehandlingsflytException("Feil ved forsøk på å ekspedere bestilling i behandlingsflyt: ${e.message}")
+        }
+    }
+
+    data class EkspederBestillingRequest(
+        val journalpostId: String,
+        val dokumentId: String
+    )
 
     private fun konstruerBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): JournalførBehandlerBestillingRequest {
         val tittel = when(bestilling.dokumentasjonType) {
