@@ -19,13 +19,11 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import no.nav.aap.komponenter.server.AZURE
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
-import dokumentinnhenting.integrasjoner.syfo.dialogmeldingMottakStream
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
 import dokumentinnhenting.routes.syfo
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
-import no.nav.aap.komponenter.httpklient.auth.Bruker
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
@@ -38,8 +36,6 @@ import javax.sql.DataSource
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
 class App
-
-val SYSTEMBRUKER = Bruker("Kelvin")
 
 private const val ANTALL_WORKERS = 4
 
@@ -68,8 +64,7 @@ fun Application.server(
     install(StatusPages) {
         val logger = LoggerFactory.getLogger(App::class.java)
         exception<BehandlingsflytException> { call, cause ->
-            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause.stackTraceToString())
-            logger.error("Feil i behandlingsflyt: ${cause.message} \n ${cause.stackTraceToString()}")
+            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
             call.respondText(
                 text = "Feil i behandlingsflyt: ${cause.message}",
                 status = HttpStatusCode.InternalServerError
@@ -77,7 +72,6 @@ fun Application.server(
         }
         exception<Throwable> { call, cause ->
             logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            logger.error("Feil i tjeneste: ${cause.message} \n ${cause.stackTraceToString()}")
             call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
     }
