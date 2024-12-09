@@ -11,8 +11,8 @@ data class DialogmeldingToBehandlerBestillingDTO(
     val dialogmeldingType: DialogmeldingType,
     val dialogmeldingKodeverk: DialogmeldingKodeverk,
     val dialogmeldingKode: Int,
-    val dialogmeldingTekst: String,
-    val dialogmeldingVedlegg: ByteArray? = null,
+    val dialogmeldingTekst: String?,
+    val dialogmeldingVedlegg: ByteArray,
     val kilde: String
 )
 

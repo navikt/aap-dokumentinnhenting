@@ -30,7 +30,7 @@ class BehandlerDialogmeldingBestillingService(
         return dialogmeldingBestilling(BehandlingsflytToDokumentInnhentingBestillingDTO(
             bestilling.behandlerRef,
             bestilling.behandlerNavn,
-            "",
+            bestilling.behandlerHprNr,
             bestilling.veilederNavn,
             bestilling.personIdent,
             bestilling.personNavn,
@@ -47,6 +47,7 @@ class BehandlerDialogmeldingBestillingService(
         val dialogMeldingRecord = DialogmeldingRecord(
             dialogmeldingUuid,
             dto.behandlerRef,
+            dto.behandlerHprNr,
             dto.personIdent,
             dto.saksnummer,
             dto.dokumentasjonType,

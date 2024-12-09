@@ -27,7 +27,7 @@ class OppdaterLegeerklæringStatusUtfører (
         dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
 
         if (record.status == MeldingStatusType.AVVIST) {
-            val sak = dialogmeldingRepository.hentByDialogId(bestillingId)
+            val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
             val behandlingsflytClient = BehandlingsflytClient()
             behandlingsflytClient.taSakAvVent(
                     MottattHendelseDto(

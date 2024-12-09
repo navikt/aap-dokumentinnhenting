@@ -14,7 +14,7 @@ class JournalførBestillingSteg(
 
     override fun utfør(kontekst: SyfoSteg.Kontekst): SyfoSteg.Resultat {
         log.info("JournalførBestillingSteg")
-        return sendBestilling(kontekst.referanse)
+        return journalførBestilling(kontekst.referanse)
     }
 
     companion object : SyfoSteg {
@@ -26,12 +26,20 @@ class JournalførBestillingSteg(
         }
     }
 
-    fun sendBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
-        val funnetBestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
-        val tidligereTilhørendeBestillingsdato = funnetBestilling.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
+    //TODO: Her må vi ha noe logikk på ferdigstilling?
+    fun journalførBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
+        val bestilling = requireNotNull(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid))
+        val tidligereTilhørendeBestillingsdato = bestilling.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
 
         try {
-            brevClient.journalførBestilling(funnetBestilling, tidligereTilhørendeBestillingsdato)
+            val journalpostResponse = brevClient.journalførBestilling(bestilling, tidligereTilhørendeBestillingsdato)
+            val dokumentId = journalpostResponse.dokumenter[0]
+
+            if (!journalpostResponse.journalpostFerdigstilt) {
+                log.warn("Greide ikke ferdigstille journal med id ${journalpostResponse.journalpostId}")
+            }
+
+            dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, requireNotNull(journalpostResponse.journalpostId), dokumentId)
         } catch (e: Exception) {
             log.error("Feilet ved journalføring av dokument $dialogmeldingUuid", e)
             return SyfoSteg.Resultat.STOPP

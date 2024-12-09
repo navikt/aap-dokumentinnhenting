@@ -12,10 +12,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.brev.kontrakt.PdfBrev.*
-import no.nav.aap.brev.kontrakt.PdfBrev.Blokk
-import no.nav.aap.brev.kontrakt.PdfBrev.Innhold
-import no.nav.aap.brev.kontrakt.PdfBrev.Tekstbolk
 import java.net.URI
 import java.time.LocalDateTime
 
@@ -24,7 +20,7 @@ class BrevClient {
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.brev.scope"))
     private val client = RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
 
-    fun journalførBestilling(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime? ): JournalpostIdResponse {
+    fun journalførBestilling(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime? ): JournalførBehandlerBestillingResponse {
         val uri = baseUri.resolve("/api/journalforbrev")
         val body = konstruerBrev(bestilling, tidligereBestillingDato)
         val httpRequest = PostRequest(
@@ -37,7 +33,7 @@ class BrevClient {
         return requireNotNull(client.post(uri, httpRequest))
     }
 
-    private fun konstruerBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): JournalførBrevRequest {
+    private fun konstruerBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): JournalførBehandlerBestillingRequest {
         val tittel = when(bestilling.dokumentasjonType) {
             DokumentasjonType.L40 -> "Forespørsel om legeerklæring og arbeidsuførhet"
             DokumentasjonType.L8 -> "Forespørsel om tilleggsopplysninger"
@@ -46,56 +42,29 @@ class BrevClient {
             DokumentasjonType.RETUR_LEGEERKLÆRING -> "Retur legeerklæring"
             DokumentasjonType.PURRING -> "Purring på forespørsel om legeerklæring"
         }
-        val pdfBrev = mapPdfBrev(bestilling, tidligereBestillingDato, tittel)
+        val pdfBrevIAvsnitt = mapPdfBrev(bestilling, tidligereBestillingDato)
 
-        val request = JournalførBrevRequest(
-            "",
-            bestilling.behandlerNavn,
+        val request = JournalførBehandlerBestillingRequest(
+            bestilling.personIdent,
             bestilling.saksnummer,
+            bestilling.behandlerHprNr,
+            bestilling.behandlerNavn,
             bestilling.dialogmeldingUuid,
-            tittel,
             bestilling.dokumentasjonType.toString(),
-            pdfBrev
+            tittel,
+            pdfBrevIAvsnitt,
+            bestilling.opprettet.toLocalDate()
         )
         return request
     }
 
     //Todo: Flytte hele greien til sanity så vi faktisk får noe fornuftig stuktur? Brev skal også refaktorere bruken av denne
-    private fun mapPdfBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?, tittel: String): PdfBrev {
-        bestilling.dokumentasjonType
+    private fun mapPdfBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): List<String> {
         val brev = genererBrev(
             BrevGenerering(
                 bestilling.personNavn, bestilling.personIdent, bestilling.fritekst, bestilling.veilederNavn, bestilling.dokumentasjonType, tidligereBestillingDato
             )
         )
-        val brevIAvsnitt = brev.split("\n").map{it.replace("""\n""", "")}
-
-        return PdfBrev(
-            mottaker = Mottaker(navn = bestilling.behandlerNavn, ident = ""),
-            saksnummer = bestilling.saksnummer,
-            dato = bestilling.opprettet.toLocalDate(),
-            overskrift = tittel,
-            tekstbolker = listOf(
-                Tekstbolk(
-                    overskrift = tittel,
-                    innhold = listOf(
-                        Innhold(
-                            overskrift = "",
-                            blokker = listOf (
-                                Blokk(
-                                    innhold = brevIAvsnitt.map {
-                                        FormattertTekst(
-                                            tekst = it,
-                                            formattering = listOf()
-                                        )
-                                    },
-                                    type =  BlokkType.AVSNITT
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
+        return brev.split("\n").map{it.replace("""\n""", "")}
     }
 }

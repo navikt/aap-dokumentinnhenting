@@ -8,6 +8,7 @@ import java.util.UUID
 data class DialogmeldingRecord (
     val dialogmeldingUuid: UUID,
     val behandlerRef: String,
+    val behandlerHprNr: String,
     val personIdent: String,
     val saksnummer: String,
     val dokumentasjonType: DokumentasjonType,
@@ -22,6 +23,7 @@ data class DialogmeldingFullRecord (
     val dialogmeldingUuid: UUID,
     val behandlerRef: String,
     val behandlerNavn: String,
+    val behandlerHprNr: String,
     val veilederNavn: String,
     val personIdent: String,
     val dokumentasjonType: DokumentasjonType,
@@ -33,5 +35,8 @@ data class DialogmeldingFullRecord (
     val statusTekst: String?,
     val behandlingsReferanse: UUID,
     val opprettet: LocalDateTime,
-    val tidligereBestillingReferanse: UUID?
+    val tidligereBestillingReferanse: UUID?,
+    val journalpostId: String?,
+    val dokumentId: String?,
+    val id: Long
 )
