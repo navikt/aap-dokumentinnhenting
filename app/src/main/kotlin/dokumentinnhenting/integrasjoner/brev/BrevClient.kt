@@ -21,7 +21,7 @@ class BrevClient {
     private val client = RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
 
     fun journalførBestilling(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime? ): JournalførBehandlerBestillingResponse {
-        val uri = baseUri.resolve("/api/journalforbrev")
+        val uri = baseUri.resolve("/api/dokumentinnhenting/journalfor-behandler-bestilling")
         val body = konstruerBrev(bestilling, tidligereBestillingDato)
         val httpRequest = PostRequest(
             body = body,
