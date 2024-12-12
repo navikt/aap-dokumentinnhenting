@@ -32,4 +32,9 @@ class BehandlingsflytClient {
             throw BehandlingsflytException("Feil ved forsøk på å ta sak av vent i behandlingsflyt: ${e.message}")
         }
     }
+
+    fun sendVarslingsbrev() {
+        
+        // TODO: implementer meg
+    }
 }

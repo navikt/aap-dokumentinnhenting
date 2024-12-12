@@ -7,8 +7,6 @@ import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.Consumed
 import org.slf4j.LoggerFactory
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
 const val SYFO_DIALOGMELDING_MOTTAK_TOPIC = "teamsykefravr.dialogmelding"
@@ -36,7 +34,7 @@ class DialogmeldingMottakStream(private val datasource: DataSource) {
     private fun hentBestillingsListe(personId:String): String? {
         return datasource.transaction { connection ->
             val repository = DialogmeldingRepository(connection)
-            repository.hentSisteBestillgByPIDYngreEnn2mMnd(personId)
+            repository.hentSisteBestillingByPIDYngreEnn2mMnd(personId)
         }
     }
 

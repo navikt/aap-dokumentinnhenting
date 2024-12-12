@@ -94,7 +94,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentSisteBestillgByPIDYngreEnn2mMnd(personId: String): String? {
+    fun hentSisteBestillingByPIDYngreEnn2mMnd(personId: String): String? {
         val query = """
             SELECT SAKSNUMMER FROM DIALOGMELDING
             WHERE OPPRETTET_TID > NOW() - INTERVAL '2 months' AND PERSON_ID = ?

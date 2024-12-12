@@ -12,6 +12,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.MottattHendelseDto
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
+import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
@@ -19,12 +20,12 @@ import no.nav.aap.verdityper.dokument.Kanal
 import java.util.*
 
 class OppdaterLegeerklæringStatusUtfører (
-    private val dialogmeldingRepository: DialogmeldingRepository
+    private val dialogmeldingRepository: DialogmeldingRepository,
+    private val jobbRepository: FlytJobbRepository
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val record = DefaultJsonMapper.fromJson<DialogmeldingStatusDTO>(input.payload())
         val bestillingId = dialogmeldingRepository.låsBestilling(UUID.fromString(record.bestillingUuid))
-
         dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
 
         if (record.status == MeldingStatusType.AVVIST) {
@@ -48,14 +49,20 @@ class OppdaterLegeerklæringStatusUtfører (
                     requireNotNull(sak?.journalpostId), (requireNotNull(sak?.journalpostId))
                 )
             )
-            // TODO: Trigg ny jobb når behandlingsflyt bestilling er ferdig
+
+            val jobb =
+                JobbInput(SendVarslingsbrevUtfører)
+                    .medCallId()
+                    .medPayload(DefaultJsonMapper.toJson(record))
+            jobbRepository.leggTil(jobb)
         }
     }
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return OppdaterLegeerklæringStatusUtfører(
-                DialogmeldingRepository(connection)
+                DialogmeldingRepository(connection),
+                FlytJobbRepository(connection)
             )
         }
 

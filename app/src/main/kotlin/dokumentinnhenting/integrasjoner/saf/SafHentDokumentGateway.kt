@@ -13,6 +13,7 @@ import java.net.http.HttpHeaders
 
 private val log = LoggerFactory.getLogger(SafHentDokumentGateway::class.java)
 
+// TODO: Fjerne/kombinere denne med SafRestClient etter at denne er testet skikkelig (VETLE).
 class SafHentDokumentGateway(private val restClient: RestClient<InputStream>) {
     private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
 
