@@ -12,6 +12,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.MottattHendelseDto
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.verdityper.dokument.Kanal
+import java.util.*
 
 fun NormalOpenAPIRoute.testApi () {
     route("/test") {
@@ -23,8 +24,8 @@ fun NormalOpenAPIRoute.testApi () {
                     Saksnummer(req.saksnummer),
                     InnsendingType.LEGEERKLÆRING_AVVIST,
                     Kanal.DIGITAL,
-                    InnsendingReferanse(AvvistLegeerklæringId(req.bestillingId)),
-                    AvvistLegeerklæringId(req.bestillingId)
+                    InnsendingReferanse(AvvistLegeerklæringId(UUID.randomUUID())),
+                    AvvistLegeerklæringId(req.saksnummer)
                 )
             )
             respond("", HttpStatusCode.OK)
@@ -33,6 +34,5 @@ fun NormalOpenAPIRoute.testApi () {
 }
 
 data class TaAvVentRequest(
-    val saksnummer: String,
-    val bestillingId: String
+    val saksnummer: String
 )
