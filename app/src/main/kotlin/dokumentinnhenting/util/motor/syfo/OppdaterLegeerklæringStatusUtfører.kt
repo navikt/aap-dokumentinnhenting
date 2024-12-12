@@ -27,6 +27,7 @@ class OppdaterLegeerklæringStatusUtfører (
         val record = DefaultJsonMapper.fromJson<DialogmeldingStatusDTO>(input.payload())
         val bestillingId = dialogmeldingRepository.låsBestilling(UUID.fromString(record.bestillingUuid))
         dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
+        val avvistLegeerklæringId = UUID.randomUUID()
 
         if (record.status == MeldingStatusType.AVVIST) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
@@ -36,8 +37,8 @@ class OppdaterLegeerklæringStatusUtfører (
                     Saksnummer(sak.saksnummer),
                     InnsendingType.LEGEERKLÆRING_AVVIST,
                     Kanal.DIGITAL,
-                    InnsendingReferanse(AvvistLegeerklæringId(UUID.randomUUID())),
-                    AvvistLegeerklæringId(bestillingId)
+                    InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
+                    AvvistLegeerklæringId(avvistLegeerklæringId)
                 )
             )
         }

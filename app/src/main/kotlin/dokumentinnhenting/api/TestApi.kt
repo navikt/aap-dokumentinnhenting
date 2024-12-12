@@ -19,13 +19,14 @@ fun NormalOpenAPIRoute.testApi () {
         route("/avvist").post<Unit, String, TaAvVentRequest> { _, req ->
 
             val behandlingsflytClient = BehandlingsflytClient()
+            val avvistLegeerklæringId = UUID.randomUUID()
             behandlingsflytClient.taSakAvVent(
                 MottattHendelseDto(
                     Saksnummer(req.saksnummer),
                     InnsendingType.LEGEERKLÆRING_AVVIST,
                     Kanal.DIGITAL,
-                    InnsendingReferanse(AvvistLegeerklæringId(UUID.randomUUID())),
-                    AvvistLegeerklæringId(req.saksnummer)
+                    InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
+                    AvvistLegeerklæringId(avvistLegeerklæringId)
                 )
             )
             respond("", HttpStatusCode.OK)
