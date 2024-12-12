@@ -20,7 +20,8 @@ import org.slf4j.LoggerFactory
 import no.nav.aap.komponenter.server.AZURE
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
-import dokumentinnhenting.api.syfo
+import dokumentinnhenting.api.syfoApi
+import dokumentinnhenting.api.testApi
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -30,7 +31,7 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
-import saf
+import safApi
 import javax.sql.DataSource
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
@@ -88,10 +89,13 @@ fun Application.server(
 
         authenticate(AZURE) {
             apiRouting {
-                saf()
+                safApi()
                 motorApi(dataSource)
-                syfo(dataSource)
+                syfoApi(dataSource)
             }
+        }
+        apiRouting {
+            testApi()
         }
     }
 }

@@ -1,0 +1,36 @@
+package dokumentinnhenting.api
+
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.route
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.AvvistLegeerklæringId
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.MottattHendelseDto
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
+import no.nav.aap.verdityper.dokument.Kanal
+
+fun NormalOpenAPIRoute.testApi () {
+    route("/test") {
+        route("/avvist").post<Unit, Unit, TaAvVentRequest> { _, req ->
+
+            val behandlingsflytClient = BehandlingsflytClient()
+            behandlingsflytClient.taSakAvVent(
+                MottattHendelseDto(
+                    Saksnummer(req.saksnummer),
+                    InnsendingType.LEGEERKLÆRING_AVVIST,
+                    Kanal.DIGITAL,
+                    InnsendingReferanse(AvvistLegeerklæringId(req.bestillingId)),
+                    AvvistLegeerklæringId(req.bestillingId)
+                )
+            )
+
+        }
+    }
+}
+
+data class TaAvVentRequest(
+    val saksnummer: String,
+    val bestillingId: String
+)

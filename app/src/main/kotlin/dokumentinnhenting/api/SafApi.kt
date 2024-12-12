@@ -8,7 +8,7 @@ import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.saf.*
 import no.nav.aap.komponenter.httpklient.auth.token
 
-fun NormalOpenAPIRoute.saf() {
+fun NormalOpenAPIRoute.safApi() {
     route("/saf").post<Unit, List<Doc>, HelseDocRequest> { _, req ->
         val token = this.token()
         respond(dokumentFilterDokumentSøk(SafClient.hentDokumenterForSak(req.saksnummer, token)))

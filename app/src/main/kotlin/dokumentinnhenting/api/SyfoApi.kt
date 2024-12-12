@@ -19,8 +19,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import java.util.*
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.syfo(dataSource: DataSource
-) {
+fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
     route("/syfo") {
         route("/dialogmeldingbestilling").post<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO> { _, req ->
             if (BestillingCache.contains(req.saksnummer)) {
