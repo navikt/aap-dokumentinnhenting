@@ -1,4 +1,4 @@
-package dokumentinnhenting.routes
+package dokumentinnhenting.api
 
 import io.ktor.http.*
 import io.ktor.server.response.*

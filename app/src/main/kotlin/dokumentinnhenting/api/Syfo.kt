@@ -1,4 +1,4 @@
-package dokumentinnhenting.routes
+package dokumentinnhenting.api
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get

@@ -14,13 +14,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import dokumentinnhenting.routes.actuator
+import dokumentinnhenting.api.actuator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import no.nav.aap.komponenter.server.AZURE
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
-import dokumentinnhenting.routes.syfo
+import dokumentinnhenting.api.syfo
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering

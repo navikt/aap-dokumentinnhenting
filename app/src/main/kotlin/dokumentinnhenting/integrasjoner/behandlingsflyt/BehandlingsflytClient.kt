@@ -34,7 +34,17 @@ class BehandlingsflytClient {
     }
 
     fun sendVarslingsbrev() {
-        
-        // TODO: implementer meg
+        val request = PostRequest(
+            additionalHeaders = listOf(
+                Header("Accept", "application/json"),
+            ),
+            body = ""
+        )
+
+        try {
+            //TODO: url her when ready
+        } catch (e: Exception) {
+            throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
+        }
     }
 }

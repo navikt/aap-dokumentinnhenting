@@ -18,15 +18,15 @@ class SendVarslingsbrevUtfører : JobbUtfører {
         }
 
         override fun type(): String {
-            return "oppdaterStatusLegeerklæring"
+            return "sendVarslingsbrev"
         }
 
         override fun navn(): String {
-            return "Oppdaterer status på bestilling av legeerklæring"
+            return "Bestiller et varslingsbrev til aktuelle bruker i brev via behandlingsflyt"
         }
 
         override fun beskrivelse(): String {
-            return "Ansvarlig for å gjennomføre statusoppdatering på legeerklæringer"
+            return "Ansvarlig for å gjennomføre bestilling av varslingsbrev til bruker"
         }
     }
 }
