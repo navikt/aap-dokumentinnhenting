@@ -36,7 +36,7 @@ class OppdaterLegeerklæringStatusUtfører (
                     Saksnummer(sak.saksnummer),
                     InnsendingType.LEGEERKLÆRING_AVVIST,
                     Kanal.DIGITAL,
-                    InnsendingReferanse(AvvistLegeerklæringId(bestillingId)),
+                    InnsendingReferanse(AvvistLegeerklæringId(UUID.randomUUID())),
                     AvvistLegeerklæringId(bestillingId)
                 )
             )
