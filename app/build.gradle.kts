@@ -11,8 +11,7 @@ plugins {
 val ktorVersion = "3.0.2"
 val kafkaVersion = "3.9.0"
 val komponenterVersjon = "1.0.83"
-val confluentVersion = "7.7.1"
-val behandlingsflytVersjon = "0.0.69"
+val behandlingsflytVersjon = "0.0.81"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")

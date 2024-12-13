@@ -1,6 +1,6 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt
 
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.MottattHendelseDto
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import java.net.URI
+
 class BehandlingsflytClient {
     private val uri = requiredConfigForKey("behandlingsflyt.base.url")
     private val config = ClientConfig(scope = requiredConfigForKey("behandlingsflyt.scope"))
@@ -18,7 +19,7 @@ class BehandlingsflytClient {
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    fun taSakAvVent(taAvVentRequest: MottattHendelseDto) {
+    fun taSakAvVent(taAvVentRequest: Innsending) {
         val request = PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
@@ -27,8 +28,12 @@ class BehandlingsflytClient {
         )
 
         try {
-            return requireNotNull(client.post(uri = URI.create("$uri/api/hendelse/send"), request = request, mapper = { body, _ -> DefaultJsonMapper.fromJson(body)} ))
-        } catch (e : Exception) {
+            return requireNotNull(
+                client.post(
+                    uri = URI.create("$uri/api/hendelse/send"),
+                    request = request,
+                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body) }))
+        } catch (e: Exception) {
             throw BehandlingsflytException("Feil ved forsøk på å ta sak av vent i behandlingsflyt: ${e.message}")
         }
     }

@@ -8,7 +8,7 @@ import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.AvvistLegeerklæringId
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.MottattHendelseDto
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
@@ -17,6 +17,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.verdityper.dokument.Kanal
+import java.time.LocalDateTime
 import java.util.*
 
 class OppdaterLegeerklæringStatusUtfører (
@@ -33,12 +34,14 @@ class OppdaterLegeerklæringStatusUtfører (
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
             val behandlingsflytClient = BehandlingsflytClient()
             behandlingsflytClient.taSakAvVent(
-                    MottattHendelseDto(
-                    Saksnummer(sak.saksnummer),
-                    InnsendingType.LEGEERKLÆRING_AVVIST,
-                    Kanal.DIGITAL,
-                    InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
-                    AvvistLegeerklæringId(avvistLegeerklæringId)
+                Innsending(
+                    saksnummer = Saksnummer(sak.saksnummer),
+                    referanse = InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
+                    type = InnsendingType.LEGEERKLÆRING_AVVIST,
+                    kanal = Kanal.DIGITAL,
+                    // Bruker .now() i stedet for createdAt, siden dette er når *vi* mottok meldingen
+                    mottattTidspunkt = LocalDateTime.now(),
+                    melding = null
                 )
             )
         }

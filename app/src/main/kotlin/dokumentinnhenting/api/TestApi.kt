@@ -9,24 +9,26 @@ import io.ktor.http.*
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.AvvistLegeerklæringId
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
-import no.nav.aap.behandlingsflyt.kontrakt.hendelse.MottattHendelseDto
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.verdityper.dokument.Kanal
+import java.time.LocalDateTime
 import java.util.*
 
-fun NormalOpenAPIRoute.testApi () {
+fun NormalOpenAPIRoute.testApi() {
     route("/test") {
         route("/avvist").post<Unit, String, TaAvVentRequest> { _, req ->
 
             val behandlingsflytClient = BehandlingsflytClient()
             val avvistLegeerklæringId = UUID.randomUUID()
             behandlingsflytClient.taSakAvVent(
-                MottattHendelseDto(
-                    Saksnummer(req.saksnummer),
-                    InnsendingType.LEGEERKLÆRING_AVVIST,
-                    Kanal.DIGITAL,
-                    InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
-                    AvvistLegeerklæringId(avvistLegeerklæringId)
+                Innsending(
+                    saksnummer = Saksnummer(req.saksnummer),
+                    referanse = InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
+                    type = InnsendingType.LEGEERKLÆRING_AVVIST,
+                    kanal = Kanal.DIGITAL,
+                    mottattTidspunkt = LocalDateTime.now(),
+                    melding = null
                 )
             )
             respond("", HttpStatusCode.OK)
