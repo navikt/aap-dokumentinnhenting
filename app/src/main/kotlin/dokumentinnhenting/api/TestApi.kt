@@ -5,6 +5,7 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.brev.BrevClient
 import io.ktor.http.*
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.AvvistLegeerklæringId
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
@@ -29,6 +30,16 @@ fun NormalOpenAPIRoute.testApi() {
                     kanal = Kanal.DIGITAL,
                     mottattTidspunkt = LocalDateTime.now(),
                     melding = null
+                )
+            )
+            respond("", HttpStatusCode.OK)
+        }
+        route("/ekspeder").post<Unit, String, BrevClient.EkspederBestillingRequest> { _, req ->
+            val brevClient = BrevClient()
+
+            brevClient.ekspederBestilling(
+                BrevClient.EkspederBestillingRequest(
+                    req.journalpostId, req.dokumentId
                 )
             )
             respond("", HttpStatusCode.OK)
