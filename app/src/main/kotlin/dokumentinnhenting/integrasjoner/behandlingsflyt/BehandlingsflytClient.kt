@@ -52,4 +52,28 @@ class BehandlingsflytClient {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
     }
+
+    fun åpenSakEksisterer(): Sak? {
+        val request = PostRequest(
+            additionalHeaders = listOf(
+                Header("Accept", "application/json"),
+            ),
+            body = ""
+        )
+
+        try {
+            return client.post(
+                    uri = URI.create("$uri/api/saker"),
+                    request = request,
+                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
+        } catch (e: Exception) {
+            throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
+        }
+    }
+
+    data class Sak(
+        val personIdent: String,
+        val sakId: String,
+        val status: String
+    )
 }
