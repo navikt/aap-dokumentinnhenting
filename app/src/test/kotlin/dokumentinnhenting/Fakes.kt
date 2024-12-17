@@ -158,7 +158,7 @@ class Fakes: AutoCloseable {
                     )
                 )
             }
-            get("/hentdokument/journalpostid/dokumentid/${Variantformat.ARKIV}") {
+            get("/rest/hentdokument/journalpostid/dokumentid/${Variantformat.ARKIV}") {
                 call.respond("")
             }
         }

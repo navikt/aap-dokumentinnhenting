@@ -38,7 +38,7 @@ class DialogmeldingBestillingTest {
         InitTestDatabase.clean()
     }
 
-    //@Test
+    @Test
     fun kanKjøreSteg() {
         Fakes().use { fakes ->
             val saksnummer = "saksnummer"
@@ -96,54 +96,49 @@ class DialogmeldingBestillingTest {
         }
     }
 
-    //@Test
+    @Test
     fun FeilerOmLegeerklæringPurringErUnder14Dager() {
-        Fakes().use { fakes ->
-            lateinit var dialogmeldingLegerklæringUuid: UUID
-            val saksnummer = "saksnummer"
-            val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDTO(
-                behandlerRef = "behandlerRef",
-                personIdent = "12345678910",
-                personNavn = "personNavn",
-                saksnummer = saksnummer,
-                dialogmeldingTekst = "tekst",
-                dokumentasjonType = DokumentasjonType.L8,
-                behandlerNavn = "behandlerNavn",
-                veilederNavn = "veilederNavn",
-                behandlingsReferanse = UUID.randomUUID(),
-                behandlerHprNr = "1233321"
+        lateinit var dialogmeldingLegerklæringUuid: UUID
+        val saksnummer = "saksnummer"
+        val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDTO(
+            behandlerRef = "behandlerRef",
+            personIdent = "12345678910",
+            personNavn = "personNavn",
+            saksnummer = saksnummer,
+            dialogmeldingTekst = "tekst",
+            dokumentasjonType = DokumentasjonType.L8,
+            behandlerNavn = "behandlerNavn",
+            veilederNavn = "veilederNavn",
+            behandlingsReferanse = UUID.randomUUID(),
+            behandlerHprNr = "1233321"
+        )
+
+        InitTestDatabase.dataSource.transaction { connection ->
+            dialogmeldingRepository = DialogmeldingRepository(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                FlytJobbRepository(connection),
+                DialogmeldingRepository(connection)
             )
 
-            InitTestDatabase.dataSource.transaction { connection ->
-                dialogmeldingRepository = DialogmeldingRepository(connection)
-                behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
-                    FlytJobbRepository(connection),
-                    DialogmeldingRepository(connection)
-                )
+            dialogmeldingLegerklæringUuid = behandlerDialogmeldingBestillingService.dialogmeldingBestilling(legeerklæring)
+            dialogmeldingRepository.leggTilJournalpostPåBestilling(
+                dialogmeldingLegerklæringUuid,
+                "journalpostid",
+                "dokumentid"
+            )
+        }
 
-                dialogmeldingLegerklæringUuid =
-                    behandlerDialogmeldingBestillingService.dialogmeldingBestilling(legeerklæring)
-                dialogmeldingRepository.leggTilJournalpostPåBestilling(
-                    dialogmeldingLegerklæringUuid,
-                    "journalpostid",
-                    "dokumentid"
-                )
-                val steg = BestillLegeerklæringSteg(dialogmeldingRepository, mockProducer)
-                steg.utfør(SyfoSteg.Kontekst(dialogmeldingLegerklæringUuid))
-            }
+        InitTestDatabase.dataSource.transaction { connection ->
+            dialogmeldingRepository = DialogmeldingRepository(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                FlytJobbRepository(connection),
+                DialogmeldingRepository(connection)
+            )
 
-            InitTestDatabase.dataSource.transaction { connection ->
-                dialogmeldingRepository = DialogmeldingRepository(connection)
-                behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
-                    FlytJobbRepository(connection),
-                    DialogmeldingRepository(connection)
+            assertThrows<RuntimeException> {
+                behandlerDialogmeldingBestillingService.dialogmeldingPurring(
+                    LegeerklæringPurringDTO(dialogmeldingLegerklæringUuid)
                 )
-
-                assertThrows<RuntimeException> {
-                    behandlerDialogmeldingBestillingService.dialogmeldingPurring(
-                        LegeerklæringPurringDTO(dialogmeldingLegerklæringUuid)
-                    )
-                }
             }
         }
     }
