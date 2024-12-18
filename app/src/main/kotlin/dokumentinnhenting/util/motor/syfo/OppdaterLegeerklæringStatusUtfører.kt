@@ -46,18 +46,18 @@ class OppdaterLegeerklæringStatusUtfører (
             )
         }
         else if (record.status == MeldingStatusType.OK) {
-            val sak = dialogmeldingRepository.hentByDialogId(bestillingId)
+            val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
             val brevClient = BrevClient()
             brevClient.ekspederBestilling(
                 BrevClient.EkspederBestillingRequest(
-                    requireNotNull(sak?.journalpostId), (requireNotNull(sak?.journalpostId))
+                    requireNotNull(sak.journalpostId), (requireNotNull(sak.dokumentId))
                 )
             )
 
             val jobb =
                 JobbInput(SendVarslingsbrevUtfører)
                     .medCallId()
-                    .medPayload(DefaultJsonMapper.toJson(record))
+                    .medPayload(DefaultJsonMapper.toJson(sak))
             jobbRepository.leggTil(jobb)
         }
     }

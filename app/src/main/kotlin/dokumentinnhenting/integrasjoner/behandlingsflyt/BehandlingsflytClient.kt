@@ -4,11 +4,13 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
+import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import java.net.URI
+import java.util.*
 
 class BehandlingsflytClient {
     private val uri = requiredConfigForKey("behandlingsflyt.base.url")
@@ -38,16 +40,17 @@ class BehandlingsflytClient {
         }
     }
 
-    fun sendVarslingsbrev() {
+    fun sendVarslingsbrev(varselRequest: VarselOmBrevbestillingDto): UUID {
         val request = PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
             ),
-            body = ""
+            body = varselRequest
         )
 
         try {
-            //TODO: url her when ready
+            val uri = URI.create("$uri/api/brev/bestillingvarsel")
+            return requireNotNull(client.post(uri, request))
         } catch (e: Exception) {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
