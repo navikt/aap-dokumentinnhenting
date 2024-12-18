@@ -4,6 +4,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
+import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
@@ -67,6 +68,8 @@ class BehandlingsflytClient {
                     uri = URI.create(uri).resolve("/api/saker"),
                     request = request,
                     mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
+            val uri = URI.create("$uri/api/brev/bestillingvarsel")
+            return requireNotNull(client.post(uri, request))
         } catch (e: Exception) {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
