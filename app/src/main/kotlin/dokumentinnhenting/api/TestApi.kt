@@ -5,6 +5,7 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.behandlingsflyt.VarselOmBrevbestillingDto
 import dokumentinnhenting.integrasjoner.brev.BrevClient
 import io.ktor.http.*
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.AvvistLegeerklæringId
@@ -36,13 +37,15 @@ fun NormalOpenAPIRoute.testApi() {
         }
         route("/ekspeder").post<Unit, String, BrevClient.EkspederBestillingRequest> { _, req ->
             val brevClient = BrevClient()
+            brevClient.ekspederBestilling(req)
 
-            brevClient.ekspederBestilling(
-                BrevClient.EkspederBestillingRequest(
-                    req.journalpostId, req.dokumentId
-                )
-            )
             respond("", HttpStatusCode.OK)
+        }
+        route("/varselbrev").post<Unit, UUID, VarselOmBrevbestillingDto> { _, req ->
+            val behandlingsflytClient = BehandlingsflytClient()
+            val response = behandlingsflytClient.sendVarslingsbrev(req)
+
+            respond(response, HttpStatusCode.OK)
         }
     }
 }
