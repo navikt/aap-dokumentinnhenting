@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import java.net.URI
+import java.time.LocalDate
 
 class BehandlingsflytClient {
     private val uri = requiredConfigForKey("behandlingsflyt.base.url")
@@ -39,7 +40,7 @@ class BehandlingsflytClient {
     }
 
     fun sendVarslingsbrev() {
-        val request = PostRequest(
+        PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
             ),
@@ -53,7 +54,7 @@ class BehandlingsflytClient {
         }
     }
 
-    fun åpenSakEksisterer(): Sak? {
+    fun finnSakForIdentPåDato(personIdentPasient: String, toLocalDate: LocalDate): SakOgBehandling? {
         val request = PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
@@ -71,9 +72,10 @@ class BehandlingsflytClient {
         }
     }
 
-    data class Sak(
+    data class SakOgBehandling(
         val personIdent: String,
-        val sakId: String,
-        val status: String
+        val saksnummer: String,
+        val status: String,
+        val sisteBehandlingStatus: String
     )
 }

@@ -1,17 +1,20 @@
 package dokumentinnhenting.integrasjoner.dokarkiv
 
-import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest.*
+import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest.Bruker
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.*
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
+import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
+import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.patch
+import no.nav.aap.komponenter.httpklient.httpclient.post
+import no.nav.aap.komponenter.httpklient.httpclient.put
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
+import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.TokenProvider
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import org.slf4j.LoggerFactory
 import java.net.URI
 
-class DokArkivClient(tokenProvider:TokenProvider){
+class DokArkivClient(tokenProvider: TokenProvider) {
     private val log = LoggerFactory.getLogger(DokArkivClient::class.java)
 
 
@@ -27,12 +30,13 @@ class DokArkivClient(tokenProvider:TokenProvider){
         eksternReferanseId: String,
         journalPostId: String
     ): String {
-        val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/kopierJournalpost?kildeJournalpostId=$journalPostId")
+        val uri =
+            baseUri.resolve("/rest/journalpostapi/v1/journalpost/kopierJournalpost?kildeJournalpostId=$journalPostId")
         val request = kopierJournalpostRequest(eksternReferanseId = eksternReferanseId)
         val httpRequest = PostRequest(
             body = request,
 
-        )
+            )
         val response =
             checkNotNull(client.post<kopierJournalpostRequest, kopierJournalpostResponse>(uri, httpRequest))
 
@@ -41,8 +45,8 @@ class DokArkivClient(tokenProvider:TokenProvider){
     }
 
     fun endreTemaTilAAP(
-        journalpostId:String
-    ):String{
+        journalpostId: String
+    ): String {
         val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
         val request = oppdaterJournalPostRequest(journalpostId)
         val httpRequest = PutRequest(
@@ -60,7 +64,7 @@ class DokArkivClient(tokenProvider:TokenProvider){
         bruker: Bruker,
         fagsakId: String,
         fagsaksystem: String
-    ){
+    ) {
         val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak")
         val request = knyttTilAnnenSakRequest(
             bruker = bruker,
@@ -71,7 +75,7 @@ class DokArkivClient(tokenProvider:TokenProvider){
             body = request,
         )
 
-        val response = checkNotNull(client.put<knyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(uri, httpRequest))
+        checkNotNull(client.put<knyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(uri, httpRequest))
     }
 
     fun ferdigstillJournalpost(journalpostId: String) {
@@ -100,7 +104,7 @@ data class KnyttTilAnnenSakResponse(
 )
 
 data class oppdaterJournalPostRequest(
-    val tema: String="AAP",
+    val tema: String = "AAP",
 )
 
 data class OppdaterJournalpostResponse(
