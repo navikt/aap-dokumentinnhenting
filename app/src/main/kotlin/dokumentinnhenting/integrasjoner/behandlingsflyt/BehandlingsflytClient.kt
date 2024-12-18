@@ -11,6 +11,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import java.net.URI
 import java.time.LocalDate
+import java.util.*
 
 class BehandlingsflytClient {
     private val uri = requiredConfigForKey("behandlingsflyt.base.url")
@@ -40,16 +41,17 @@ class BehandlingsflytClient {
         }
     }
 
-    fun sendVarslingsbrev() {
-        PostRequest(
+    fun sendVarslingsbrev(varselRequest: VarselOmBrevbestillingDto): UUID {
+        val request = PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
             ),
-            body = ""
+            body = varselRequest
         )
 
         try {
-            //TODO: url her when ready
+            val uri = URI.create("$uri/api/brev/bestillingvarsel")
+            return requireNotNull(client.post(uri, request))
         } catch (e: Exception) {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
@@ -68,8 +70,6 @@ class BehandlingsflytClient {
                     uri = URI.create(uri).resolve("/api/saker"),
                     request = request,
                     mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
-            val uri = URI.create("$uri/api/brev/bestillingvarsel")
-            return requireNotNull(client.post(uri, request))
         } catch (e: Exception) {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
