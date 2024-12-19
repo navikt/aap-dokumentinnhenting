@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo
 
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakStream
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusStream
 import dokumentinnhenting.util.kafka.KafkaStream
@@ -27,7 +28,7 @@ fun Application.dialogmeldingStatusStream(registry: MeterRegistry, dataSource: D
 fun Application.dialogmeldingMottakStream(registry: MeterRegistry, dataSource: DataSource): Stream {
   if (Miljø.er() == MiljøKode.LOKALT) return NoopStream()
   val config = StreamsConfig()
-  val stream = KafkaStream(DialogmeldingMottakStream(dataSource).topology, config, registry)
+  val stream = KafkaStream(DialogmeldingMottakStream(dataSource, BehandlingsflytClient()).topology, config, registry)
   stream.start()
 
   monitor.subscribe(ApplicationStopped) {

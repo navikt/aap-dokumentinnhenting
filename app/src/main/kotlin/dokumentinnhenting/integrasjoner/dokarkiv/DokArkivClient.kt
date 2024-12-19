@@ -64,7 +64,7 @@ class DokArkivClient(tokenProvider: TokenProvider) {
         bruker: Bruker,
         fagsakId: String,
         fagsaksystem: String
-    ) {
+    ):KnyttTilAnnenSakResponse {
         val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak")
         val request = knyttTilAnnenSakRequest(
             bruker = bruker,
@@ -75,7 +75,7 @@ class DokArkivClient(tokenProvider: TokenProvider) {
             body = request,
         )
 
-        checkNotNull(client.put<knyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(uri, httpRequest))
+        return checkNotNull(client.put<knyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(uri, httpRequest))
     }
 
     fun ferdigstillJournalpost(journalpostId: String) {

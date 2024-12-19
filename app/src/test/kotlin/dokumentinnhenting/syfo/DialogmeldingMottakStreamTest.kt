@@ -1,5 +1,7 @@
 package dokumentinnhenting.syfo
 
+import dokumentinnhenting.Fakes
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.*
@@ -26,8 +28,8 @@ class DialogmeldingMottakStreamTest {
     fun setup() {
         InitTestDatabase.migrate()
         val dataSource = InitTestDatabase.dataSource
-
-        val dialogmeldingStatusStream = DialogmeldingMottakStream(dataSource)
+        val fakes = Fakes()
+        val dialogmeldingStatusStream = DialogmeldingMottakStream(dataSource, BehandlingsflytClient())
 
         val topology = dialogmeldingStatusStream.topology
 

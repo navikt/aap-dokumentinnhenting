@@ -64,7 +64,7 @@ class BehandlingsflytClient {
 
         try {
             return client.post(
-                    uri = URI.create("$uri/api/saker"),
+                    uri = URI.create(uri).resolve("/api/saker"),
                     request = request,
                     mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
         } catch (e: Exception) {

@@ -1,16 +1,18 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
+import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
+import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 
-class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: DialogmeldingRepository, val dokArkivClient: DokArkivClient) : JobbUtfører {
+class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: DialogmeldingRepository, val dokArkivClient: DokArkivClient, private val flytJobbRepository: FlytJobbRepository) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
 
@@ -27,7 +29,11 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
                 record.personIdentPasient,
                 "Kelvin" //TODO: riktig skrivemåte
             )
-            // TODO: Opprett jobb for å sende til behandlingsflyt
+            val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
+                DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(record, sakOgBehandling))
+            )
+            flytJobbRepository.leggTil(jobb)
+
         } else {
             val journalPostId = dokArkivClient.kopierJournalpostForDialogMelding(
                 journalPostId = record.journalpostId,
@@ -47,7 +53,8 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
                 DialogmeldingRepository(
                     connection
                 ),
-                DokArkivClient(ClientCredentialsTokenProvider)
+                DokArkivClient(ClientCredentialsTokenProvider),
+                FlytJobbRepository(connection)
             )
         }
 

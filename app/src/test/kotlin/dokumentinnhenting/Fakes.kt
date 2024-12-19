@@ -2,6 +2,7 @@ package dokumentinnhenting
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import dokumentinnhenting.integrasjoner.saf.*
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import io.ktor.http.*
@@ -24,6 +25,7 @@ class Fakes: AutoCloseable {
     private val azure = embeddedServer(Netty, port = 0, module = { azureFake() }).start()
     private val saf = embeddedServer(Netty, port = 0, module = {safFake()}).start()
     private val syfo = embeddedServer(Netty, port = 0, module = {syfoFake()}).start()
+    private val behandlingsflyt = embeddedServer(Netty, port = 0, module = {BehandlingsflytFake()}).start()
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -45,6 +47,9 @@ class Fakes: AutoCloseable {
         System.setProperty("kafka.keystore.path", "store")
         System.setProperty("kafka.credstore.password", "password")
 
+        System.setProperty("behandlingsflyt.base.url", "http://localhost:${behandlingsflytPort()}")
+        System.setProperty("behandlingsflyt.scope", "scope")
+
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
     }
 
@@ -60,10 +65,43 @@ class Fakes: AutoCloseable {
         return syfo.engine.port()
     }
 
+    fun behandlingsflytPort(): Int {
+        return behandlingsflyt.engine.port()
+    }
+
     override fun close() {
         azure.stop(0L, 0L)
         saf.stop(0L,0L)
         syfo.stop(0, 0L)
+    }
+
+    private fun Application.BehandlingsflytFake(){
+        install(ContentNegotiation) {
+            jackson{
+                registerModule(JavaTimeModule())
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            }
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@BehandlingsflytFake.log.info("AZURE :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+            }
+        }
+
+        routing {
+            post("/api/saker") {
+
+                call.respond(
+                    BehandlingsflytClient.SakOgBehandling(
+                        personIdent = "personIdentPasient",
+                        saksnummer = "saksnummer",
+                        "",
+                        sisteBehandlingStatus = ""
+                    )
+                )
+            }
+        }
     }
 
     private fun NettyApplicationEngine.port(): Int =
