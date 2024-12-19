@@ -45,7 +45,7 @@ class BrevClient {
         try {
             client.post(uri = uri, request = request, mapper = { _, _ -> } )
         } catch (e : Exception) {
-            throw BehandlingsflytException("Feil ved forsøk på å ekspedere bestilling i behandlingsflyt: ${e.message}")
+            throw BehandlingsflytException("Feil ved forsøk på å ekspedere bestilling i brev: ${e.message}")
         }
     }
 

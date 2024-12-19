@@ -44,12 +44,12 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
         route("/ekspeder").post<Unit, String, TestRequest> { _, req ->
             dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
-                val fullRecord = dialogmeldingRepository.hentByDialogId(req.dialogid)
+                val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
                 val brevClient = BrevClient()
                 brevClient.ekspederBestilling(
                     BrevClient.EkspederBestillingRequest(
-                        req.toString(), fullRecord!!.dokumentId!!
+                        fullRecord.journalpostId!!, fullRecord.dokumentId!!
                     ))
             }
             respond("", HttpStatusCode.OK)

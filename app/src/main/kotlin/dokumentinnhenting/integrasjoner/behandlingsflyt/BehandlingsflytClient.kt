@@ -1,6 +1,5 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
