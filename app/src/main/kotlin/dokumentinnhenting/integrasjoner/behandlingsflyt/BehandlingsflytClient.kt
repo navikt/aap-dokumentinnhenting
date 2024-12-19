@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -57,17 +58,17 @@ class BehandlingsflytClient {
         }
     }
 
-    fun finnSakForIdentPåDato(personIdentPasient: String, toLocalDate: LocalDate): SakOgBehandling? {
+    fun finnSakForIdentPåDato(personIdentPasient: String, toLocalDate: LocalDate): NullableSakOgBehandlingDTO? {
         val request = PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
             ),
-            body = ""
+            body = FinnBehandlingForIdentDTO(personIdentPasient, toLocalDate),
         )
 
         try {
             return client.post(
-                    uri = URI.create(uri).resolve("/api/saker"),
+                    uri = URI.create(uri).resolve("/api/sak/finnSisteBehandlinger"),
                     request = request,
                     mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
         } catch (e: Exception) {
@@ -80,5 +81,14 @@ class BehandlingsflytClient {
         val saksnummer: String,
         val status: String,
         val sisteBehandlingStatus: String
+    )
+
+    data class FinnBehandlingForIdentDTO(
+        val ident: String,
+        val mottattTidspunkt: LocalDate
+    )
+
+    data class NullableSakOgBehandlingDTO(
+        val sakOgBehandlingDTO: SakOgBehandling?
     )
 }

@@ -37,8 +37,10 @@ class DialogmeldingMottakStream(
                     record.mottattTidspunkt.toLocalDate()
                 )
             }
-            .filter({ _, (record, saksInfo) -> saksInfo != null })
-            .foreach { _, (record, saksInfo) -> opprettJobb(record, requireNotNull(saksInfo)) }
+            .filter({ _, (record, saksInfo) -> saksInfo?.sakOgBehandlingDTO != null })
+            .foreach { _, (record, saksInfo) ->
+                opprettJobb(record, requireNotNull(saksInfo?.sakOgBehandlingDTO))
+            }
 
         topology = streamBuilder.build()
 
