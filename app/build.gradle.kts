@@ -8,7 +8,7 @@ plugins {
     application
 }
 
-val ktorVersion = "3.0.2"
+val ktorVersion = "3.0.3"
 val kafkaVersion = "3.9.0"
 val komponenterVersjon = "1.0.86"
 val behandlingsflytVersjon = "0.0.81"
