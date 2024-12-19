@@ -4,7 +4,6 @@ import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
@@ -23,6 +22,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
 import dokumentinnhenting.api.syfoApi
 import dokumentinnhenting.api.testApi
 import dokumentinnhenting.util.motor.ProsesseringsJobber
+import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig

@@ -1,7 +1,12 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak
 
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingMedSaksknyttning
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.HåndterMottattDialogmeldingUtfører
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.motor.JobbInput
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
@@ -11,7 +16,10 @@ import javax.sql.DataSource
 
 const val SYFO_DIALOGMELDING_MOTTAK_TOPIC = "teamsykefravr.dialogmelding"
 
-class DialogmeldingMottakStream(private val datasource: DataSource) {
+class DialogmeldingMottakStream(
+    private val datasource: DataSource,
+    val behandlingsflytClient: BehandlingsflytClient
+) {
     private val log = LoggerFactory.getLogger(DialogmeldingMottakStream::class.java)
     val topology: Topology
 
@@ -23,18 +31,31 @@ class DialogmeldingMottakStream(private val datasource: DataSource) {
             SYFO_DIALOGMELDING_MOTTAK_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingMottakDTOSerde())
         )
-            .mapValues { _, record -> record to hentBestillingsListe(record.personIdentPasient) }
-            .filter({ _, (record, saksnummer) -> saksnummer != null })
-            .foreach { _, (record, saksnummer) -> return@foreach } //TODO: Denne må implementeres
+            .mapValues { _, record ->
+                record to behandlingsflytClient.finnSakForIdentPåDato(
+                    record.personIdentPasient,
+                    record.mottattTidspunkt.toLocalDate()
+                )
+            }
+            .filter({ _, (record, saksInfo) -> saksInfo?.sakOgBehandlingDTO != null })
+            .foreach { _, (record, saksInfo) ->
+                opprettJobb(record, requireNotNull(saksInfo?.sakOgBehandlingDTO))
+            }
 
         topology = streamBuilder.build()
 
     }
 
-    private fun hentBestillingsListe(personId:String): String? {
-        return datasource.transaction { connection ->
-            val repository = DialogmeldingRepository(connection)
-            repository.hentSisteBestillingByPIDYngreEnn2mMnd(personId)
+    private fun opprettJobb(dTO: DialogmeldingMottakDTO,
+                            behandling: BehandlingsflytClient.SakOgBehandling) {
+        datasource.transaction { connection ->
+            val flytJobbRepository = FlytJobbRepository(connection)
+
+            flytJobbRepository.leggTil(
+                JobbInput(HåndterMottattDialogmeldingUtfører).medPayload(
+                    DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(dTO, behandling))
+                )
+            )
         }
     }
 

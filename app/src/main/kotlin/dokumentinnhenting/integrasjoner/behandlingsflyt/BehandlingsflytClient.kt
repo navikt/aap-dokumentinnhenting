@@ -10,6 +10,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import java.net.URI
+import java.time.LocalDate
 import java.util.*
 
 class BehandlingsflytClient {
@@ -55,4 +56,38 @@ class BehandlingsflytClient {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
     }
+
+    fun finnSakForIdentPåDato(personIdentPasient: String, toLocalDate: LocalDate): NullableSakOgBehandlingDTO? {
+        val request = PostRequest(
+            additionalHeaders = listOf(
+                Header("Accept", "application/json"),
+            ),
+            body = FinnBehandlingForIdentDTO(personIdentPasient, toLocalDate),
+        )
+
+        try {
+            return client.post(
+                    uri = URI.create(uri).resolve("/api/sak/finnSisteBehandlinger"),
+                    request = request,
+                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
+        } catch (e: Exception) {
+            throw BehandlingsflytException("Feilet ved henting av sak/behandling for ident: ${e.message}")
+        }
+    }
+
+    data class SakOgBehandling(
+        val personIdent: String,
+        val saksnummer: String,
+        val status: String,
+        val sisteBehandlingStatus: String
+    )
+
+    data class FinnBehandlingForIdentDTO(
+        val ident: String,
+        val mottattTidspunkt: LocalDate
+    )
+
+    data class NullableSakOgBehandlingDTO(
+        val sakOgBehandlingDTO: SakOgBehandling?
+    )
 }
