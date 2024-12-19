@@ -71,7 +71,7 @@ class BehandlingsflytClient {
                     request = request,
                     mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
         } catch (e: Exception) {
-            throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
+            throw BehandlingsflytException("Feilet ved henting av sak/behandling for ident: ${e.message}")
         }
     }
 

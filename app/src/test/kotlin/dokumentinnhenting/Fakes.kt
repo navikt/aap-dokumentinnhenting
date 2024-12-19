@@ -90,14 +90,16 @@ class Fakes: AutoCloseable {
         }
 
         routing {
-            post("/api/saker") {
+            post("/api/sak/finnSisteBehandlinger") {
 
                 call.respond(
-                    BehandlingsflytClient.SakOgBehandling(
-                        personIdent = "personIdentPasient",
-                        saksnummer = "saksnummer",
-                        "",
-                        sisteBehandlingStatus = ""
+                    BehandlingsflytClient.NullableSakOgBehandlingDTO(
+                        BehandlingsflytClient.SakOgBehandling(
+                            personIdent = "personIdentPasient",
+                            saksnummer = "saksnummer",
+                            "",
+                            sisteBehandlingStatus = ""
+                        )
                     )
                 )
             }
