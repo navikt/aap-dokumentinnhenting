@@ -27,6 +27,7 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
                 record.personIdentPasient,
                 "Kelvin" //TODO: riktig skrivemåte
             )
+            // TODO: Opprett jobb for å sende til behandlingsflyt
         } else {
             val journalPostId = dokArkivClient.kopierJournalpostForDialogMelding(
                 journalPostId = record.journalpostId,
