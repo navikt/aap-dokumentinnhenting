@@ -41,10 +41,10 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
             respond("", HttpStatusCode.OK)
         }
 
-        route("/ekspeder").post<Unit, String, UUID> { _, req ->
+        route("/ekspeder").post<Unit, String, TestRequest> { _, req ->
             dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
-                val fullRecord = dialogmeldingRepository.hentByDialogId(req)
+                val fullRecord = dialogmeldingRepository.hentByDialogId(req.dialogid)
 
                 val brevClient = BrevClient()
                 brevClient.ekspederBestilling(
@@ -55,10 +55,10 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
             respond("", HttpStatusCode.OK)
         }
 
-        route("/varselbrev").post<Unit, UUID, UUID> { _, req ->
+        route("/varselbrev").post<Unit, UUID, TestRequest> { _, req ->
             val response = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
-                val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req))
+                val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
                 val behandlingsflytClient = BehandlingsflytClient()
                 val varsling = behandlingsflytClient.sendVarslingsbrev(
@@ -81,4 +81,8 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
 }
 data class TaAvVentRequest(
     val saksnummer: String
+)
+
+data class TestRequest(
+    val dialogid: UUID
 )
