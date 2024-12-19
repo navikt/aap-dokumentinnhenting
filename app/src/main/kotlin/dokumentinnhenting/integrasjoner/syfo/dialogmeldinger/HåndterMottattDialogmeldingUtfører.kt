@@ -39,7 +39,11 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
                 journalPostId = record.journalpostId,
                 eksternReferanseId = sakOgBehandling.saksnummer
             )
-            dokArkivClient.endreTemaTilAAP(journalPostId)
+
+            val jobb = JobbInput(EndreTemaUtfører).medPayload(
+                journalPostId
+            )
+            flytJobbRepository.leggTil(jobb)
         }
     }
 
@@ -53,7 +57,7 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
                 DialogmeldingRepository(
                     connection
                 ),
-                DokArkivClient(ClientCredentialsTokenProvider),
+                DokArkivClient(),
                 FlytJobbRepository(connection)
             )
         }

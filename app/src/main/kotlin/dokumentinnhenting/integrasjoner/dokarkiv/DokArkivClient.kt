@@ -11,10 +11,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.TokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import org.slf4j.LoggerFactory
 import java.net.URI
 
-class DokArkivClient(tokenProvider: TokenProvider) {
+class DokArkivClient {
     private val log = LoggerFactory.getLogger(DokArkivClient::class.java)
 
 
@@ -22,7 +23,7 @@ class DokArkivClient(tokenProvider: TokenProvider) {
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.dokarkiv.scope"))
     private val client = RestClient(
         config = config,
-        tokenProvider = tokenProvider,
+        tokenProvider = ClientCredentialsTokenProvider,
         responseHandler = HåndterConflictResponseHandler()
     )
 
