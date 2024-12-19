@@ -95,7 +95,7 @@ fun Application.server(
             }
         }
         apiRouting {
-            testApi()
+            testApi(dataSource)
         }
     }
 }
