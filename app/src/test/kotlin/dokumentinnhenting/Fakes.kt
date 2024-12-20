@@ -25,7 +25,8 @@ class Fakes: AutoCloseable {
     private val azure = embeddedServer(Netty, port = 0, module = { azureFake() }).start()
     private val saf = embeddedServer(Netty, port = 0, module = {safFake()}).start()
     private val syfo = embeddedServer(Netty, port = 0, module = {syfoFake()}).start()
-    private val behandlingsflyt = embeddedServer(Netty, port = 0, module = {BehandlingsflytFake()}).start()
+    private val behandlingsflyt = embeddedServer(Netty, port = 0, module = {behandlingsflytFake()}).start()
+    private val brev = embeddedServer(Netty, port = 0, module = {brevFake()}).start()
 
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
@@ -47,8 +48,13 @@ class Fakes: AutoCloseable {
         System.setProperty("kafka.keystore.path", "store")
         System.setProperty("kafka.credstore.password", "password")
 
+        //Behandlingsflyt
         System.setProperty("behandlingsflyt.base.url", "http://localhost:${behandlingsflytPort()}")
         System.setProperty("behandlingsflyt.scope", "scope")
+
+        //Brev
+        System.setProperty("integrasjon.brev.base.url", "http://localhost:${brevPort()}")
+        System.setProperty("integrasjon.brev.scope", "http://localhost:${brevPort()}")
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
     }
@@ -69,13 +75,19 @@ class Fakes: AutoCloseable {
         return behandlingsflyt.engine.port()
     }
 
+    fun brevPort(): Int {
+        return brev.engine.port()
+    }
+
     override fun close() {
         azure.stop(0L, 0L)
         saf.stop(0L,0L)
         syfo.stop(0, 0L)
+        brev.stop(0, 0L)
+        behandlingsflyt.stop(0, 0L)
     }
 
-    private fun Application.BehandlingsflytFake(){
+    private fun Application.behandlingsflytFake(){
         install(ContentNegotiation) {
             jackson{
                 registerModule(JavaTimeModule())
@@ -84,14 +96,13 @@ class Fakes: AutoCloseable {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                this@BehandlingsflytFake.log.info("AZURE :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                this@behandlingsflytFake.log.info("BEHANDLINGSFLYT :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
                 call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
             }
         }
 
         routing {
             post("/api/sak/finnSisteBehandlinger") {
-
                 call.respond(
                     BehandlingsflytClient.NullableSakOgBehandlingDTO(
                         BehandlingsflytClient.SakOgBehandling(
@@ -102,6 +113,9 @@ class Fakes: AutoCloseable {
                         )
                     )
                 )
+            }
+            post("/api/hendelse/send") {
+                call.respond {}
             }
         }
     }
@@ -191,6 +205,23 @@ class Fakes: AutoCloseable {
                         ),
                     ))
                 }
+            }
+        }
+    }
+
+    private fun Application.brevFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@brevFake.log.info("BREV :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+            }
+        }
+        routing {
+            post("/api/dokumentinnhenting/ekspeder-journalpost-behandler-bestilling") {
+                call.respond("")
             }
         }
     }

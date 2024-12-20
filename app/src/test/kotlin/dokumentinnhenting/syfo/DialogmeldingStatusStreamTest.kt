@@ -1,5 +1,6 @@
 package dokumentinnhenting.syfo
 
+import dokumentinnhenting.Fakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.*
@@ -83,6 +84,76 @@ class DialogmeldingStatusStreamTest {
         assertEquals(MeldingStatusType.BESTILT, oppdatertHendelse[0].status)
     }
 
+
+    @Test
+    fun KjørerVarslingflytNårStatusOkMottas() {
+        Fakes().use { fakes ->
+            val uuid = UUID.randomUUID()
+            val saksnummer = "saksnummer"
+            val existingRecord = DialogmeldingRecord(uuid,
+                "behandlerRef",
+                "hpr12344321",
+                "personIdent",
+                saksnummer,
+                DokumentasjonType.L8,
+                "behandlernavn",
+                "veiledernavn",
+                "fritekst",
+                UUID.randomUUID()
+            )
+            setupRepositoryData(existingRecord)
+
+            val incomingRecord = DialogmeldingStatusDTO(
+                uuid.toString(),
+                OffsetDateTime.now(),
+                MeldingStatusType.OK,
+                "tekst",
+                uuid.toString()
+            )
+
+            inputTopic.pipeInput("key", incomingRecord)
+            util.ventPåSvar()
+            val oppdatertHendelse = hentRepositoryData(saksnummer)
+
+            assertEquals(MeldingStatusType.OK, oppdatertHendelse[0].status)
+        }
+    }
+
+    @Test
+    fun KjørerAvvisNårStatusAvvistMottas() {
+        Fakes().use { fakes ->
+            val uuid = UUID.randomUUID()
+            val saksnummer = "saksnummer"
+            val existingRecord = DialogmeldingRecord(
+                uuid,
+                "behandlerRef",
+                "hpr12344321",
+                "personIdent",
+                saksnummer,
+                DokumentasjonType.L8,
+                "behandlernavn",
+                "veiledernavn",
+                "fritekst",
+                UUID.randomUUID()
+            )
+            setupRepositoryData(existingRecord)
+
+            val incomingRecord = DialogmeldingStatusDTO(
+                uuid.toString(),
+                OffsetDateTime.now(),
+                MeldingStatusType.AVVIST,
+                "tekst",
+                uuid.toString()
+            )
+
+            inputTopic.pipeInput("key", incomingRecord)
+            util.ventPåSvar()
+            val oppdatertHendelse = hentRepositoryData(saksnummer)
+
+            assertEquals(MeldingStatusType.AVVIST, oppdatertHendelse[0].status)
+        }
+    }
+
     @Test
     fun kanSerialisereOgDeserialisere() {
         val dto = DialogmeldingStatusDTO(
@@ -105,6 +176,7 @@ class DialogmeldingStatusStreamTest {
         InitTestDatabase.dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.opprettDialogmelding(record)
+            dialogmeldingRepository.leggTilJournalpostPåBestilling(record.dialogmeldingUuid, "1234", "1234")
         }
     }
 
