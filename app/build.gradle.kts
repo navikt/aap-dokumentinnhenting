@@ -4,13 +4,13 @@ import java.io.ByteArrayOutputStream
 plugins {
     id("dokumentinnhenting.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.0.1"
+    id("io.ktor.plugin") version "3.0.3"
     application
 }
 
 val ktorVersion = "3.0.3"
 val kafkaVersion = "3.9.0"
-val komponenterVersjon = "1.0.86"
+val komponenterVersjon = "1.0.101"
 val behandlingsflytVersjon = "0.0.81"
 
 application {
@@ -51,8 +51,9 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:11.1.0")
     implementation("com.zaxxer:HikariCP:6.2.1")
 
-    //Felleskomponenter
+    // Felleskomponenter
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:json:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
@@ -62,7 +63,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
-    // kafka
+    // Kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
     implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
 
