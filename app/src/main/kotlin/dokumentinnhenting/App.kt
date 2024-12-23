@@ -4,6 +4,13 @@ import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import dokumentinnhenting.api.actuator
+import dokumentinnhenting.api.syfoApi
+import dokumentinnhenting.api.testApi
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
+import dokumentinnhenting.util.motor.ProsesseringsJobber
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
@@ -11,26 +18,20 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import dokumentinnhenting.api.actuator
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import no.nav.aap.komponenter.server.AZURE
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
-import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
-import dokumentinnhenting.api.syfoApi
-import dokumentinnhenting.api.testApi
-import dokumentinnhenting.util.motor.ProsesseringsJobber
-import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import safApi
 import javax.sql.DataSource
 
@@ -77,7 +78,7 @@ fun Application.server(
         }
     }
 
-    val dataSource = initDatasource(config.DbConfig)
+    val dataSource = initDatasource(config.DbConfig, prometheus)
     Migrering.migrate(dataSource)
     val motor = module(dataSource)
 
@@ -126,7 +127,7 @@ fun Application.module(dataSource: DataSource): Motor {
     return motor
 }
 
-fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
+fun initDatasource(dbConfig: DbConfig, meterRegistry: MeterRegistry) = HikariDataSource(HikariConfig().apply {
     jdbcUrl = dbConfig.url
     username = dbConfig.username
     password = dbConfig.password
@@ -134,4 +135,5 @@ fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
     minimumIdle = 1
     driverClassName = "org.postgresql.Driver"
     connectionTestQuery = "SELECT 1"
+    metricRegistry = meterRegistry
 })

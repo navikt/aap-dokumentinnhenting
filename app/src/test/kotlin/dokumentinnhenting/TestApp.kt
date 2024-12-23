@@ -3,6 +3,7 @@ package dokumentinnhenting
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.time.Duration
@@ -33,7 +34,7 @@ fun main() {
         )
         module(fakes)
 
-        val datasource = initDatasource(dbConfig)
+        val datasource = initDatasource(dbConfig, SimpleMeterRegistry())
 
     }.start(wait = true)
 }
