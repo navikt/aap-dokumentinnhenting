@@ -47,7 +47,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2")
     implementation("ch.qos.logback:logback-classic:1.5.15")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
-    implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.0.1")
     implementation("org.flywaydb:flyway-database-postgresql:11.1.0")
     implementation("com.zaxxer:HikariCP:6.2.1")
 
@@ -69,7 +69,7 @@ dependencies {
 
     // Test
     testImplementation(kotlin("test"))
-    testImplementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.0.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.11.4")
     testImplementation("org.assertj:assertj-core:3.27.1")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
