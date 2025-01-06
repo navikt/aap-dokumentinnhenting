@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 fun dokumentFilterDokumentSøk(dokumenter: List<Doc>): List<Doc> {
     return dokumenter.filter { doc ->
-        dialogmeldingJournalførtPåAAPYngreEnnEttÅr(doc) || dialogmeldingJournalførtPåAAPEldreEnEttÅr(doc) || sykemeldingYngreEnnEttÅr(doc)
+        sykemelding39Uker(doc) || dialogmeldingJournalførtPåAAPYngreEnnEttÅr(doc) || dialogmeldingJournalførtPåAAPEldreEnEttÅr(doc) || sykemeldingYngreEnnEttÅr(doc)
     }
 }
 
