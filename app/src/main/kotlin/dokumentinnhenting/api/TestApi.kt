@@ -22,6 +22,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
+//TODO: FJERN ALT DETTE
 fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
     route("/test") {
         route("/avvist").post<Unit, String, TaAvVentRequest> { _, req ->
