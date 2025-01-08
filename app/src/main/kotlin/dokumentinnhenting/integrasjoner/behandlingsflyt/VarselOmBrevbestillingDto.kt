@@ -6,6 +6,6 @@ import java.util.UUID
 
 data class VarselOmBrevbestillingDto(
     val behandlingsReferanse: BehandlingReferanse,
-    val dialogmeldingUUID: UUID,
+    val dialogmeldingUuid: UUID,
     val vedlegg: Vedlegg
 )
