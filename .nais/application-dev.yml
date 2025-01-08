@@ -66,6 +66,8 @@ spec:
       value: http://behandlingsflyt
     - name: BEHANDLINGSFLYT_SCOPE
       value: api://dev-gcp.aap.behandlingsflyt/.default
+    - name: INTEGRASJON_BEHANDLINGSFLYT_AZP
+      value: dev-gcp:aap:behandlingsflyt
     - name: INTEGRASJON_SYFO_BASE_URL
       value: http://isdialogmelding.teamsykefravr
     - name: INTEGRASJON_SYFO_SCOPE
@@ -80,6 +82,10 @@ spec:
       value: http://brev
     - name: INTEGRASJON_BREV_SCOPE
       value: api://dev-gcp.aap.brev/.default
+    - name: INTEGRASJON_BREV_AZP
+      value: dev-gcp:aap:brev
+    - name: INTEGRASJON_SAKSBEHANDLING_AZP
+      value: dev-gcp:aap:saksbehandling
   accessPolicy:
     inbound:
       rules:

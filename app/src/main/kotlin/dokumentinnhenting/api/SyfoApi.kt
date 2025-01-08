@@ -15,13 +15,26 @@ import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDTO
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.BestillingCache
 import io.ktor.http.*
+import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.authorizedGet
+import no.nav.aap.tilgang.authorizedPost
+import tilgang.Operasjon
 import java.util.*
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
+    val behandlingsflytAzp = requiredConfigForKey("integrasjon.behandlingsflyt.azp")
+    val saksbehandlingAzp = requiredConfigForKey("integrasjon.saksbehandling.azp")
     route("/syfo") {
-        route("/dialogmeldingbestilling").post<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO> { _, req ->
+        route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                approvedApplications = setOf(behandlingsflytAzp),
+                applicationsOnly = true)
+            ) { _, req ->
             if (BestillingCache.contains(req.saksnummer)) {
                 respondWithStatus(HttpStatusCode.TooManyRequests)
             }
@@ -34,7 +47,12 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             respond (response)
         }
 
-        route("/purring").post<Unit, UUID, LegeerklæringPurringDTO> { _, req ->
+        route("/purring").authorizedPost<Unit, UUID, LegeerklæringPurringDTO>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                approvedApplications = setOf(behandlingsflytAzp),
+                applicationsOnly = true)
+        ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
                 service.dialogmeldingPurring(req)
@@ -42,7 +60,11 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             respond (response)
         }
 
-        route("/status/{saksnummer}").get<HentDialogmeldingStatusDTO, List<DialogmeldingStatusTilBehandslingsflytDTO>> { req ->
+        route("/status/{saksnummer}").authorizedGet<HentDialogmeldingStatusDTO, List<DialogmeldingStatusTilBehandslingsflytDTO>>(
+            AuthorizationParamPathConfig(
+                approvedApplications = setOf(behandlingsflytAzp),
+                applicationsOnly = true)
+        ) { req ->
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
                 repository.hentBySaksnummer(req.saksnummer)
@@ -50,12 +72,22 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             respond(response)
         }
 
-        route("/behandleroppslag/search").post<Unit, List<BehandlerOppslagResponse>, FritekstRequest> { _, req ->
+        route("/behandleroppslag/search").authorizedPost<Unit, List<BehandlerOppslagResponse>, FritekstRequest>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                approvedApplications = setOf(saksbehandlingAzp),
+            )
+        ) { _, req ->
             val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
             respond(behandlere)
         }
 
-        route("/brevpreview").post<Unit, BrevPreviewResponse, BrevGenereringRequest> { _, req ->
+        route("/brevpreview").authorizedPost<Unit, BrevPreviewResponse, BrevGenereringRequest>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                approvedApplications = setOf(behandlingsflytAzp),
+                applicationsOnly = true)
+        ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val tidligereBestilling = req.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
