@@ -1,8 +1,6 @@
 package dokumentinnhenting.api
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.get
-import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
@@ -76,6 +74,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 approvedApplications = setOf(saksbehandlingAzp),
+                applicationsOnly = true
             )
         ) { _, req ->
             val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
