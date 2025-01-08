@@ -67,6 +67,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                         BehandlingReferanse(
                             fullRecord.behandlingsReferanse
                         ),
+                        fullRecord.dialogmeldingUuid,
                         Vedlegg(
                             fullRecord.journalpostId!!,
                             fullRecord.dokumentId!!

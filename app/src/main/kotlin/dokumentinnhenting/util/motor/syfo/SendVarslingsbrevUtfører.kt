@@ -20,6 +20,7 @@ class SendVarslingsbrevUtfører : JobbUtfører {
         behandlingsflytClient.sendVarslingsbrev(
             VarselOmBrevbestillingDto(
                 BehandlingReferanse(record.behandlingsReferanse),
+                record.dialogmeldingUuid,
                 Vedlegg(
                     record.journalpostId!!,
                     record.dokumentId!!
