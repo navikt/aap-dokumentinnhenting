@@ -16,10 +16,7 @@ import dokumentinnhenting.util.BestillingCache
 import io.ktor.http.*
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.tilgang.AuthorizationBodyPathConfig
-import no.nav.aap.tilgang.AuthorizationParamPathConfig
-import no.nav.aap.tilgang.authorizedGet
-import no.nav.aap.tilgang.authorizedPost
+import no.nav.aap.tilgang.*
 import tilgang.Operasjon
 import java.util.*
 import javax.sql.DataSource
@@ -62,7 +59,9 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
         route("/status/{saksnummer}").authorizedGet<HentDialogmeldingStatusDTO, List<DialogmeldingStatusTilBehandslingsflytDTO>>(
             AuthorizationParamPathConfig(
                 approvedApplications = setOf(behandlingsflytAzp),
-                applicationsOnly = true)
+                applicationsOnly = true,
+                sakPathParam = SakPathParam("saksnummer")
+            )
         ) { req ->
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
