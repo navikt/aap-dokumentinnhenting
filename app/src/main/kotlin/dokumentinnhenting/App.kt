@@ -95,9 +95,9 @@ fun Application.server(
                 syfoApi(dataSource)
             }
         }
-        apiRouting {
+        /*apiRouting {
             testApi(dataSource)
-        }
+        }*/
     }
 }
 
