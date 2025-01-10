@@ -90,6 +90,9 @@ spec:
     inbound:
       rules:
         - application: behandlingsflyt
+          permissions:
+            roles:
+              - "syfo-api"
         - application: paw-patrol
         - application: saksbehandling
     outbound:
