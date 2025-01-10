@@ -83,7 +83,7 @@ class BrevClient {
     private fun mapPdfBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): List<String> {
         val brev = genererBrev(
             BrevGenerering(
-                bestilling.personNavn, bestilling.personIdent, bestilling.fritekst, bestilling.veilederNavn, bestilling.dokumentasjonType, tidligereBestillingDato
+                bestilling.personNavn, bestilling.personIdent, bestilling.fritekst, bestilling.dokumentasjonType, tidligereBestillingDato
             )
         )
         return brev.split("\n").map{it.replace("""\n""", "")}

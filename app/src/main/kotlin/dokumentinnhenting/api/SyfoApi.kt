@@ -93,7 +93,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
 
                 val brevPreviewResponse = BrevPreviewResponse(genererBrev(
                     BrevGenerering(
-                        req.personNavn, req.personIdent, req.dialogmeldingTekst, req.veilederNavn, req.dokumentasjonType, tidligereBestilling?.opprettet
+                        req.personNavn, req.personIdent, req.dialogmeldingTekst, req.dokumentasjonType, tidligereBestilling?.opprettet
                     )
                 ))
                 brevPreviewResponse

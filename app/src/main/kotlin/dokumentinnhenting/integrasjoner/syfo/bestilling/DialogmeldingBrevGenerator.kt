@@ -85,7 +85,6 @@ data class BrevGenerering(
     val personNavn: String,
     val personIdent: String,
     val dialogmeldingTekst: String,
-    val veilederNavn: String,
     val dokumentasjonType: DokumentasjonType,
     val tidligereBestillingDato: LocalDateTime? = null,
 )
