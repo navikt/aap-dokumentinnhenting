@@ -4,16 +4,16 @@ import java.time.LocalDateTime
 
 fun genererBrev(dto: BrevGenerering): String {
     return when (dto.dokumentasjonType) {
-        DokumentasjonType.L8 -> brev8L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
-        DokumentasjonType.L40 -> brev40L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
+        DokumentasjonType.L8 -> brev8L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst)
+        DokumentasjonType.L40 -> brev40L(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst)
         DokumentasjonType.L120 -> brev120()
-        DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
-        DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst, dto.veilederNavn)
-        DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.veilederNavn, dto.tidligereBestillingDato)
+        DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst)
+        DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst)
+        DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.tidligereBestillingDato)
     }
 }
 
-private fun brev8L(navn: String, fnr: String, fritekst: String, veileder: String): String {
+private fun brev8L(navn: String, fnr: String, fritekst: String): String {
     return """
         Spørsmål om tilleggsopplysninger vedrørende pasient\n
         Gjelder pasient: $navn, $fnr.\n
@@ -24,13 +24,10 @@ private fun brev8L(navn: String, fnr: String, fritekst: String, veileder: String
         Folketrygdloven § 21-4 andre ledd gir Nav rett til å innhente nødvendige opplysninger. Dette gjelder selv om opplysningene er taushetsbelagte, jf. § 21-4 sjette ledd.\n\n
         Pålegget om utlevering av opplysninger kan påklages etter forvaltningsloven § 14.\n
         Klageadgangen gjelder kun lovligheten i pålegget. Fristen for å klage er tre dager etter at pålegget er mottatt. Klagen kan fremsettes muntlig eller skriftlig.\n\n
-        Med vennlig hilsen\n\n
-        $veileder\n\n
-        Nav
     """.trimIndent()
 }
 
-private fun brev40L(navn: String, fnr: String, fritekst: String, veileder: String): String {
+private fun brev40L(navn: String, fnr: String, fritekst: String): String {
     return """
         Forespørsel om legeerklæring ved arbeidsuførhet\n
         Gjelder pasient: $navn, $fnr.\n
@@ -41,24 +38,18 @@ private fun brev40L(navn: String, fnr: String, fritekst: String, veileder: Strin
         Folketrygdloven § 21-4 andre ledd gir Nav rett til å innhente nødvendige opplysninger. Dette gjelder selv om opplysningene er taushetsbelagte, jf. § 21-4 sjette ledd.\n
         Pålegget om utlevering av opplysninger kan påklages etter forvaltningsloven § 14.\n
         Klageadgangen gjelder kun lovligheten i pålegget. Fristen for å klage er tre dager etter at pålegget er mottatt. Klagen kan fremsettes muntlig eller skriftlig.\n
-        Med vennlig hilsen\n
-        $veileder\n
-        Nav
     """.trimIndent()
 }
 
-private fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String, veileder: String): String {
+private fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String): String {
     return """
         Melding fra Nav\n
         Gjelder pasient: $navn, $fnr.\n
         $fritekst\n
-        Med vennlig hilsen\n
-        $veileder\n
-        Nav
     """.trimIndent()
 }
 
-private fun brevReturLegeerklæring(navn: String, fnr: String, fritekst: String, veileder: String): String {
+private fun brevReturLegeerklæring(navn: String, fnr: String, fritekst: String): String {
     return """ 
         Retur av Legeerklæring ved arbeidsuførhet\n
         Gjelder $navn, $fnr.\n
@@ -67,9 +58,6 @@ private fun brevReturLegeerklæring(navn: String, fnr: String, fritekst: String,
         $fritekst\n
         Hvis du har spørsmål til utfyllingen, henvises det til "Orientering til legen om bruk og utfylling av Legeerklæring ved arbeidsuførhet" (se nav.no).\n
         Dersom du allerede har sendt inn regning for den mangelfulle erklæringen, forutsetter vi at det ikke blir sendt regning for ny utfylt Legeerklæring ved arbeidsuførhet.\n
-        Med vennlig hilsen\n
-        $veileder\n
-        NAV
     """.trimIndent()
 }
 
@@ -78,7 +66,7 @@ private fun brev120(): String {
     return "Implement me brev120"
 }
 
-private fun brevPurring(navn: String, fnr: String, veileder: String, tidligereBestillingDato: LocalDateTime?): String {
+private fun brevPurring(navn: String, fnr: String, tidligereBestillingDato: LocalDateTime?): String {
     val tidligereDato = requireNotNull(tidligereBestillingDato).toLocalDate()
     return """
         Påminnelse om manglende svar vedrørerende pasient\n
@@ -86,9 +74,6 @@ private fun brevPurring(navn: String, fnr: String, veileder: String, tidligereBe
         Vi viser til tidligere forespørsel av $tidligereDato angående din pasient.\n
         Vi kan ikke se å ha mottatt svar på vår henvendelse og ber om at denne besvares snarest.\n
         Hvis opplysningene er sendt oss i løpet av de siste dagene, kan du se bort fra denne meldingen.\n
-        Med vennlig hilsen\n
-        $veileder\n
-        NAV
     """.trimIndent()
 }
 
