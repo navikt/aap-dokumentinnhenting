@@ -31,7 +31,6 @@ class BehandlerDialogmeldingBestillingService(
             bestilling.behandlerRef,
             bestilling.behandlerNavn,
             bestilling.behandlerHprNr,
-            bestilling.veilederNavn,
             bestilling.personIdent,
             bestilling.personNavn,
             bestilling.fritekst,
@@ -52,7 +51,6 @@ class BehandlerDialogmeldingBestillingService(
             dto.saksnummer,
             dto.dokumentasjonType,
             dto.behandlerNavn,
-            dto.veilederNavn,
             dto.dialogmeldingTekst,
             dto.behandlingsReferanse,
             dto.tidligereBestillingReferanse

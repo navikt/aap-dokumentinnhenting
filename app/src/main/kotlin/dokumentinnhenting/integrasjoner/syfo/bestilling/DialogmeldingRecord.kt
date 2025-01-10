@@ -13,7 +13,6 @@ data class DialogmeldingRecord (
     val saksnummer: String,
     val dokumentasjonType: DokumentasjonType,
     val behandlerNavn: String,
-    val veilederNavn: String,
     val fritekst: String,
     val behandlingsReferanse: UUID,
     val tidligereBestillingReferanse: UUID? = null
@@ -24,7 +23,6 @@ data class DialogmeldingFullRecord (
     val behandlerRef: String,
     val behandlerNavn: String,
     val behandlerHprNr: String,
-    val veilederNavn: String,
     val personIdent: String,
     val dokumentasjonType: DokumentasjonType,
     val fritekst: String,

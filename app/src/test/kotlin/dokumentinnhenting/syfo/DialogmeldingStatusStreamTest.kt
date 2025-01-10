@@ -72,7 +72,7 @@ class DialogmeldingStatusStreamTest {
     fun kanTaImotStatusOppdateringer() {
         val uuid = UUID.randomUUID()
         val saksnummer = "saksnummer"
-        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hpr12344321","personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "veiledernavn", "fritekst", UUID.randomUUID())
+        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hpr12344321","personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "fritekst", UUID.randomUUID())
         setupRepositoryData(existingRecord)
 
         val incomingRecord = DialogmeldingStatusDTO(uuid.toString(), OffsetDateTime.now(), MeldingStatusType.BESTILT, "tekst", uuid.toString())
@@ -97,7 +97,6 @@ class DialogmeldingStatusStreamTest {
                 saksnummer,
                 DokumentasjonType.L8,
                 "behandlernavn",
-                "veiledernavn",
                 "fritekst",
                 UUID.randomUUID()
             )
@@ -132,7 +131,6 @@ class DialogmeldingStatusStreamTest {
                 saksnummer,
                 DokumentasjonType.L8,
                 "behandlernavn",
-                "veiledernavn",
                 "fritekst",
                 UUID.randomUUID()
             )

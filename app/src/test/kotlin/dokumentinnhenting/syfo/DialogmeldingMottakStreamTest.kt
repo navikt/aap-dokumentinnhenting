@@ -56,7 +56,7 @@ class DialogmeldingMottakStreamTest {
     fun kanTaImotDialogmeldinger() {
         val uuid = UUID.randomUUID()
         val saksnummer = "saksnummer"
-        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hprIdent", "personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "veiledernavn", "fritekst", UUID.randomUUID())
+        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hprIdent", "personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "fritekst", UUID.randomUUID())
         setupRepositoryData(existingRecord)
 
         val incomingRecord = DialogmeldingMottakDTO(

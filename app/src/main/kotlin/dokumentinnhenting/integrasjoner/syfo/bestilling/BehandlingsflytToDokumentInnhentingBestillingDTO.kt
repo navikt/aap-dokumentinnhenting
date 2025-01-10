@@ -6,7 +6,6 @@ data class BehandlingsflytToDokumentInnhentingBestillingDTO(
     val behandlerRef: String,
     val behandlerNavn: String,
     val behandlerHprNr: String,
-    val veilederNavn: String,
     val personIdent: String,
     val personNavn: String,
     val dialogmeldingTekst: String,

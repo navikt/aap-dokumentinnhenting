@@ -14,10 +14,10 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         val query = """
             INSERT INTO DIALOGMELDING (
                 dialogmelding_uuid, behandler_ref, person_id, saksnummer, 
-                dokumentasjontype, behandler_navn, veileder_navn, fritekst, 
+                dokumentasjontype, behandler_navn, fritekst, 
                 behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr
                 )
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeReturnKey(query) {
             setParams {
@@ -27,11 +27,10 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setString(4, melding.saksnummer)
                 setString(5, melding.dokumentasjonType.toString())
                 setString(6, melding.behandlerNavn)
-                setString(7, melding.veilederNavn)
-                setString(8, melding.fritekst)
-                setUUID(9, melding.behandlingsReferanse)
-                setUUID(10, melding.tidligereBestillingReferanse)
-                setString(11, melding.behandlerHprNr)
+                setString(7, melding.fritekst)
+                setUUID(8, melding.behandlingsReferanse)
+                setUUID(9, melding.tidligereBestillingReferanse)
+                setString(10, melding.behandlerHprNr)
             }
         }
         return melding.dialogmeldingUuid
@@ -127,7 +126,6 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getString("BEHANDLER_REF"),
                     it.getString("BEHANDLER_NAVN"),
                     it.getString("BEHANDLER_HPR_NR"),
-                    it.getString("VEILEDER_NAVN"),
                     it.getString("PERSON_ID"),
                     it.getEnum("DOKUMENTASJONTYPE"),
                     it.getString("FRITEKST"),
@@ -190,7 +188,6 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                     it.getString("BEHANDLER_REF"),
                     it.getString("BEHANDLER_NAVN"),
                     it.getString("BEHANDLER_HPR_NR"),
-                    it.getString("VEILEDER_NAVN"),
                     it.getString("PERSON_ID"),
                     it.getEnum("DOKUMENTASJONTYPE"),
                     it.getString("FRITEKST"),

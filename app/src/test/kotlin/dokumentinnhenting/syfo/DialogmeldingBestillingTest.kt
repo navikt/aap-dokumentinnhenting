@@ -50,7 +50,6 @@ class DialogmeldingBestillingTest {
                 dialogmeldingTekst = "tekst",
                 dokumentasjonType = DokumentasjonType.L8,
                 behandlerNavn = "behandlerNavn",
-                veilederNavn = "veilederNavn",
                 behandlingsReferanse = UUID.randomUUID(),
                 behandlerHprNr = "12344321"
             )
@@ -108,7 +107,6 @@ class DialogmeldingBestillingTest {
             dialogmeldingTekst = "tekst",
             dokumentasjonType = DokumentasjonType.L8,
             behandlerNavn = "behandlerNavn",
-            veilederNavn = "veilederNavn",
             behandlingsReferanse = UUID.randomUUID(),
             behandlerHprNr = "1233321"
         )
