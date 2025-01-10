@@ -14,7 +14,6 @@ import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDTO
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.BestillingCache
 import io.ktor.http.*
-import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.*
 import tilgang.Operasjon
@@ -22,13 +21,12 @@ import java.util.*
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
-    val behandlingsflytAzp = requiredConfigForKey("integrasjon.behandlingsflyt.azp")
-    val saksbehandlingAzp = requiredConfigForKey("integrasjon.saksbehandling.azp")
+    val syfoApiRolle = "syfo-api"
     route("/syfo") {
         route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
-                approvedApplications = setOf(behandlingsflytAzp),
+                applicationRole = syfoApiRolle,
                 applicationsOnly = true)
             ) { _, req ->
             if (BestillingCache.contains(req.saksnummer)) {
@@ -46,7 +44,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
         route("/purring").authorizedPost<Unit, UUID, LegeerklæringPurringDTO>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
-                approvedApplications = setOf(behandlingsflytAzp),
+                applicationRole = syfoApiRolle,
                 applicationsOnly = true)
         ) { _, req ->
             val response = dataSource.transaction { connection ->
@@ -58,7 +56,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
 
         route("/status/{saksnummer}").authorizedGet<HentDialogmeldingStatusDTO, List<DialogmeldingStatusTilBehandslingsflytDTO>>(
             AuthorizationParamPathConfig(
-                approvedApplications = setOf(behandlingsflytAzp),
+                applicationRole = syfoApiRolle,
                 applicationsOnly = true,
                 sakPathParam = SakPathParam("saksnummer")
             )
@@ -84,7 +82,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
         route("/brevpreview").authorizedPost<Unit, BrevPreviewResponse, BrevGenereringRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
-                approvedApplications = setOf(behandlingsflytAzp),
+                applicationRole = syfoApiRolle,
                 applicationsOnly = true)
         ) { _, req ->
             val response = dataSource.transaction { connection ->

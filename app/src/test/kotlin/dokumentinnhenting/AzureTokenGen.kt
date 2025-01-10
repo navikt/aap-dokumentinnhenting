@@ -32,6 +32,7 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
             .expirationTime(LocalDateTime.now().plusHours(4).toDate())
             .claim("NAVident", "Lokalsaksbehandler")
             .claim("scope", "AAP_SCOPES")
+            .claim("roles", listOf("syfo-api"))
             .build()
     }
 
