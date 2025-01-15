@@ -83,7 +83,7 @@ fun Application.server(
     Migrering.migrate(dataSource)
     val motor = module(dataSource)
 
-//    dialogmeldingStatusStream(prometheus, dataSource)
+    dialogmeldingStatusStream(prometheus, dataSource)
     dialogmeldingMottakStream(prometheus, dataSource)
 
     routing {
