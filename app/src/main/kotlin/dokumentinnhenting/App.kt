@@ -8,6 +8,7 @@ import dokumentinnhenting.api.actuator
 import dokumentinnhenting.api.syfoApi
 import dokumentinnhenting.api.testApi
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingMottakStream
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import io.ktor.http.*
@@ -83,7 +84,7 @@ fun Application.server(
     val motor = module(dataSource)
 
     dialogmeldingStatusStream(prometheus, dataSource)
-    //dialogmeldingMottakStream(prometheus, dataSource)
+    dialogmeldingMottakStream(prometheus, dataSource)
 
     routing {
         actuator(prometheus, motor)
