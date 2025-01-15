@@ -39,6 +39,7 @@ class DialogmeldingMottakStream(
             }
             .filter({ _, (record, saksInfo) -> saksInfo?.sakOgBehandlingDTO != null })
             .foreach { _, (record, saksInfo) ->
+                log.info("Oppretter jobb for dialogmelding med msgId: ${record.msgId}")
                 opprettJobb(record, requireNotNull(saksInfo?.sakOgBehandlingDTO))
             }
 
