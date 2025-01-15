@@ -31,6 +31,7 @@ class DialogmeldingMottakStream(
             SYFO_DIALOGMELDING_MOTTAK_TOPIC,
             Consumed.with(Serdes.String(), dialogmeldingMottakDTOSerde())
         )
+            .peek({ key, value -> log.info("Mottatt dialogmelding med msgId: $key") })
             .mapValues { _, record ->
                 record to behandlingsflytClient.finnSakForIdentPåDato(
                     record.personIdentPasient,
