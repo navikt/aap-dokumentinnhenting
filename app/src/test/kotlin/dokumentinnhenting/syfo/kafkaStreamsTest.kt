@@ -12,8 +12,6 @@ import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.CustomSerde
 import dokumentinnhenting.util.kafka.createGenericSerde
-import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
-import io.ktor.server.application.*
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.dbconnect.transaction
 import org.apache.kafka.common.serialization.Serdes

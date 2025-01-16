@@ -36,7 +36,6 @@ object SafClient {
         val dokumentoversiktFagsak = response.data?.dokumentoversiktFagsak ?: return emptyList()
 
         return dokumentoversiktFagsak.journalposter.flatMap { journalpost ->
-            logger.info("Original Journalpost:  $journalpost")
             journalpost.dokumenter.flatMap { dok ->
                 dok.dokumentvarianter
                     .filter { it.variantformat === Variantformat.ARKIV }
