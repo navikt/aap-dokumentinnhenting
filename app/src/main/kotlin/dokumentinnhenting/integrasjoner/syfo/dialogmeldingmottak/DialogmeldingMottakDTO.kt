@@ -48,7 +48,7 @@ data class HenvendelseFraLegeHenvendelse(
 )
 
 data class InnkallingMoterespons(
-    val temaKode: TemaKode,
+    val temaKode: TemaKode?,
     val tekstNotatInnhold: String?,
     val dokIdNotat: String?,
     val foresporsel: Foresporsel?
