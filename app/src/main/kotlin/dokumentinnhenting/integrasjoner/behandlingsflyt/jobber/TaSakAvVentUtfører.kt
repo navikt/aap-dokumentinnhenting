@@ -38,7 +38,7 @@ class TaSakAvVentUtfører(val behandlingsflytClient: BehandlingsflytClient):Jobb
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return TaSakAvVentUtfører(
-                BehandlingsflytClient()
+                BehandlingsflytClient
             )
         }
 

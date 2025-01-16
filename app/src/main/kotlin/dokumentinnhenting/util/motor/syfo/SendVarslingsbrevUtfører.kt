@@ -13,7 +13,7 @@ import no.nav.aap.motor.JobbUtfører
 
 class SendVarslingsbrevUtfører : JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val behandlingsflytClient = BehandlingsflytClient()
+        val behandlingsflytClient = BehandlingsflytClient
 
         val record = DefaultJsonMapper.fromJson<DialogmeldingFullRecord>(input.payload())
 

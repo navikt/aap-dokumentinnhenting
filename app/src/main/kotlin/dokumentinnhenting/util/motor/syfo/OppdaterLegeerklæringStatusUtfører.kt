@@ -32,7 +32,7 @@ class OppdaterLegeerklæringStatusUtfører (
 
         if (record.status == MeldingStatusType.AVVIST) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
-            val behandlingsflytClient = BehandlingsflytClient()
+            val behandlingsflytClient = BehandlingsflytClient
             behandlingsflytClient.taSakAvVent(
                 Innsending(
                     saksnummer = Saksnummer(sak.saksnummer),

@@ -46,6 +46,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.2")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.0") // Use the latest version
     implementation("ch.qos.logback:logback-classic:1.5.16")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.0.1")
@@ -70,6 +71,7 @@ dependencies {
     // Kafka
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
     implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
+    implementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
 
     // Test
     testImplementation(kotlin("test"))

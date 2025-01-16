@@ -6,10 +6,8 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dokumentinnhenting.api.actuator
 import dokumentinnhenting.api.syfoApi
-import dokumentinnhenting.api.testApi
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
-import dokumentinnhenting.integrasjoner.syfo.dialogmeldingMottakStream
-import dokumentinnhenting.integrasjoner.syfo.dialogmeldingStatusStream
+import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -83,8 +81,7 @@ fun Application.server(
     Migrering.migrate(dataSource)
     val motor = module(dataSource)
 
-    dialogmeldingStatusStream(prometheus, dataSource)
-    dialogmeldingMottakStream(prometheus, dataSource)
+    kafkaStreams(prometheus, dataSource)
 
     routing {
         actuator(prometheus, motor)

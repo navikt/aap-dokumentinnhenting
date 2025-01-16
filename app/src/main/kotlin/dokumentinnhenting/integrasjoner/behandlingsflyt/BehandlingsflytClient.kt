@@ -13,7 +13,7 @@ import java.net.URI
 import java.time.LocalDate
 import java.util.*
 
-class BehandlingsflytClient {
+object BehandlingsflytClient {
     private val uri = requiredConfigForKey("behandlingsflyt.base.url")
     private val config = ClientConfig(scope = requiredConfigForKey("behandlingsflyt.scope"))
 

@@ -27,7 +27,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
     route("/test") {
         route("/avvist").post<Unit, String, TaAvVentRequest> { _, req ->
 
-            val behandlingsflytClient = BehandlingsflytClient()
+            val behandlingsflytClient = BehandlingsflytClient
             val avvistLegeerklæringId = UUID.randomUUID()
             behandlingsflytClient.taSakAvVent(
                 Innsending(
@@ -61,7 +61,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
-                val behandlingsflytClient = BehandlingsflytClient()
+                val behandlingsflytClient = BehandlingsflytClient
                 val varsling = behandlingsflytClient.sendVarslingsbrev(
                     VarselOmBrevbestillingDto(
                         BehandlingReferanse(
