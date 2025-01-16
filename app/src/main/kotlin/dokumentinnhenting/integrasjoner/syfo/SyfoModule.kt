@@ -69,7 +69,7 @@ fun createDialogmeldingStreamTopology(
           .filter { _, record -> bestillingEksisterer(dataSource, record.bestillingUuid) }
           .foreach { _, record -> oppdaterStatus(dataSource, record) }
       }.withName("StatusStream")
-    )
+    )/*
     .branch(
       { _, value -> value is DialogmeldingMottakDTO },
       Branched.withConsumer { ks: KStream<String, Any> ->
@@ -87,7 +87,7 @@ fun createDialogmeldingStreamTopology(
             opprettJobb(dataSource, record, requireNotNull(saksInfo?.sakOgBehandlingDTO))
           }
       }.withName("MottakStream")
-    )
+    )*/
     .defaultBranch(
       Branched.withConsumer { ks: KStream<String, Any> ->
         ks.peek { _, value -> log.warn("Unknown message type: $value") }
