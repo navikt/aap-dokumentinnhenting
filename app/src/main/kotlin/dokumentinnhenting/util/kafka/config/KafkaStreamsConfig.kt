@@ -5,6 +5,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.streams.StreamsConfig
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 
 import java.util.*
@@ -73,6 +74,7 @@ data class StreamsConfig(
          * processing requires minimum three brokers
          */
         this[StreamsConfig.PROCESSING_GUARANTEE_CONFIG] = StreamsConfig.EXACTLY_ONCE_V2
+        this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
     }
 }
 
