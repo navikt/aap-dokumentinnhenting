@@ -74,7 +74,7 @@ fun createDialogmeldingStreamTopology(
     .branch(
       { _, value -> value is DialogmeldingMottakDTO },
       Branched.withConsumer { ks: KStream<String, Any> ->
-        /*ks.mapValues { value -> value as DialogmeldingMottakDTO }
+        ks.mapValues { value -> value as DialogmeldingMottakDTO }
           .peek { key, value -> log.info("Mottatt dialogmelding med msgId: $key") }
           .mapValues { _, record ->
             record to BehandlingsflytClient.finnSakForIdentPåDato(
@@ -86,7 +86,7 @@ fun createDialogmeldingStreamTopology(
           .foreach { _, (record, saksInfo) ->
             log.info("Oppretter jobb for dialogmelding med msgId: ${record.msgId}")
             opprettJobb(dataSource, record, requireNotNull(saksInfo?.sakOgBehandlingDTO))
-          }*/
+          }
       }.withName("MottakStream")
     )
     .defaultBranch(
