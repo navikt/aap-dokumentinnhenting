@@ -23,7 +23,7 @@ class EndreTemaUtfører(val dokArkivClient: DokArkivClient):JobbUtfører {
         }
 
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return EndreTemaUtfører(DokArkivClient())
+            return EndreTemaUtfører(DokArkivClient(ClientCredentialsTokenProvider))
         }
 
         override fun navn(): String {

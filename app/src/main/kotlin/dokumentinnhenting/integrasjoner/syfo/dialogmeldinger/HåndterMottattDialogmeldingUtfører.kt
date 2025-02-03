@@ -5,6 +5,7 @@ import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
@@ -56,7 +57,7 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
                 DialogmeldingRepository(
                     connection
                 ),
-                DokArkivClient(),
+                DokArkivClient(ClientCredentialsTokenProvider),
                 FlytJobbRepository(connection)
             )
         }
