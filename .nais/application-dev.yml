@@ -79,7 +79,7 @@ spec:
     - name: INTEGRASJON_SAF_SCOPE
       value: api://dev-fss.teamdokumenthandtering.saf/.default
     - name: INTEGRASJON_DOKARKIV_URL
-      value: https://dokarkiv-q2.dev-fss-pub.nais.io
+      value: https://dokarkiv-q1.dev-fss-pub.nais.io
     - name: INTEGRASJON_DOKARKIV_SCOPE
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
     - name: INTEGRASJON_BREV_BASE_URL
