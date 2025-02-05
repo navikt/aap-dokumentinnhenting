@@ -16,7 +16,6 @@ import dokumentinnhenting.util.BestillingCache
 import io.ktor.http.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.*
-import tilgang.Operasjon
 import java.util.*
 import javax.sql.DataSource
 

@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import java.io.ByteArrayOutputStream
 
 plugins {
     id("dokumentinnhenting.conventions")
@@ -12,7 +11,7 @@ val ktorVersion = "3.0.3"
 val kafkaVersion = "3.9.0"
 val komponenterVersjon = "1.0.130"
 val behandlingsflytVersjon = "0.0.81"
-val tilgangVersjon = "0.0.86"
+val tilgangVersjon = "1.0.0"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -65,7 +64,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
-    // Tilgangstyring
+    // Tilgangsstyring
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
 
     // Kafka
@@ -91,12 +90,11 @@ dependencies {
 }
 
 fun runCommand(command: String): String {
-    val byteOut = ByteArrayOutputStream()
-    project.exec {
-        commandLine = command.split("\\s".toRegex())
-        standardOutput = byteOut
-    }
-    return String(byteOut.toByteArray()).trim()
+    val execResult = providers.exec {
+        commandLine(command.split("\\s".toRegex()))
+    }.standardOutput.asText
+
+    return execResult.get()
 }
 
 fun getCheckedOutGitCommitHash(): String {
