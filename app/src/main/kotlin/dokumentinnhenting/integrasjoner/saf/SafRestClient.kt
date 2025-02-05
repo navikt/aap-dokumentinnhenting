@@ -35,7 +35,7 @@ class SafRestClient {
             )
             return response.readAllBytes()
         } catch (e : Exception) {
-            throw RuntimeException("Feil ved henting av dokument i saf: ${e.message}")
+            throw RuntimeException("Feil ved henting av dokument i saf: ${e.message}", e)
         }
     }
 }
