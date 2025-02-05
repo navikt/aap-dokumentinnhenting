@@ -16,6 +16,7 @@ import io.mockk.verify
 import no.nav.aap.motor.FlytJobbRepository
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -27,6 +28,16 @@ class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
     private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
+
+    companion object {
+        val fakes = Fakes()
+
+        @JvmStatic
+        @AfterAll
+        fun afterAll() {
+            fakes.close()
+        }
+    }
 
     @BeforeEach
     fun setup() {
