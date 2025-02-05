@@ -31,16 +31,7 @@ class kafkaStreamsTest {
     private lateinit var testDriver: TopologyTestDriver
     private lateinit var inputTopic: TestInputTopic<String, Any>
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
-
-    companion object {
-        val fakes = Fakes()
-
-        @JvmStatic
-        @AfterAll
-        fun afterAll() {
-            fakes.close()
-        }
-    }
+    val fakes = Fakes
 
     @BeforeEach
     fun setup() {

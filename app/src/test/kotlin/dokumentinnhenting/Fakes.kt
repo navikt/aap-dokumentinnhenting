@@ -19,16 +19,26 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
-class Fakes: AutoCloseable {
+object Fakes : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
-    private val azure = embeddedServer(Netty, port = 0, module = { azureFake() }).start()
-    private val saf = embeddedServer(Netty, port = 0, module = {safFake()}).start()
-    private val syfo = embeddedServer(Netty, port = 0, module = {syfoFake()}).start()
-    private val behandlingsflyt = embeddedServer(Netty, port = 0, module = {behandlingsflytFake()}).start()
-    private val brev = embeddedServer(Netty, port = 0, module = {brevFake()}).start()
+
+    private val azure = embeddedServer(Netty, port = 0, module = { azureFake() })
+    private val saf = embeddedServer(Netty, port = 0, module = { safFake() })
+    private val syfo = embeddedServer(Netty, port = 0, module = { syfoFake() })
+    private val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
+    private val brev = embeddedServer(Netty, port = 0, module = { brevFake() })
+
+    private val started = AtomicBoolean(false)
 
     init {
+        azure.start()
+        saf.start()
+        syfo.start()
+        behandlingsflyt.start()
+        brev.start()
+
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azurePort()}/token")
@@ -80,8 +90,9 @@ class Fakes: AutoCloseable {
     }
 
     override fun close() {
+        logger.info("Closing Servers.")
         azure.stop(0L, 0L)
-        saf.stop(0L,0L)
+        saf.stop(0L, 0L)
         syfo.stop(0, 0L)
         brev.stop(0, 0L)
         behandlingsflyt.stop(0, 0L)
@@ -96,7 +107,11 @@ class Fakes: AutoCloseable {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                this@behandlingsflytFake.log.info("BEHANDLINGSFLYT :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+                this@behandlingsflytFake.log.info(
+                    "BEHANDLINGSFLYT :: Ukjent feil ved kall til '{}'",
+                    call.request.local.uri,
+                    cause
+                )
                 call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
             }
         }
@@ -128,9 +143,9 @@ class Fakes: AutoCloseable {
             .first { it.type == ConnectorType.HTTP }
             .port
 
-    private fun Application.safFake(){
+    private fun Application.safFake() {
         install(ContentNegotiation) {
-            jackson{
+            jackson {
                 registerModule(JavaTimeModule())
                 disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             }
@@ -193,20 +208,58 @@ class Fakes: AutoCloseable {
                 call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
             }
         }
-        routing{
+        routing {
             route("/syfo") {
                 get("/behandleroppslag/search") {
-                    call.respond(listOf(
-                        BehandlerOppslagResponse(
-                            "type1", UUID.randomUUID().toString(), "32341234123", "Peppa", "The", "Pig", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "11223344", "hprId"
-                        ),
-                        BehandlerOppslagResponse(
-                            "type2", UUID.randomUUID().toString(), "22341234123", "Ola", "Brunost", "Fårepølse", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "44332211", "hprId"
-                        ),
-                        BehandlerOppslagResponse(
-                            "type3", UUID.randomUUID().toString(), "12341234123", "Kari", "", "Tau", "33333", "Fløyen Kontor", "Bergensveien", "5221", "Bergen", "22113344", "hrpId"
-                        ),
-                    ))
+                    call.respond(
+                        listOf(
+                            BehandlerOppslagResponse(
+                                "type1",
+                                UUID.randomUUID().toString(),
+                                "32341234123",
+                                "Peppa",
+                                "The",
+                                "Pig",
+                                "33333",
+                                "Fløyen Kontor",
+                                "Bergensveien",
+                                "5221",
+                                "Bergen",
+                                "11223344",
+                                "hprId"
+                            ),
+                            BehandlerOppslagResponse(
+                                "type2",
+                                UUID.randomUUID().toString(),
+                                "22341234123",
+                                "Ola",
+                                "Brunost",
+                                "Fårepølse",
+                                "33333",
+                                "Fløyen Kontor",
+                                "Bergensveien",
+                                "5221",
+                                "Bergen",
+                                "44332211",
+                                "hprId"
+                            ),
+                            BehandlerOppslagResponse(
+                                "type3",
+                                UUID.randomUUID().toString(),
+                                "12341234123",
+                                "Kari",
+                                "",
+                                "Tau",
+                                "33333",
+                                "Fløyen Kontor",
+                                "Bergensveien",
+                                "5221",
+                                "Bergen",
+                                "22113344",
+                                "hrpId"
+                            ),
+                        )
+                    )
                 }
             }
         }

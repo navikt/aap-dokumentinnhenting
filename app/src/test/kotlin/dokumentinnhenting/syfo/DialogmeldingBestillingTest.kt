@@ -2,42 +2,36 @@ package dokumentinnhenting.syfo
 
 import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.Fakes
-import dokumentinnhenting.integrasjoner.syfo.bestilling.*
-import dokumentinnhenting.integrasjoner.syfo.status.*
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.LegeerklæringPurringDTO
+import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
 import dokumentinnhenting.util.motor.syfo.syfosteg.SyfoSteg
-import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
-
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.motor.FlytJobbRepository
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.*
+import java.util.UUID
 
 class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
     private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
+    val fakes = Fakes
 
-    companion object {
-        val fakes = Fakes()
-
-        @JvmStatic
-        @AfterAll
-        fun afterAll() {
-            fakes.close()
-        }
-    }
 
     @BeforeEach
     fun setup() {
