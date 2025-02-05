@@ -51,7 +51,6 @@ class DialogmeldingBestillingTest {
 
     @Test
     fun kanKjøreSteg() {
-        Fakes().use { fakes ->
             val saksnummer = "saksnummer"
             val dto = BehandlingsflytToDokumentInnhentingBestillingDTO(
                 behandlerRef = "behandlerRef",
@@ -93,7 +92,6 @@ class DialogmeldingBestillingTest {
 
             val lagretBestilling = hentRepositoryData(saksnummer)
             assertEquals(dialogmeldingUuid, lagretBestilling[0].dialogmeldingUuid)
-        }
     }
 
     @Test
