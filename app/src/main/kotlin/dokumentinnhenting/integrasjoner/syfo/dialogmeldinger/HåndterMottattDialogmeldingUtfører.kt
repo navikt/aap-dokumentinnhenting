@@ -7,18 +7,29 @@ import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 
+class dummyJobbUtfører : JobbUtfører {
+    override fun utfør(input: JobbInput) {
+        println("dummyJobbUtfører")
+    }
+}
+
 class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: DialogmeldingRepository, val dokArkivClient: DokArkivClient, private val flytJobbRepository: FlytJobbRepository) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
 
+
         val record = payload.dialogmeldingMottatt
         val sakOgBehandling = payload.sakOgBehandling
-
+        if(record.journalpostId == "0" && Miljø.er() == MiljøKode.DEV) {
+            return dummyJobbUtfører().utfør(input)
+        }
         if (eksistererBestillingPåPerson(record.personIdentPasient)) {
             dokArkivClient.knyttJournalpostTilAnnenSak(
                 record.journalpostId,
