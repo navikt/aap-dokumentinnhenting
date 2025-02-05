@@ -17,6 +17,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TopologyTestDriver
 import org.apache.kafka.streams.TestInputTopic
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -31,11 +32,20 @@ class kafkaStreamsTest {
     private lateinit var inputTopic: TestInputTopic<String, Any>
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
+    companion object {
+        val fakes = Fakes()
+
+        @JvmStatic
+        @AfterAll
+        fun afterAll() {
+            fakes.close()
+        }
+    }
+
     @BeforeEach
     fun setup() {
         InitTestDatabase.migrate()
         val dataSource = InitTestDatabase.dataSource
-        val fakes = Fakes()
         val topology = createDialogmeldingStreamTopology(dataSource)
 
         val props = Properties().apply {
