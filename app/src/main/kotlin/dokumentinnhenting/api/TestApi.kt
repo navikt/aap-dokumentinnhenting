@@ -56,13 +56,13 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
             respond("", HttpStatusCode.OK)
         }
 
-        route("/varselbrev").post<Unit, UUID, TestRequest> { _, req ->
-            val response = dataSource.transaction { connection ->
+        route("/varselbrev").post<Unit, String, TestRequest> { _, req ->
+            dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
                 val behandlingsflytClient = BehandlingsflytClient
-                val varsling = behandlingsflytClient.sendVarslingsbrev(
+                behandlingsflytClient.sendVarslingsbrev(
                     VarselOmBrevbestillingDto(
                         BehandlingReferanse(
                             fullRecord.behandlingsReferanse
@@ -74,9 +74,8 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                         )
                     )
                 )
-                varsling
             }
-            respond(response, HttpStatusCode.OK)
+            respond("", HttpStatusCode.OK)
         }
     }
 

@@ -87,9 +87,9 @@ class Fakes: AutoCloseable {
         behandlingsflyt.stop(0, 0L)
     }
 
-    private fun Application.behandlingsflytFake(){
+    private fun Application.behandlingsflytFake() {
         install(ContentNegotiation) {
-            jackson{
+            jackson {
                 registerModule(JavaTimeModule())
                 disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             }
@@ -113,6 +113,9 @@ class Fakes: AutoCloseable {
                         )
                     )
                 )
+            }
+            post("/api/brev/bestillingvarsel") {
+                call.respond(HttpStatusCode.Accepted, "{}")
             }
             post("/api/hendelse/send") {
                 call.respond {}

@@ -41,7 +41,7 @@ object BehandlingsflytClient {
         }
     }
 
-    fun sendVarslingsbrev(varselRequest: VarselOmBrevbestillingDto): UUID {
+    fun sendVarslingsbrev(varselRequest: VarselOmBrevbestillingDto) {
         val request = PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
@@ -51,7 +51,7 @@ object BehandlingsflytClient {
 
         try {
             val uri = URI.create("$uri/api/brev/bestillingvarsel")
-            return requireNotNull(client.post(uri, request))
+            client.post<_, Unit>(uri, request)
         } catch (e: Exception) {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
