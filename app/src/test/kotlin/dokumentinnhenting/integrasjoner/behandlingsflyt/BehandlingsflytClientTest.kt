@@ -3,21 +3,30 @@ package dokumentinnhenting.integrasjoner.behandlingsflyt
 import dokumentinnhenting.Fakes
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.brev.kontrakt.Vedlegg
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class BehandlingsflytClientTest {
 
+    companion object {
+        val fakes = Fakes()
+
+        @JvmStatic
+        @AfterAll
+        fun afterAll() {
+            fakes.close()
+        }
+    }
+
     @Test
     fun `får bestilt varsel med request mot behandlingsflyt`() {
-        Fakes().use {
-            BehandlingsflytClient.sendVarslingsbrev(
-                VarselOmBrevbestillingDto(
-                    BehandlingReferanse(UUID.randomUUID()),
-                    UUID.randomUUID(),
-                    Vedlegg("", "")
-                )
+        BehandlingsflytClient.sendVarslingsbrev(
+            VarselOmBrevbestillingDto(
+                BehandlingReferanse(UUID.randomUUID()),
+                UUID.randomUUID(),
+                Vedlegg("", "")
             )
-        }
+        )
     }
 }
