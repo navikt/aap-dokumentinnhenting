@@ -39,6 +39,8 @@ object Fakes : AutoCloseable {
         behandlingsflyt.start()
         brev.start()
 
+        Runtime.getRuntime().addShutdownHook(Thread { close() })
+
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure
         System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azurePort()}/token")
