@@ -42,7 +42,7 @@ dependencies {
 
     implementation(project(":dbflyway"))
     implementation("no.nav:ktor-openapi-generator:1.0.75")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.14.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.14.4")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2") // Use the latest version
