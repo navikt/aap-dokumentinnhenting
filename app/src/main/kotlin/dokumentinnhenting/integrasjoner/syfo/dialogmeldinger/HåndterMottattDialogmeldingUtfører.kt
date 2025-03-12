@@ -45,7 +45,7 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
             )
             flytJobbRepository.leggTil(jobb)
 
-        } else {
+        } /*else {
             val journalPostId = dokArkivClient.kopierJournalpostForDialogMelding(
                 journalPostId = record.journalpostId,
                 eksternReferanseId = sakOgBehandling.saksnummer
@@ -55,7 +55,7 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
                 journalPostId
             )
             flytJobbRepository.leggTil(jobb)
-        }
+        }*/
     }
 
     private fun eksistererBestillingPåPerson(personId: String): Boolean {
