@@ -1,0 +1,52 @@
+ingress: "https://aap-dokumentinnhenting.intern.nav.no"
+
+sql:
+  tier: db-f1-micro # SJEKK DENNE
+  diskAutoresize: true
+  highAvailability: true
+  pointInTimeRecovery: true
+
+replicas:
+  min: 2
+  max: 2
+  disableAutoScaling: false
+
+image: {{image}} # SJEKK DENNE
+
+kafka:
+  pool: nav-prod
+  streams: true
+
+env:
+  - name: BEHANDLINGSFLYT_BASE_URL # SJEKK DENNE
+    value: http://behandlingsflyt # SJEKK DENNE
+  - name: BEHANDLINGSFLYT_SCOPE # SJEKK DENNE
+    value: api://dev-gcp.aap.behandlingsflyt/.default # SJEKK DENNE
+  - name: INTEGRASJON_BEHANDLINGSFLYT_AZP # SJEKK DENNE
+    value: dev-gcp:aap:behandlingsflyt # SJEKK DENNE
+  - name: INTEGRASJON_SYFO_BASE_URL # SJEKK DENNE
+    value: http://isdialogmelding.teamsykefravr # SJEKK DENNE
+  - name: INTEGRASJON_SYFO_SCOPE # SJEKK DENNE
+    value: api://dev-gcp.teamsykefravr.isdialogmelding/.default # SJEKK DENNE
+  - name: INTEGRASJON_SAF_URL_GRAPHQL # SJEKK DENNE
+    value: https://saf-q2.dev-fss-pub.nais.io/graphql # SJEKK DENNE
+  - name: INTEGRASJON_SAF_URL_REST # SJEKK DENNE
+    value: https://saf-q2.dev-fss-pub.nais.io/rest # SJEKK DENNE
+  - name: INTEGRASJON_SAF_SCOPE # SJEKK DENNE
+    value: api://dev-fss.teamdokumenthandtering.saf/.default # SJEKK DENNE
+  - name: INTEGRASJON_DOKARKIV_URL # SJEKK DENNE
+    value: https://dokarkiv-q2.dev-fss-pub.nais.io # SJEKK DENNE
+  - name: INTEGRASJON_DOKARKIV_SCOPE # SJEKK DENNE
+    value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default # SJEKK DENNE
+  - name: INTEGRASJON_BREV_BASE_URL # SJEKK DENNE
+    value: http://brev # SJEKK DENNE
+  - name: INTEGRASJON_BREV_SCOPE # SJEKK DENNE
+    value: api://dev-gcp.aap.brev/.default # SJEKK DENNE
+  - name: INTEGRASJON_BREV_AZP # SJEKK DENNE
+    value: dev-gcp:aap:brev # SJEKK DENNE
+  - name: INTEGRASJON_SAKSBEHANDLING_AZP # SJEKK DENNE
+    value: dev-gcp:aap:saksbehandling # SJEKK DENNE
+
+external:
+  - host: saf.dev-fss-pub.nais.io # SJEKK DENNE
+  - host: dokarkiv-q2.dev-fss-pub.nais.io # SJEKK DENNE
