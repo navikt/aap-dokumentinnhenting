@@ -30,14 +30,16 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
         if(record.journalpostId == "0" && Miljø.er() == MiljøKode.DEV) {
             return dummyJobbUtfører().utfør(input)
         }
-        if (eksistererBestillingPåPerson(record.personIdentPasient)) {
+        val eksistererBestillingPåPerson = dialogmeldingRepository.hentSisteBestillingByPIDYngreEnn2mMnd(record.personIdentPasient)
+
+        if (eksistererBestillingPåPerson != null) {
             dokArkivClient.knyttJournalpostTilAnnenSak(
                 record.journalpostId,
                 OpprettJournalpostRequest.Bruker(
                     record.personIdentPasient,
                     OpprettJournalpostRequest.Bruker.IdType.FNR
                 ),
-                record.personIdentPasient,
+                eksistererBestillingPåPerson,
                 "Kelvin" //TODO: riktig skrivemåte
             )
             val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
@@ -58,9 +60,6 @@ class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: 
         }*/
     }
 
-    private fun eksistererBestillingPåPerson(personId: String): Boolean {
-        return dialogmeldingRepository.hentSisteBestillingByPIDYngreEnn2mMnd(personId) != null
-    }
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {

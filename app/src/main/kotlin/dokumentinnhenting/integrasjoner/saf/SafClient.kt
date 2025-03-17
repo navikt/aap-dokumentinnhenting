@@ -71,6 +71,13 @@ data class Doc(
     val variantformat: Variantformat
 )
 
+data class KopierJournalpost(
+    val journalpostId: String,
+    val tittel: String,
+    val personIdent: String,
+    val fagsakId: String,
+)
+
 fun String.asQuery() = this.replace("\n", "")
 
 private const val fagsakId = "\$fagsakId"
