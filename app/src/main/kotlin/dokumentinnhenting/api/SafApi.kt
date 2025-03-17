@@ -8,6 +8,7 @@ import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import dokumentinnhenting.integrasjoner.saf.*
+import io.ktor.http.*
 import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 
@@ -25,7 +26,7 @@ fun NormalOpenAPIRoute.safApi() {
         respond(dokument)
     }
 
-    route("/saf/knyttTilAnnenSak").post<Unit, Unit, List<KopierJournalpost>> { _, req ->
+    route("/saf/knyttTilAnnenSak").post<Unit, HttpStatusCode, List<KopierJournalpost>> { _, req ->
         val token = this.token()
         val gateway = DokArkivClient(OnBehalfOfTokenProvider)
         req.forEach{doc ->
@@ -36,7 +37,7 @@ fun NormalOpenAPIRoute.safApi() {
                 token.token(),
                 doc.tittel)
         }
-        respond(Unit)
+        respond(HttpStatusCode.NoContent)
     }
 }
 
