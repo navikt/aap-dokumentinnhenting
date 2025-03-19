@@ -8,7 +8,7 @@ sql:
 
 replicas:
   min: 2
-  max: 2
+  max: 3
   disableAutoScaling: false
 
 image: {{image}}
