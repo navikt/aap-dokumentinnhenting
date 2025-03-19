@@ -1,0 +1,97 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: dokumentinnhenting
+  namespace: aap
+  labels:
+    team: aap
+    sub: dokumentinnhenting
+
+spec:
+  image: {{image}}
+  ingresses:
+    - {{ingres}}
+
+  replicas:
+    cpuThresholdPercentage: 90
+    disableAutoScaling: {{replicas.disableAutoScaling}}
+    max: {{replicas.max}}
+    min: {{replicas.min}}
+
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+      claims:
+        extra:
+          - "NAVident"
+          - "azp_name"
+
+  kafka:
+    pool: {{kafka.pool}}
+    streams: true
+
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_16
+        tier: {{sql.tier}}
+        diskAutoresize: {{sql.diskAutoresize}}
+        highAvailability: {{sql.highAvailability}}
+        pointInTimeRecovery: {{sql.pointInTimeRecovery}}
+        databases:
+          - name: dokumentinnhenting
+
+  resources:
+    limits:
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 1024Mi
+  liveness:
+    path: /actuator/live
+    initialDelay: 3
+    periodSeconds: 3
+    failureThreshold: 21
+  readiness:
+    path: /actuator/ready
+    initialDelay: 3
+    periodSeconds: 3
+    failureThreshold: 21
+  prometheus:
+    enabled: true
+    path: /actuator/metrics
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: "java"
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
+  secureLogs:
+    enabled: true
+
+  env:
+  {{ #each env}}
+    - name: {{this.name}}
+      value: {{this.value}}
+  {{/each}}
+
+  inbound:
+    rules:
+      - application: behandlingsflyt
+        permissions:
+          roles:
+            - "syfo-api"
+      - application: paw-patrol
+      - application: saksbehandling
+  outbound:
+    rules:
+      - application: behandlingsflyt
+      - application: brev
+      - application: isdialogmelding
+        namespace: teamsykefravr
+    external:
+      {{ #each external}}
+         - host: {{this.host } }
+      {{/each}}

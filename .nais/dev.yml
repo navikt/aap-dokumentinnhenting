@@ -1,0 +1,46 @@
+ingress: "https://aap-dokumentinnhenting.intern.dev.nav.no"
+
+sql:
+  tier: db-f1-micro
+  diskAutoresize: false
+  highAvailability: false
+  pointInTimeRecovery: false
+
+replicas:
+  min: 1
+  max: 1
+  disableAutoScaling: true
+
+image: {{image}}
+
+kafka:
+  pool: nav-dev
+  streams: true
+
+env:
+  - name: BEHANDLINGSFLYT_BASE_URL
+    value: http://behandlingsflyt
+  - name: BEHANDLINGSFLYT_SCOPE
+    value: api://dev-gcp.aap.behandlingsflyt/.default
+  - name: INTEGRASJON_SYFO_BASE_URL
+    value: http://isdialogmelding.teamsykefravr
+  - name: INTEGRASJON_SYFO_SCOPE
+    value: api://dev-gcp.teamsykefravr.isdialogmelding/.default
+  - name: INTEGRASJON_SAF_URL_GRAPHQL
+    value: https://saf-q2.dev-fss-pub.nais.io/graphql
+  - name: INTEGRASJON_SAF_URL_REST
+    value: https://saf-q2.dev-fss-pub.nais.io/rest
+  - name: INTEGRASJON_SAF_SCOPE
+    value: api://dev-fss.teamdokumenthandtering.saf/.default
+  - name: INTEGRASJON_DOKARKIV_URL
+    value: https://dokarkiv-q2.dev-fss-pub.nais.io
+  - name: INTEGRASJON_DOKARKIV_SCOPE
+    value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+  - name: INTEGRASJON_BREV_BASE_URL
+    value: http://brev
+  - name: INTEGRASJON_BREV_SCOPE
+    value: api://dev-gcp.aap.brev/.default
+
+external:
+  - host: saf.dev-fss-pub.nais.io
+  - host: dokarkiv-q2.dev-fss-pub.nais.io
