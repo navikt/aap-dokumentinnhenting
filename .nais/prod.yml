@@ -11,7 +11,6 @@ replicas:
   max: 3
   disableAutoScaling: false
 
-image: {{image}}
 
 kafka:
   pool: nav-prod

@@ -10,7 +10,7 @@ metadata:
 spec:
   image: {{image}}
   ingresses:
-    - {{ingres}}
+    - {{ingress}}
 
   replicas:
     cpuThresholdPercentage: 90
@@ -72,9 +72,9 @@ spec:
     enabled: true
 
   env:
-    {{ #each env}}
-  - name: {{this.name}}
-  value: {{this.value}}
+    {{#each env}}
+    - name: {{this.name}}
+    value: {{this.value}}
     {{/each}}
 
   inbound:
@@ -92,6 +92,6 @@ spec:
       - application: isdialogmelding
         namespace: teamsykefravr
     external:
-      {{ #each external}}
-         - host: {{this.host } }
+      {{#each external}}
+      - host: {{this.host}}
       {{/each}}

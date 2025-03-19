@@ -11,8 +11,6 @@ replicas:
   max: 1
   disableAutoScaling: true
 
-image: {{image}}
-
 kafka:
   pool: nav-dev
   streams: true
