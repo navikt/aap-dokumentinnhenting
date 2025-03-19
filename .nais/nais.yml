@@ -77,21 +77,22 @@ spec:
     value: {{this.value}}
     {{/each}}
 
-  inbound:
-    rules:
-      - application: behandlingsflyt
-        permissions:
-          roles:
-            - "syfo-api"
-      - application: paw-patrol
-      - application: saksbehandling
-  outbound:
-    rules:
-      - application: behandlingsflyt
-      - application: brev
-      - application: isdialogmelding
-        namespace: teamsykefravr
-    external:
-      {{#each external}}
-      - host: {{this.host}}
-      {{/each}}
+  accessPolicy:
+    inbound:
+      rules:
+        - application: behandlingsflyt
+          permissions:
+            roles:
+              - "syfo-api"
+        - application: paw-patrol
+        - application: saksbehandling
+    outbound:
+      rules:
+        - application: behandlingsflyt
+        - application: brev
+        - application: isdialogmelding
+          namespace: teamsykefravr
+      external:
+        {{#each external}}
+        - host: {{this.host}}
+        {{/each}}
