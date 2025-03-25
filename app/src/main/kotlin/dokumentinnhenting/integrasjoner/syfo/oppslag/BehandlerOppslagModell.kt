@@ -1,5 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.oppslag
 
+import no.nav.aap.tilgang.plugin.kontrakt.Saksreferanse
+
 data class BehandlerOppslagResponse(
     val type: String?,
     val behandlerRef: String,
@@ -17,5 +19,10 @@ data class BehandlerOppslagResponse(
 )
 
 data class FritekstRequest(
-    val fritekst: String
-)
+    val fritekst: String,
+    val saksnummer: String
+): Saksreferanse {
+    override fun hentSaksreferanse(): String {
+        return saksnummer
+    }
+}
