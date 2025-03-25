@@ -89,6 +89,7 @@ spec:
     outbound:
       rules:
         - application: behandlingsflyt
+        - application: tilgang
         - application: brev
         - application: isdialogmelding
           namespace: teamsykefravr
