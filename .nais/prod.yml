@@ -39,6 +39,10 @@ env:
     value: http://brev
   - name: INTEGRASJON_BREV_SCOPE
     value: api://prod-gcp.aap.brev/.default
+  - name: INTEGRASJON_TILGANG_URL
+    value: http://tilgang
+  - name: INTEGRASJON_TILGANG_SCOPE
+    value: api://prod-gcp.aap.tilgang/.default
 
 external:
   - host: saf.prod-fss-pub.nais.io
