@@ -67,13 +67,13 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             respond(response)
         }
 
-        route("/behandleroppslag/search").post<Unit, List<BehandlerOppslagResponse>, FritekstRequest>/*.authorizedPost<Unit, List<BehandlerOppslagResponse>, FritekstRequest>(
+        route("/behandleroppslag/search").authorizedPost<Unit, List<BehandlerOppslagResponse>, FritekstRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SE,
-                approvedApplications = setOf(saksbehandlingAzp),
+                applicationRole = syfoApiRolle,
                 applicationsOnly = false
             )
-        )*/ { _, req ->
+        ) { _, req ->
             val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
             respond(behandlere)
         }
