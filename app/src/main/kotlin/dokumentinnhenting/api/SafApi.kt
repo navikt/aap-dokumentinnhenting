@@ -12,6 +12,9 @@ import io.ktor.http.*
 import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
 
+/**
+ * Requests blir autorisert hos SAF og er derav ikke behov for Auth plugin i dette APIet
+*/
 fun NormalOpenAPIRoute.safApi() {
     route("/saf").post<Unit, List<Doc>, HelseDocRequest> { _, req ->
         val token = this.token()
