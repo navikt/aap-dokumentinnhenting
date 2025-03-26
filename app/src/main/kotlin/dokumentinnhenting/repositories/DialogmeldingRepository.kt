@@ -13,7 +13,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
     fun opprettDialogmelding(melding: DialogmeldingRecord): UUID {
         val query = """
             INSERT INTO DIALOGMELDING (
-                dialogmelding_uuid, behandler_ref, person_id, saksnummer, 
+                dialogmelding_uuid, behandler_ref, person_id, person_navn, saksnummer, 
                 dokumentasjontype, behandler_navn, fritekst, 
                 behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr
                 )
@@ -24,13 +24,14 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(1, melding.dialogmeldingUuid)
                 setString(2, melding.behandlerRef)
                 setString(3, melding.personIdent)
-                setString(4, melding.saksnummer)
-                setString(5, melding.dokumentasjonType.toString())
-                setString(6, melding.behandlerNavn)
-                setString(7, melding.fritekst)
-                setUUID(8, melding.behandlingsReferanse)
-                setUUID(9, melding.tidligereBestillingReferanse)
-                setString(10, melding.behandlerHprNr)
+                setString(4, melding.personNavn)
+                setString(5, melding.saksnummer)
+                setString(6, melding.dokumentasjonType.toString())
+                setString(7, melding.behandlerNavn)
+                setString(8, melding.fritekst)
+                setUUID(9, melding.behandlingsReferanse)
+                setUUID(10, melding.tidligereBestillingReferanse)
+                setString(11, melding.behandlerHprNr)
             }
         }
         return melding.dialogmeldingUuid

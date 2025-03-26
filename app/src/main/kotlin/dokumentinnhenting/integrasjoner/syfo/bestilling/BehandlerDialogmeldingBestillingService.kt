@@ -44,16 +44,17 @@ class BehandlerDialogmeldingBestillingService(
     fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDTO): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = DialogmeldingRecord(
-            dialogmeldingUuid,
-            dto.behandlerRef,
-            dto.behandlerHprNr,
-            dto.personIdent,
-            dto.saksnummer,
-            dto.dokumentasjonType,
-            dto.behandlerNavn,
-            dto.dialogmeldingTekst,
-            dto.behandlingsReferanse,
-            dto.tidligereBestillingReferanse
+            dialogmeldingUuid = dialogmeldingUuid,
+            behandlerRef = dto.behandlerRef,
+            behandlerHprNr = dto.behandlerHprNr,
+            personIdent = dto.personIdent,
+            personNavn = dto.personNavn,
+            saksnummer = dto.saksnummer,
+            dokumentasjonType = dto.dokumentasjonType,
+            behandlerNavn = dto.behandlerNavn,
+            fritekst = dto.dialogmeldingTekst,
+            behandlingsReferanse = dto.behandlingsReferanse,
+            tidligereBestillingReferanse = dto.tidligereBestillingReferanse
         )
 
         val id = skrivDialogmeldingTilRepository(dialogMeldingRecord)
