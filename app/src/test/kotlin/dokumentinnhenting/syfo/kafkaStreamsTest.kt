@@ -70,7 +70,7 @@ class kafkaStreamsTest {
         val bestillingUuid = uuid.toString()
 
         val saksnummer = "saksnummer"
-        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hpr12344321","personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "fritekst", UUID.randomUUID())
+        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hpr12344321","personIdent", "personNavn", saksnummer, DokumentasjonType.L8, "behandlernavn", "fritekst", UUID.randomUUID())
 
         setupRepositoryDataStatus(existingRecord)
 
@@ -93,7 +93,7 @@ class kafkaStreamsTest {
         val uuid = UUID.randomUUID()
 
         val saksnummer = "saksnummer"
-        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hprIdent", "personIdent", saksnummer, DokumentasjonType.L8, "behandlernavn", "fritekst", UUID.randomUUID())
+        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hprIdent", "personIdent", "personNavn", saksnummer, DokumentasjonType.L8, "behandlernavn", "fritekst", UUID.randomUUID())
         setupRepositoryDataMottak(existingRecord)
 
         val incomingRecord = DialogmeldingMottakDTO(

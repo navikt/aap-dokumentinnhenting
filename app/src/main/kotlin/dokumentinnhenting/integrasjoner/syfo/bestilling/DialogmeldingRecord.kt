@@ -10,6 +10,7 @@ data class DialogmeldingRecord (
     val behandlerRef: String,
     val behandlerHprNr: String,
     val personIdent: String,
+    val personNavn: String,
     val saksnummer: String,
     val dokumentasjonType: DokumentasjonType,
     val behandlerNavn: String,
