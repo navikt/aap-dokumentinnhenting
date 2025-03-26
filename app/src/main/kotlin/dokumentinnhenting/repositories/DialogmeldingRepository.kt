@@ -6,6 +6,7 @@ import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.Row
 import java.time.LocalDateTime
 import java.util.*
 
@@ -15,9 +16,9 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             INSERT INTO DIALOGMELDING (
                 dialogmelding_uuid, behandler_ref, person_id, person_navn, saksnummer, 
                 dokumentasjontype, behandler_navn, fritekst, 
-                behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr
+                behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr, bestiller_nav_ident
                 )
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeReturnKey(query) {
             setParams {
@@ -32,6 +33,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(9, melding.behandlingsReferanse)
                 setUUID(10, melding.tidligereBestillingReferanse)
                 setString(11, melding.behandlerHprNr)
+                setString(12, melding.bestillerNavIdent)
             }
         }
         return melding.dialogmeldingUuid
@@ -121,28 +123,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             setParams {
                 setUUID(1, dialogmeldingUuid)
             }
-            setRowMapper {
-                DialogmeldingFullRecord(
-                    it.getUUID("DIALOGMELDING_UUID"),
-                    it.getString("BEHANDLER_REF"),
-                    it.getString("BEHANDLER_NAVN"),
-                    it.getString("BEHANDLER_HPR_NR"),
-                    it.getString("PERSON_ID"),
-                    it.getEnum("DOKUMENTASJONTYPE"),
-                    it.getString("FRITEKST"),
-                    it.getString("SAKSNUMMER"),
-                    it.getEnumOrNull("STATUS"),
-                    it.getEnumOrNull("FLYTSTATUS"),
-                    it.getString("PERSON_NAVN"),
-                    it.getStringOrNull("STATUS_TEKST"),
-                    it.getUUID("BEHANDLINGSREFERANSE"),
-                    it.getLocalDateTime("OPPRETTET_TID"),
-                    it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
-                    it.getStringOrNull("JOURNALPOST_ID"),
-                    it.getStringOrNull("DOKUMENT_ID"),
-                    it.getLong("ID")
-                )
-            }
+            setRowMapper(::mapDialogmeldingFullRecord)
         }
     }
 
@@ -183,28 +164,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             setParams {
                 setUUID(1, dialogmeldingUuid)
             }
-            setRowMapper {
-                DialogmeldingFullRecord(
-                    it.getUUID("DIALOGMELDING_UUID"),
-                    it.getString("BEHANDLER_REF"),
-                    it.getString("BEHANDLER_NAVN"),
-                    it.getString("BEHANDLER_HPR_NR"),
-                    it.getString("PERSON_ID"),
-                    it.getEnum("DOKUMENTASJONTYPE"),
-                    it.getString("FRITEKST"),
-                    it.getString("SAKSNUMMER"),
-                    it.getEnumOrNull("STATUS"),
-                    it.getEnumOrNull("FLYTSTATUS"),
-                    it.getString("PERSON_NAVN"),
-                    it.getStringOrNull("STATUS_TEKST"),
-                    it.getUUID("BEHANDLINGSREFERANSE"),
-                    it.getLocalDateTime("OPPRETTET_TID"),
-                    it.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
-                    it.getStringOrNull("JOURNALPOST_ID"),
-                    it.getStringOrNull("DOKUMENT_ID"),
-                    it.getLong("ID")
-                )
-            }
+            setRowMapper(::mapDialogmeldingFullRecord)
         }
     }
 
@@ -239,6 +199,30 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 it.getUUID("DIALOGMELDING_UUID")
             }
         }
+    }
+
+    private fun mapDialogmeldingFullRecord(row: Row): DialogmeldingFullRecord {
+        return DialogmeldingFullRecord(
+            bestillerNavIdent = row.getString("BESTILLER_NAV_IDENT"),
+            dialogmeldingUuid = row.getUUID("DIALOGMELDING_UUID"),
+            behandlerRef = row.getString("BEHANDLER_REF"),
+            behandlerNavn = row.getString("BEHANDLER_NAVN"),
+            behandlerHprNr = row.getString("BEHANDLER_HPR_NR"),
+            personIdent = row.getString("PERSON_ID"),
+            dokumentasjonType = row.getEnum("DOKUMENTASJONTYPE"),
+            fritekst = row.getString("FRITEKST"),
+            saksnummer = row.getString("SAKSNUMMER"),
+            status = row.getEnumOrNull("STATUS"),
+            flytStatus = row.getEnumOrNull("FLYTSTATUS"),
+            personNavn = row.getString("PERSON_NAVN"),
+            statusTekst = row.getStringOrNull("STATUS_TEKST"),
+            behandlingsReferanse = row.getUUID("BEHANDLINGSREFERANSE"),
+            opprettet = row.getLocalDateTime("OPPRETTET_TID"),
+            tidligereBestillingReferanse = row.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
+            journalpostId = row.getStringOrNull("JOURNALPOST_ID"),
+            dokumentId = row.getStringOrNull("DOKUMENT_ID"),
+            id = row.getLong("ID")
+        )
     }
 
     data class SyfoBestillingFlytStatus(

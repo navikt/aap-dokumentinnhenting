@@ -47,6 +47,7 @@ class DialogmeldingBestillingTest {
     fun kanKjøreSteg() {
             val saksnummer = "saksnummer"
             val dto = BehandlingsflytToDokumentInnhentingBestillingDTO(
+                bestillerNavIdent = "bestillerNavIdent",
                 behandlerRef = "behandlerRef",
                 personIdent = "12345678910",
                 personNavn = "personNavn",
@@ -103,6 +104,7 @@ class DialogmeldingBestillingTest {
         lateinit var dialogmeldingLegerklæringUuid: UUID
         val saksnummer = "saksnummer"
         val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDTO(
+            bestillerNavIdent = "bestillerNavIdent",
             behandlerRef = "behandlerRef",
             personIdent = "12345678910",
             personNavn = "personNavn",

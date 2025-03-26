@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class DialogmeldingRecord (
+    val bestillerNavIdent: String,
     val dialogmeldingUuid: UUID,
     val behandlerRef: String,
     val behandlerHprNr: String,
@@ -20,6 +21,7 @@ data class DialogmeldingRecord (
 )
 
 data class DialogmeldingFullRecord (
+    val bestillerNavIdent: String,
     val dialogmeldingUuid: UUID,
     val behandlerRef: String,
     val behandlerNavn: String,
