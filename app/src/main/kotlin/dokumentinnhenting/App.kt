@@ -8,6 +8,7 @@ import dokumentinnhenting.api.actuator
 import dokumentinnhenting.api.syfoApi
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
+import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,8 +19,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.prometheusmetrics.PrometheusConfig
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
@@ -55,7 +54,7 @@ fun main() {
 fun Application.server(
     config: Config = Config(),
 ) {
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    val prometheus = prometheus
     commonKtorModule(
         prometheus,
         AzureConfig(),

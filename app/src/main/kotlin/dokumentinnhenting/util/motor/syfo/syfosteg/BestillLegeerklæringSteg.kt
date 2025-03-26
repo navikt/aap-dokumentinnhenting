@@ -5,6 +5,8 @@ import dokumentinnhenting.integrasjoner.saf.SafRestClient
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.config.ProducerConfig
+import dokumentinnhenting.util.metrics.bestillingCounter
+import dokumentinnhenting.util.metrics.prometheus
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -47,6 +49,7 @@ class BestillLegeerklæringSteg(
             log.error("Feilet ved sending til topic $SYFO_BESTILLING_DIALOGMELDING_TOPIC", e)
             return SyfoSteg.Resultat.STOPP
         }
+        prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
 
         return SyfoSteg.Resultat.FULLFØRT
     }
