@@ -17,7 +17,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 dokumentasjontype, behandler_navn, fritekst, 
                 behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr
                 )
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeReturnKey(query) {
             setParams {
