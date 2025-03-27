@@ -28,22 +28,24 @@ class BehandlerDialogmeldingBestillingService(
             ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
 
         return dialogmeldingBestilling(BehandlingsflytToDokumentInnhentingBestillingDTO(
-            bestilling.behandlerRef,
-            bestilling.behandlerNavn,
-            bestilling.behandlerHprNr,
-            bestilling.personIdent,
-            bestilling.personNavn,
-            bestilling.fritekst,
-            bestilling.saksnummer,
-            DokumentasjonType.PURRING,
-            bestilling.behandlingsReferanse,
-            bestilling.dialogmeldingUuid
+            bestillerNavIdent = bestilling.bestillerNavIdent,
+            behandlerRef = bestilling.behandlerRef,
+            behandlerNavn = bestilling.behandlerNavn,
+            behandlerHprNr = bestilling.behandlerHprNr,
+            personIdent = bestilling.personIdent,
+            personNavn = bestilling.personNavn,
+            dialogmeldingTekst = bestilling.fritekst,
+            saksnummer = bestilling.saksnummer,
+            dokumentasjonType = DokumentasjonType.PURRING,
+            behandlingsReferanse = bestilling.behandlingsReferanse,
+            tidligereBestillingReferanse = bestilling.dialogmeldingUuid
         ))
     }
 
     fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDTO): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = DialogmeldingRecord(
+            bestillerNavIdent = dto.bestillerNavIdent,
             dialogmeldingUuid = dialogmeldingUuid,
             behandlerRef = dto.behandlerRef,
             behandlerHprNr = dto.behandlerHprNr,

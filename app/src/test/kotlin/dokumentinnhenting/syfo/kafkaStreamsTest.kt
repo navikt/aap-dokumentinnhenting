@@ -70,7 +70,19 @@ class kafkaStreamsTest {
         val bestillingUuid = uuid.toString()
 
         val saksnummer = "saksnummer"
-        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hpr12344321","personIdent", "personNavn", saksnummer, DokumentasjonType.L8, "behandlernavn", "fritekst", UUID.randomUUID())
+        val existingRecord = DialogmeldingRecord(
+            bestillerNavIdent = "bestillerNavIdent",
+            dialogmeldingUuid = uuid,
+            behandlerRef = "behandlerRef",
+            behandlerHprNr = "hpr12344321",
+            personIdent = "personIdent",
+            personNavn = "personNavn",
+            saksnummer = saksnummer,
+            dokumentasjonType = DokumentasjonType.L8,
+            behandlerNavn = "behandlernavn",
+            fritekst = "fritekst",
+            behandlingsReferanse = UUID.randomUUID()
+        )
 
         setupRepositoryDataStatus(existingRecord)
 
@@ -93,7 +105,19 @@ class kafkaStreamsTest {
         val uuid = UUID.randomUUID()
 
         val saksnummer = "saksnummer"
-        val existingRecord = DialogmeldingRecord(uuid, "behandlerRef", "hprIdent", "personIdent", "personNavn", saksnummer, DokumentasjonType.L8, "behandlernavn", "fritekst", UUID.randomUUID())
+        val existingRecord = DialogmeldingRecord(
+            bestillerNavIdent = "bestillerNavIdent",
+            dialogmeldingUuid = uuid,
+            behandlerRef = "behandlerRef",
+            behandlerHprNr = "hprIdent",
+            personIdent = "personIdent",
+            personNavn = "personNavn",
+            saksnummer = saksnummer,
+            dokumentasjonType = DokumentasjonType.L8,
+            behandlerNavn = "behandlernavn",
+            fritekst = "fritekst",
+            behandlingsReferanse = UUID.randomUUID()
+        )
         setupRepositoryDataMottak(existingRecord)
 
         val incomingRecord = DialogmeldingMottakDTO(

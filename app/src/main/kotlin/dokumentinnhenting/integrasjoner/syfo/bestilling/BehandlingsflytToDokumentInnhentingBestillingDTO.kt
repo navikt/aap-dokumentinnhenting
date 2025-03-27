@@ -3,6 +3,7 @@ package dokumentinnhenting.integrasjoner.syfo.bestilling
 import java.util.*
 
 data class BehandlingsflytToDokumentInnhentingBestillingDTO(
+    val bestillerNavIdent: String,
     val behandlerRef: String,
     val behandlerNavn: String,
     val behandlerHprNr: String,

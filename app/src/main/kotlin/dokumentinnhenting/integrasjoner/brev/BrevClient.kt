@@ -66,15 +66,16 @@ class BrevClient {
         val pdfBrevIAvsnitt = mapPdfBrev(bestilling, tidligereBestillingDato)
 
         val request = JournalførBehandlerBestillingRequest(
-            bestilling.personIdent,
-            bestilling.saksnummer,
-            bestilling.behandlerHprNr,
-            bestilling.behandlerNavn,
-            bestilling.dialogmeldingUuid,
-            bestilling.dokumentasjonType.toString(),
-            tittel,
-            pdfBrevIAvsnitt,
-            bestilling.opprettet.toLocalDate()
+            brukerFnr = bestilling.personIdent,
+            saksnummer = bestilling.saksnummer,
+            mottakerHprnr = bestilling.behandlerHprNr,
+            mottakerNavn = bestilling.behandlerNavn,
+            eksternReferanseId = bestilling.dialogmeldingUuid,
+            brevkode = bestilling.dokumentasjonType.toString(),
+            tittel = tittel,
+            brevAvsnitt = pdfBrevIAvsnitt,
+            dato = bestilling.opprettet.toLocalDate(),
+            bestillerNavIdent = bestilling.bestillerNavIdent
         )
         return request
     }
