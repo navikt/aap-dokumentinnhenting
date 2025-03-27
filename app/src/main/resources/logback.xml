@@ -21,5 +21,6 @@
   </root>
 
   <logger name="org.apache.kafka" level="INFO"/>
+  <logger name="io.micrometer.core.instrument.MeterRegistry" level="ERROR"/>
 
 </configuration>
