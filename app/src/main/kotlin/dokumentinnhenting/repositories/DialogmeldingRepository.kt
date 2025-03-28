@@ -63,7 +63,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             WHERE DIALOGMELDING_UUID = ?
         """.trimIndent()
 
-        connection.execute(query) {
+        connection.executeReturnUpdated(query) {
             setParams {
                 setString(1, MeldingStatusType.MOTTATT.toString())
                 setString(2, MeldingStatusType.MOTTATT.toString())

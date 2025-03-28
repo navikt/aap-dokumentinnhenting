@@ -53,17 +53,31 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             respond (response)
         }
 
-        route("/status/markerbestillingmottatt").authorizedPost<Unit, UUID, MarkerBestillingSomMottattDTO>(
+        route("/status/markerbestillingmottatt").authorizedPost<Unit, DialogmeldingStatusTilBehandslingsflytDTO, MarkerBestillingSomMottattDTO>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
                 applicationsOnly = true)
         ) { _, req ->
-            dataSource.transaction { connection ->
+            val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
                 repository.oppdaterDialogmeldingStatusMedMottatt(req.dialogmeldingUuid)
+                val record = requireNotNull(repository.hentByDialogId(req.dialogmeldingUuid))
+
+                DialogmeldingStatusTilBehandslingsflytDTO(
+                    dialogmeldingUuid = req.dialogmeldingUuid,
+                    status = record.status,
+                    statusTekst = record.statusTekst,
+                    behandlerRef = record.behandlerRef,
+                    behandlerNavn = record.behandlerNavn,
+                    personId = record.personIdent,
+                    saksnummer = record.saksnummer,
+                    opprettet = record.opprettet,
+                    behandlingsReferanse = record.behandlingsReferanse,
+                    fritekst = record.fritekst
+                )
             }
-            respondWithStatus(HttpStatusCode.OK)
+            respond(response)
         }
 
         route("/status/{saksnummer}").authorizedGet<HentDialogmeldingStatusDTO, List<DialogmeldingStatusTilBehandslingsflytDTO>>(
