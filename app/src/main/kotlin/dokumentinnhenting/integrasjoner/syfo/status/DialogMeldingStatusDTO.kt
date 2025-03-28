@@ -18,8 +18,11 @@ data class DialogmeldingStatusDTO(
     val bestillingUuid: String,
 )
 
+/*
+* MOTTATT er ikke en status som eksisterer i ISYFO, men noe vi setter selv når vi mottar legeerklæring via postmottak
+* */
 enum class MeldingStatusType {
-    BESTILT, SENDT, OK, AVVIST
+    BESTILT, SENDT, OK, AVVIST, MOTTATT
 }
 
 private class DialogmeldingStatusDTOSerializer : Serializer<DialogmeldingStatusDTO> {

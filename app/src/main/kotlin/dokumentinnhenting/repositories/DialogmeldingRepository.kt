@@ -4,6 +4,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
+import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
@@ -51,6 +52,22 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setString(1, melding.status.toString())
                 setString(2, melding.tekst)
                 setUUID(3, UUID.fromString(melding.bestillingUuid))
+            }
+        }
+    }
+
+    fun oppdaterDialogmeldingStatusMedMottatt(dialogmeldingUuid: UUID) {
+        val query = """
+            UPDATE DIALOGMELDING
+            SET STATUS = ?, STATUS_TEKST = ?
+            WHERE DIALOGMELDING_UUID = ?
+        """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setString(1, MeldingStatusType.MOTTATT.toString())
+                setString(2, MeldingStatusType.MOTTATT.toString())
+                setUUID(3, dialogmeldingUuid)
             }
         }
     }
@@ -229,11 +246,5 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         val dialogmeldingUuid: UUID,
         val saksnummer: String,
         val flytStatus: ProsesseringSyfoStatus?,
-    )
-    
-    data class DialogMeldingBestillingPersoner(
-        val personId: String,
-        val saksnummer: String,
-        val oprettetTid: LocalDateTime
     )
 }
