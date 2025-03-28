@@ -15,6 +15,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.brev.kontrakt.Signatur
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -24,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 object Fakes : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
 
-    private val azure = embeddedServer(Netty, port = 0, module = { azureFake() })
+    private val azure = embeddedServer(Netty, port = 8081, module = { azureFake() })
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() })
     private val syfo = embeddedServer(Netty, port = 0, module = { syfoFake() })
     private val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
@@ -280,6 +281,9 @@ object Fakes : AutoCloseable {
         routing {
             post("/api/dokumentinnhenting/ekspeder-journalpost-behandler-bestilling") {
                 call.respond("")
+            }
+            post("/api/dokumentinnhenting/forhandsvis-signatur") {
+                call.respond(Signatur("Navn", "Enhet"))
             }
         }
     }

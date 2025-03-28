@@ -80,6 +80,17 @@ class BrevClient {
         return request
     }
 
+    fun hentSignaturForhåndsvisning(brukerFnr: String, bestillerNavIdent: String): Signatur? {
+        val uri = baseUri.resolve("/api/dokumentinnhenting/forhandsvis-signatur")
+        val request = PostRequest(
+            body = HentSignaturDokumentinnhentingRequest(brukerFnr = brukerFnr, bestillerNavIdent = bestillerNavIdent),
+            additionalHeaders = listOf(
+                Header("Accept", "application/json"),
+            ),
+        )
+        return client.post(uri = uri, request = request)
+    }
+
     //Todo: Flytte hele greien til sanity så vi faktisk får noe fornuftig stuktur? Brev skal også refaktorere bruken av denne
     private fun mapPdfBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): List<String> {
         val brev = genererBrev(

@@ -1,11 +1,18 @@
 package dokumentinnhenting.api
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import dokumentinnhenting.integrasjoner.syfo.bestilling.*
+import dokumentinnhenting.integrasjoner.brev.BrevClient
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenereringRequest
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevPreviewResponse
+import dokumentinnhenting.integrasjoner.syfo.bestilling.LegeerklæringPurringDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.MarkerBestillingSomMottattDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.genererBrev
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
@@ -13,10 +20,15 @@ import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehand
 import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDTO
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.BestillingCache
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.tilgang.*
-import java.util.*
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.Operasjon
+import no.nav.aap.tilgang.SakPathParam
+import no.nav.aap.tilgang.authorizedGet
+import no.nav.aap.tilgang.authorizedPost
+import java.util.UUID
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
@@ -109,18 +121,31 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
-                applicationsOnly = true)
+                applicationsOnly = true
+            )
         ) { _, req ->
+            val signatur = BrevClient().hentSignaturForhåndsvisning(req.personIdent, req.bestillerNavIdent)
             val response = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
-                val tidligereBestilling = req.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
+                val tidligereBestilling =
+                    req.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
 
-                val brevPreviewResponse = BrevPreviewResponse(genererBrev(
+                val brevtekst = genererBrev(
                     BrevGenerering(
-                        req.personNavn, req.personIdent, req.dialogmeldingTekst, req.dokumentasjonType, tidligereBestilling?.opprettet
+                        personNavn = req.personNavn,
+                        personIdent = req.personIdent,
+                        dialogmeldingTekst = req.dialogmeldingTekst,
+                        dokumentasjonType = req.dokumentasjonType,
+                        tidligereBestillingDato = tidligereBestilling?.opprettet,
                     )
-                ))
-                brevPreviewResponse
+                )
+                val signaturtekst = if (signatur != null) {
+                    """\n\nMed vennlig hilsen\n${signatur.navn}\n${signatur.enhet}"""
+                } else {
+                    ""
+                }
+
+                BrevPreviewResponse(brevtekst + signaturtekst)
             }
             respond(response)
         }
