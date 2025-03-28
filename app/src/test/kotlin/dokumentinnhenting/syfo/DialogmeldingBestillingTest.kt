@@ -99,6 +99,7 @@ class DialogmeldingBestillingTest {
     fun KanOppdatereBestillingStatuserManuelt() {
         val saksnummer = "saksnummer"
         val dto = BehandlingsflytToDokumentInnhentingBestillingDTO(
+            bestillerNavIdent = "bestillerNavIdent",
             behandlerRef = "behandlerRef",
             personIdent = "12345678910",
             personNavn = "personNavn",
