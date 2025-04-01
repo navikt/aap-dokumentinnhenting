@@ -121,13 +121,13 @@ fun bestillingEksisterer(datasource: DataSource,bestillingUuid: String): Boolean
   }
 }
 
-fun opprettJobb(dataSource: DataSource, dTO: DialogmeldingMottakDTO) {
+fun opprettJobb(dataSource: DataSource, dto: DialogmeldingMottakDTO) {
   dataSource.transaction { connection ->
     val flytJobbRepository = FlytJobbRepository(connection)
 
     flytJobbRepository.leggTil(
       JobbInput(FiltrerDialogmeldingUtfører).medPayload(
-        DefaultJsonMapper.toJson(dTO)
+        DefaultJsonMapper.toJson(dto)
       )
     )
   }
