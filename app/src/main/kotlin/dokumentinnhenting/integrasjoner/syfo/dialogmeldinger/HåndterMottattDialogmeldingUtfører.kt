@@ -20,34 +20,38 @@ class dummyJobbUtfører : JobbUtfører {
     }
 }
 
-class HåndterMottattDialogmeldingUtfører(private val dialogmeldingRepository: DialogmeldingRepository, val dokArkivClient: DokArkivClient, private val flytJobbRepository: FlytJobbRepository) : JobbUtfører {
+class HåndterMottattDialogmeldingUtfører(
+    private val dialogmeldingRepository: DialogmeldingRepository,
+    val dokArkivClient: DokArkivClient,
+    private val flytJobbRepository: FlytJobbRepository
+) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
 
 
         val record = payload.dialogmeldingMottatt
         val sakOgBehandling = payload.sakOgBehandling
-        if(record.journalpostId == "0" && Miljø.er() == MiljøKode.DEV) {
+        if (record.journalpostId == "0" && Miljø.er() == MiljøKode.DEV) {
             return dummyJobbUtfører().utfør(input)
         }
-        val eksistererBestillingPåPerson = dialogmeldingRepository.hentSisteBestillingByPIDYngreEnn2mMnd(record.personIdentPasient)
+        //val eksistererBestillingPåPerson = dialogmeldingRepository.hentSisteBestillingByPIDYngreEnn2mMnd(record.personIdentPasient)
 
-        if (eksistererBestillingPåPerson != null) {
-            dokArkivClient.knyttJournalpostTilAnnenSak(
-                record.journalpostId,
-                OpprettJournalpostRequest.Bruker(
-                    record.personIdentPasient,
-                    OpprettJournalpostRequest.Bruker.IdType.FNR
-                ),
-                eksistererBestillingPåPerson,
-                "Kelvin" //TODO: riktig skrivemåte
-            )
-            val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
-                DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(record, sakOgBehandling))
-            )
-            flytJobbRepository.leggTil(jobb)
 
-        } /*else {
+        dokArkivClient.knyttJournalpostTilAnnenSak(
+            record.journalpostId,
+            OpprettJournalpostRequest.Bruker(
+                record.personIdentPasient,
+                OpprettJournalpostRequest.Bruker.IdType.FNR
+            ),
+            payload.sakOgBehandling.saksnummer,
+            "Kelvin" //TODO: riktig skrivemåte
+        )
+        val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
+            DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(record, sakOgBehandling))
+        )
+        flytJobbRepository.leggTil(jobb)
+
+        /*else {
             val journalPostId = dokArkivClient.kopierJournalpostForDialogMelding(
                 journalPostId = record.journalpostId,
                 eksternReferanseId = sakOgBehandling.saksnummer
