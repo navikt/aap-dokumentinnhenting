@@ -2,6 +2,7 @@ package dokumentinnhenting.util.motor
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.EndreTemaUtfører
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FiltrerDialogmeldingUtfører
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.HåndterMottattDialogmeldingUtfører
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
@@ -19,7 +20,8 @@ object ProsesseringsJobber {
             SendVarslingsbrevUtfører,
             HåndterMottattDialogmeldingUtfører,
             TaSakAvVentUtfører,
-            EndreTemaUtfører
+            EndreTemaUtfører,
+            FiltrerDialogmeldingUtfører
         )
     }
 }
