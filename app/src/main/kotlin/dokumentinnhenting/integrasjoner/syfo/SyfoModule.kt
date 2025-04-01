@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.syfo
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingMedSaksknyttning
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FiltrerDialogmeldingUtfører
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.HåndterMottattDialogmeldingUtfører
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
@@ -75,19 +76,8 @@ fun createDialogmeldingStreamTopology(
       { _, value -> value is DialogmeldingMottakDTO },
       Branched.withConsumer { ks: KStream<String, Any> ->
         ks.mapValues { value -> value as DialogmeldingMottakDTO }
-          .peek { key, value -> log.info("Mottatt dialogmelding med msgId: $key") }
-          .mapValues { _, record ->
-            record to BehandlingsflytClient.finnSakForIdentPåDato(
-              record.personIdentPasient,
-              record.mottattTidspunkt.toLocalDate()
-            )
-          }
-          .filter { _, (record, saksInfo) -> saksInfo?.sakOgBehandlingDTO != null }
-          .foreach { _, (record, saksInfo) ->
-            log.info("Oppretter jobb for dialogmelding med msgId: ${record.msgId}")
-            if(record.journalpostId!="0") {
-              opprettJobb(dataSource, record, requireNotNull(saksInfo?.sakOgBehandlingDTO))
-            }
+          .foreach { _, record ->
+            opprettJobb(dataSource, record)
           }
       }.withName("MottakStream")
     )
@@ -131,14 +121,13 @@ fun bestillingEksisterer(datasource: DataSource,bestillingUuid: String): Boolean
   }
 }
 
-fun opprettJobb(dataSource: DataSource, dTO: DialogmeldingMottakDTO,
-                behandling: BehandlingsflytClient.SakOgBehandling) {
+fun opprettJobb(dataSource: DataSource, dTO: DialogmeldingMottakDTO) {
   dataSource.transaction { connection ->
     val flytJobbRepository = FlytJobbRepository(connection)
 
     flytJobbRepository.leggTil(
-      JobbInput(HåndterMottattDialogmeldingUtfører).medPayload(
-        DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(dTO, behandling))
+      JobbInput(FiltrerDialogmeldingUtfører).medPayload(
+        DefaultJsonMapper.toJson(dTO)
       )
     )
   }
