@@ -9,8 +9,10 @@ metadata:
 
 spec:
   image: {{image}}
+  {{#if isdev}}
   ingresses:
     - {{ingress}}
+  {{/if}}
 
   replicas:
     cpuThresholdPercentage: 90

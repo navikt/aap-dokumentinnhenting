@@ -1,5 +1,4 @@
-ingress: "https://aap-dokumentinnhenting.intern.nav.no"
-
+isdev: false
 sql:
   tier: db-custom-1-3840
   diskAutoresize: true

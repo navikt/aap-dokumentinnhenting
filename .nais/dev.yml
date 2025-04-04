@@ -1,3 +1,4 @@
+isdev: true
 ingress: "https://aap-dokumentinnhenting.intern.dev.nav.no"
 
 sql:
