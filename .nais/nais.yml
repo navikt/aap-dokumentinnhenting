@@ -90,7 +90,7 @@ spec:
         - application: saksbehandling
         {{#if isdev}}
         - application: saksbehandling-lokal # For lokal utvikling. IKKE kopier denne til prod.yaml
-        {{/if } }
+        {{/if}}
     outbound:
       rules:
         - application: behandlingsflyt
