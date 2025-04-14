@@ -31,9 +31,13 @@ private fun brev40L(navn: String, fnr: String, fritekst: String): String {
     return """
         Forespørsel om legeerklæring ved arbeidsuførhet\n
         Gjelder pasient: $navn, $fnr.\n
-        Nav trenger opplysninger fra deg vedrørende din pasient. Du kan utelate opplysninger som etter din vurdering faller utenfor formålet.\n
+        Nav trenger opplysninger fra deg vedrørende din pasient for å behandle sak om arbeidsavklaringspenger (AAP).\n
+        Du kan utelate opplysninger som etter din vurdering faller utenfor formålet.\n
+        Vi ber om svar så fort som mulig og innen tre uker fra datoen brevet eller melding er datert, for å kunne behandle din pasient sin sak. Nav kan gi forlenget frist.\n 
         «Legeerklæring ved arbeidsuførhet» leveres på blankett Nav 08-07.08, og honoreres med takst L40.\n
         $fritekst\n
+        Kontakt oss\n
+        Hvis du som helsepersonell trenger kontakt med Nav, kan du ringe oss på lege- og behandlertelefonen, 55 55 33 36, tast 2. Telefonen er betjent klokken 09.00–15.00.\n
         Lovhjemmel\n
         Folketrygdloven § 21-4 andre ledd gir Nav rett til å innhente nødvendige opplysninger. Dette gjelder selv om opplysningene er taushetsbelagte, jf. § 21-4 sjette ledd.\n
         Pålegget om utlevering av opplysninger kan påklages etter forvaltningsloven § 14.\n
