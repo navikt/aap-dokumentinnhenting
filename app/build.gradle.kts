@@ -75,7 +75,7 @@ dependencies {
     // Test
     testImplementation(kotlin("test"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.0.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.12.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.12.2")
     testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.testcontainers:postgresql:1.20.6")
