@@ -73,7 +73,8 @@ private fun brev120(): String {
 private fun brevPurring(navn: String, fnr: String, tidligereBestillingDato: LocalDateTime?): String {
     val tidligereDato = requireNotNull(tidligereBestillingDato).toLocalDate()
     return """
-        Påminnelse om manglende svar vedrørerende pasient\n
+        Påminnelse.\n
+        Forespørsel om legeerklæring ved arbeidsuførhet\n
         Gjelder $navn, f.nr. $fnr\n.
         Vi viser til tidligere forespørsel av $tidligereDato angående din pasient.\n
         Vi kan ikke se å ha mottatt svar på vår henvendelse og ber om at denne besvares snarest.\n
