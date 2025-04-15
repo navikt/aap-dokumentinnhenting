@@ -34,8 +34,6 @@ class HåndterMottattDialogmeldingUtfører(
         if (record.journalpostId == "0" && Miljø.er() == MiljøKode.DEV) {
             return dummyJobbUtfører().utfør(input)
         }
-        //val eksistererBestillingPåPerson = dialogmeldingRepository.hentSisteBestillingByPIDYngreEnn2mMnd(record.personIdentPasient)
-
 
         dokArkivClient.knyttJournalpostTilAnnenSak(
             record.journalpostId,
@@ -44,24 +42,12 @@ class HåndterMottattDialogmeldingUtfører(
                 OpprettJournalpostRequest.Bruker.IdType.FNR
             ),
             payload.sakOgBehandling.saksnummer,
-            "Kelvin" //TODO: riktig skrivemåte
+            "KELVIN" //TODO: riktig skrivemåte
         )
         val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
             DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(record, sakOgBehandling))
         )
         flytJobbRepository.leggTil(jobb)
-
-        /*else {
-            val journalPostId = dokArkivClient.kopierJournalpostForDialogMelding(
-                journalPostId = record.journalpostId,
-                eksternReferanseId = sakOgBehandling.saksnummer
-            )
-
-            val jobb = JobbInput(EndreTemaUtfører).medPayload(
-                journalPostId
-            )
-            flytJobbRepository.leggTil(jobb)
-        }*/
     }
 
 

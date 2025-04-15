@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.saf
 
+import dokumentinnhenting.util.metrics.prometheus
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
@@ -17,7 +18,8 @@ class SafRestClient {
 
     private val client = RestClient.withDefaultResponseHandler(
         config = SafClient.config,
-        tokenProvider = ClientCredentialsTokenProvider
+        tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = prometheus
     )
 
     fun hentDokumentMedJournalpostId(journalpostId: String, dokumentId: String): ByteArray {
@@ -28,13 +30,14 @@ class SafRestClient {
         )
 
         try {
-            val response = requireNotNull(client.get(
-                uri = URI.create("$restUrl/hentdokument/${journalpostId}/${dokumentId}/${Variantformat.ARKIV}"),
-                request = request,
-                mapper = { body, _ -> body })
+            val response = requireNotNull(
+                client.get(
+                    uri = URI.create("$restUrl/hentdokument/${journalpostId}/${dokumentId}/${Variantformat.ARKIV}"),
+                    request = request,
+                    mapper = { body, _ -> body })
             )
             return response.readAllBytes()
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             throw RuntimeException("Feil ved henting av dokument i saf: ${e.message}", e)
         }
     }
