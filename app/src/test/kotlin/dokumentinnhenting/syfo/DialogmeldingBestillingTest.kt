@@ -22,22 +22,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
+import javax.sql.DataSource
 
 class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
     private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
     val fakes = Fakes
-
-    @BeforeEach
-    fun setup() {
-        InitTestDatabase.migrate()
-    }
-
-    @AfterEach
-    fun afterEach() {
-        InitTestDatabase.clean()
-    }
 
     @Test
     fun kanKjøreSteg() {
@@ -57,7 +48,8 @@ class DialogmeldingBestillingTest {
 
             lateinit var dialogmeldingUuid: UUID
 
-            InitTestDatabase.dataSource.transaction { connection ->
+        val dataSource = InitTestDatabase.freshDatabase()
+        dataSource.transaction { connection ->
                 //Første del, lagring av dialogmelding i repository
                 dialogmeldingRepository = DialogmeldingRepository(connection)
                 behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
@@ -81,13 +73,13 @@ class DialogmeldingBestillingTest {
                 })
             }
 
-            val lagretBestilling = hentRepositoryData(saksnummer)
+            val lagretBestilling = hentRepositoryData(dataSource, saksnummer)
             assertEquals(dialogmeldingUuid, lagretBestilling[0].dialogmeldingUuid)
     }
 
     @Test
     fun FeilerOmPurringManglerTilhørendeLegeerklæring() {
-        InitTestDatabase.dataSource.transaction { connection ->
+        InitTestDatabase.freshDatabase().transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(FlytJobbRepository(connection), DialogmeldingRepository(connection))
 
@@ -113,7 +105,8 @@ class DialogmeldingBestillingTest {
 
         lateinit var dialogmeldingUuid: UUID
 
-        InitTestDatabase.dataSource.transaction { connection ->
+        val dataSource = InitTestDatabase.freshDatabase()
+        dataSource.transaction { connection ->
             //Første del, lagring av dialogmelding i repository
             dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
@@ -130,15 +123,15 @@ class DialogmeldingBestillingTest {
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
         }
 
-        val lagretBestilling = hentRepositoryDataByDialogId(dialogmeldingUuid)
+        val lagretBestilling = hentRepositoryDataByDialogId(dataSource, dialogmeldingUuid)
         assertEquals(null, lagretBestilling.status)
 
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.oppdaterDialogmeldingStatusMedMottatt(dialogmeldingUuid)
         }
 
-        val oppdatertBestilling = hentRepositoryDataByDialogId(dialogmeldingUuid)
+        val oppdatertBestilling = hentRepositoryDataByDialogId(dataSource, dialogmeldingUuid)
         assertEquals(MeldingStatusType.MOTTATT, oppdatertBestilling.status)
     }
 
@@ -159,7 +152,8 @@ class DialogmeldingBestillingTest {
             behandlerHprNr = "1233321"
         )
 
-        InitTestDatabase.dataSource.transaction { connection ->
+        val dataSource = InitTestDatabase.freshDatabase()
+        dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
                 FlytJobbRepository(connection),
@@ -174,7 +168,7 @@ class DialogmeldingBestillingTest {
             )
         }
 
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
                 FlytJobbRepository(connection),
@@ -189,15 +183,15 @@ class DialogmeldingBestillingTest {
         }
     }
 
-    private fun hentRepositoryData(saksnummer: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
-        return InitTestDatabase.dataSource.transaction { connection ->
+    private fun hentRepositoryData(dataSource: DataSource, saksnummer: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
+        return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)
         }
     }
 
-    private fun hentRepositoryDataByDialogId(dialogmeldingId: UUID): DialogmeldingFullRecord {
-        return InitTestDatabase.dataSource.transaction { connection ->
+    private fun hentRepositoryDataByDialogId(dataSource: DataSource, dialogmeldingId: UUID): DialogmeldingFullRecord {
+        return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentByDialogId(dialogmeldingId)!!
         }

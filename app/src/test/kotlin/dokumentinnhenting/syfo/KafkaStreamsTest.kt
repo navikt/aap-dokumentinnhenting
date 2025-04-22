@@ -5,29 +5,32 @@ import dokumentinnhenting.integrasjoner.syfo.SYFO_STATUS_DIALOGMELDING_TOPIC
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.createDialogmeldingStreamTopology
-import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.*
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.HenvendelseFraLegeHenvendelse
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.CustomSerde
 import dokumentinnhenting.util.kafka.createGenericSerde
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.TopologyTestDriver
 import org.apache.kafka.streams.TestInputTopic
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeEach
+import org.apache.kafka.streams.TopologyTestDriver
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
+import javax.sql.DataSource
 import kotlin.test.assertEquals
 
-class kafkaStreamsTest {
+class KafkaStreamsTest {
     private lateinit var testDriver: TopologyTestDriver
     private lateinit var inputTopic: TestInputTopic<String, Any>
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
@@ -36,7 +39,7 @@ class kafkaStreamsTest {
     @BeforeEach
     fun setup() {
         InitTestDatabase.migrate()
-        val dataSource = InitTestDatabase.dataSource
+        val dataSource = InitTestDatabase.freshDatabase()
         val topology = createDialogmeldingStreamTopology(dataSource)
 
         val props = Properties().apply {
@@ -61,11 +64,12 @@ class kafkaStreamsTest {
     @AfterEach
     fun teardown() {
         testDriver.close()
-        InitTestDatabase.clean()
+//        InitTestDatabase.clean()
     }
 
     @Test
     fun `process dialogmelding status`() {
+        val dataSource = InitTestDatabase.freshDatabase()
         val uuid = UUID.randomUUID()
         val bestillingUuid = uuid.toString()
 
@@ -84,7 +88,7 @@ class kafkaStreamsTest {
             behandlingsReferanse = UUID.randomUUID()
         )
 
-        setupRepositoryDataStatus(existingRecord)
+        setupRepositoryDataStatus(dataSource, existingRecord)
 
         val incomingRecord = DialogmeldingStatusDTO(
             bestillingUuid = bestillingUuid,
@@ -96,12 +100,13 @@ class kafkaStreamsTest {
 
         inputTopic.pipeInput("key", incomingRecord)
 
-        val record = hentRepositoryDataStatus(saksnummer)
+        val record = hentRepositoryDataStatus(dataSource, saksnummer)
         assertEquals(uuid, record[0].dialogmeldingUuid)
     }
 
     @Test
     fun `process dialogmelding mottak`() {
+        val dataSource = InitTestDatabase.freshDatabase()
         val uuid = UUID.randomUUID()
 
         val saksnummer = "saksnummer"
@@ -118,7 +123,7 @@ class kafkaStreamsTest {
             fritekst = "fritekst",
             behandlingsReferanse = UUID.randomUUID()
         )
-        setupRepositoryDataMottak(existingRecord)
+        setupRepositoryDataMottak(dataSource, existingRecord)
 
         val incomingRecord = DialogmeldingMottakDTO(
             "msgId",
@@ -141,7 +146,7 @@ class kafkaStreamsTest {
                 null,
                 null,
                 HenvendelseFraLegeHenvendelse(
-                    TemaKode("kodeverkOID", "dn", "v","kat","kod","tittel"),
+                    TemaKode("kodeverkOID", "dn", "v", "kat", "kod", "tittel"),
                     "tekstNotatInnhold",
                     "dokIdNotat",
                     null,
@@ -156,34 +161,44 @@ class kafkaStreamsTest {
         )
 
         inputTopic.pipeInput("key", incomingRecord)
-        val oppdatertHendelse = hentRepositoryDataMottak(saksnummer)
+        val oppdatertHendelse = hentRepositoryDataMottak(dataSource, saksnummer)
         Assertions.assertEquals(uuid, oppdatertHendelse[0].dialogmeldingUuid)
     }
 
-    private fun setupRepositoryDataStatus(record: DialogmeldingRecord) {
-        InitTestDatabase.dataSource.transaction { connection ->
+    private fun setupRepositoryDataStatus(dataSource: DataSource, record: DialogmeldingRecord) {
+        dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.opprettDialogmelding(record)
-            dialogmeldingRepository.leggTilJournalpostPåBestilling(record.dialogmeldingUuid, "1234", "1234")
+            dialogmeldingRepository.leggTilJournalpostPåBestilling(
+                record.dialogmeldingUuid,
+                "1234",
+                "1234"
+            )
         }
     }
 
-    private fun hentRepositoryDataStatus(saksnummer: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
-        return InitTestDatabase.dataSource.transaction { connection ->
+    private fun hentRepositoryDataStatus(
+        dataSource: DataSource,
+        saksnummer: String
+    ): List<DialogmeldingStatusTilBehandslingsflytDTO> {
+        return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)
         }
     }
 
-    private fun setupRepositoryDataMottak(record: DialogmeldingRecord) {
-        InitTestDatabase.dataSource.transaction { connection ->
+    private fun setupRepositoryDataMottak(dataSource: DataSource, record: DialogmeldingRecord) {
+        dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.opprettDialogmelding(record)
         }
     }
 
-    private fun hentRepositoryDataMottak(saksnummer: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
-        return InitTestDatabase.dataSource.transaction { connection ->
+    private fun hentRepositoryDataMottak(
+        dataSource: DataSource,
+        saksnummer: String
+    ): List<DialogmeldingStatusTilBehandslingsflytDTO> {
+        return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)
         }
