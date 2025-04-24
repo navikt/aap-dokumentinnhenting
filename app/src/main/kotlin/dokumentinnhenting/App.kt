@@ -108,10 +108,9 @@ fun Application.module(dataSource: DataSource): Motor {
         jobber = ProsesseringsJobber.alle()
     )
 
-    /*
     dataSource.transaction { dbConnection ->
         RetryService(dbConnection).enable()
-    }*/
+    }
 
     monitor.subscribe(ApplicationStarted) {
         motor.start()
