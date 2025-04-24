@@ -1,7 +1,6 @@
 package dokumentinnhenting.api
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
@@ -17,15 +16,24 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.brev.kontrakt.Vedlegg
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
+import no.nav.aap.tilgang.Operasjon
+import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.verdityper.dokument.Kanal
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
-//TODO: FJERN ALT DETTE
+// Dette API'et er kun for testmiljø for å kunne teste hele verdikjeden
 fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
+    val testApiRolle = "test-api"
     route("/test") {
-        route("/avvist").post<Unit, String, TaAvVentRequest> { _, req ->
+        route("/avvist").authorizedPost<Unit, String, TaAvVentRequest>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                applicationRole = testApiRolle,
+                applicationsOnly = true)
+        ) { _, req ->
 
             val behandlingsflytClient = BehandlingsflytClient
             val avvistLegeerklæringId = UUID.randomUUID()
@@ -42,7 +50,12 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
             respond("", HttpStatusCode.OK)
         }
 
-        route("/ekspeder").post<Unit, String, TestRequest> { _, req ->
+        route("/ekspeder").authorizedPost<Unit, String, TestRequest>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                applicationRole = testApiRolle,
+                applicationsOnly = true)
+        ) { _, req ->
             dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
@@ -56,7 +69,12 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
             respond("", HttpStatusCode.OK)
         }
 
-        route("/varselbrev").post<Unit, String, TestRequest> { _, req ->
+        route("/varselbrev").authorizedPost<Unit, String, TestRequest>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                applicationRole = testApiRolle,
+                applicationsOnly = true)
+        ) { _, req ->
             dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))

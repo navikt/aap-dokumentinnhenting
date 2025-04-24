@@ -90,6 +90,12 @@ spec:
         - application: saksbehandling
         {{#if isdev}}
         - application: saksbehandling-lokal # For lokal utvikling. IKKE kopier denne til prod.yaml
+        - application: azure-token-generator # For testing i dev. IKKE kopier denne til prod.yaml
+          namespace: nais
+          cluster: dev-gcp
+          permissions:
+            roles:
+              - "test-api"
         {{/if}}
     outbound:
       rules:

@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dokumentinnhenting.api.actuator
 import dokumentinnhenting.api.syfoApi
+import dokumentinnhenting.api.testApi
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.util.metrics.prometheus
@@ -22,6 +23,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
@@ -90,11 +92,11 @@ fun Application.server(
                 safApi()
                 motorApi(dataSource)
                 syfoApi(dataSource)
+                if (Miljø.erDev()) {
+                    testApi(dataSource)
+                }
             }
         }
-        /*apiRouting {
-            testApi(dataSource)
-        }*/
     }
 }
 
