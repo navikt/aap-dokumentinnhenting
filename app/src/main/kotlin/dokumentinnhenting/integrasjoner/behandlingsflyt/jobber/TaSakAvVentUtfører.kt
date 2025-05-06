@@ -14,7 +14,7 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.dokument.Kanal
 
-class TaSakAvVentUtfører(val behandlingsflytClient: BehandlingsflytClient):JobbUtfører {
+class TaSakAvVentUtfører(val behandlingsflytClient: BehandlingsflytClient) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
 

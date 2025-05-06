@@ -30,7 +30,6 @@ import kotlin.test.assertEquals
 class SafTest {
     //@Test
     fun `henter en journalpost`() {
-        InitTestDatabase.dataSource.transaction { }
         val fakes = Fakes
         testApplication {
             val postgres = postgreSQLContainer()
