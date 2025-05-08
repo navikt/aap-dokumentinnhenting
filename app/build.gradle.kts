@@ -44,7 +44,7 @@ dependencies {
     implementation("no.nav:ktor-openapi-generator:1.0.108")
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.6")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.3")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0") // Use the latest version
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
