@@ -76,7 +76,7 @@ class BrevClient {
             brevAvsnitt = pdfBrevIAvsnitt,
             dato = bestilling.opprettet.toLocalDate(),
             bestillerNavIdent = bestilling.bestillerNavIdent,
-            overstyrInnsynsregel = true
+            overstyrInnsynsregel = bestilling.dokumentasjonType.skalVarsleBruker()
         )
         return request
     }

@@ -54,11 +54,13 @@ class OppdaterLegeerklæringStatusUtfører (
                 )
             )
 
-            val jobb =
-                JobbInput(SendVarslingsbrevUtfører)
-                    .medCallId()
-                    .medPayload(DefaultJsonMapper.toJson(sak))
-            jobbRepository.leggTil(jobb)
+            if (sak.dokumentasjonType.skalVarsleBruker()) {
+                val jobb =
+                    JobbInput(SendVarslingsbrevUtfører)
+                        .medCallId()
+                        .medPayload(DefaultJsonMapper.toJson(sak))
+                jobbRepository.leggTil(jobb)
+            }
         }
     }
 
