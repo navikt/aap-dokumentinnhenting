@@ -10,7 +10,7 @@ fun genererBrev(dto: BrevGenerering): String {
         DokumentasjonType.MELDING_FRA_NAV -> brevMeldingFraNav(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst)
         DokumentasjonType.RETUR_LEGEERKLÆRING -> brevReturLegeerklæring(dto.personNavn, dto.personIdent, dto.dialogmeldingTekst)
         DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.tidligereBestillingDato)
-    } + (if (dto.dokumentasjonType.skalVarsleBruker()) """Pasienten mottar en kopi av brevet.\n""" else "")
+    } + (if (dto.dokumentasjonType.skalVarsleBruker()) "\nPasienten mottar en kopi av brevet." else "")
 }
 
 private fun brev8L(navn: String, fnr: String, fritekst: String): String {
