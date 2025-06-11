@@ -51,9 +51,8 @@ class SafHentDokumentGateway(private val restClient: RestClient<InputStream>) {
     ): SafDocumentResponse {
         // Se https://confluence.adeo.no/display/BOA/Enum%3A+Variantformat
         // for gyldige verdier
-        val variantFormat = "ARKIV"
+        val safURI = URI.create("$restUrl/hentdokument/${journalpostId}/${dokumentInfoId}/ARKIV")
 
-        val safURI = konstruerSafRestURL(restUrl, journalpostId, dokumentInfoId, variantFormat)
         log.info("Kaller SAF med URL: ${safURI}.")
         val respons = restClient.get(
             uri = safURI,
@@ -72,14 +71,6 @@ class SafHentDokumentGateway(private val restClient: RestClient<InputStream>) {
         return respons!!
     }
 
-    private fun konstruerSafRestURL(
-        baseUrl: URI,
-        journalpostId: String,
-        dokumentInfoId: String,
-        variantFormat: String
-    ): URI {
-        return URI.create("$baseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/${variantFormat}")
-    }
 }
 
 data class SafDocumentResponse(val dokument: InputStream, val contentType: String, val filnavn: String)
