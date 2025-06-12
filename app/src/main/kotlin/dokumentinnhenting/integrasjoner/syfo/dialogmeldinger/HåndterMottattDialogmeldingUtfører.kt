@@ -3,7 +3,6 @@ package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
-import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -21,9 +20,8 @@ class dummyJobbUtfører : JobbUtfører {
 }
 
 class HåndterMottattDialogmeldingUtfører(
-    private val dialogmeldingRepository: DialogmeldingRepository,
-    val dokArkivClient: DokArkivClient,
-    private val flytJobbRepository: FlytJobbRepository
+    private val dokArkivClient: DokArkivClient,
+    private val flytJobbRepository: FlytJobbRepository,
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
@@ -54,9 +52,6 @@ class HåndterMottattDialogmeldingUtfører(
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return HåndterMottattDialogmeldingUtfører(
-                DialogmeldingRepository(
-                    connection
-                ),
                 DokArkivClient(ClientCredentialsTokenProvider),
                 FlytJobbRepository(connection)
             )
