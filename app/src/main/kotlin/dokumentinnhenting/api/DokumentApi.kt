@@ -1,23 +1,26 @@
 package dokumentinnhenting.api
 
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
+import com.papsign.ktor.openapigen.content.type.binary.BinaryResponse
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
+import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.integrasjoner.saf.Doc
 import dokumentinnhenting.integrasjoner.saf.Journalpost
 import dokumentinnhenting.integrasjoner.saf.SafClient
-import dokumentinnhenting.integrasjoner.saf.SafDocumentResponse
 import dokumentinnhenting.integrasjoner.saf.SafHentDokumentGateway
 import dokumentinnhenting.integrasjoner.saf.Saksnummer
+import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
+import java.io.InputStream
 import no.nav.aap.komponenter.httpklient.auth.token
 
 fun NormalOpenAPIRoute.dokumentApi() {
-    route("/dokumenter") {
+    route("/api/dokumenter").tag(Tags.Dokumenter) {
         route("/bruker").post<Unit, List<Journalpost>, HentDokumentoversiktBrukerRequest> { _, req ->
             val dokumenter = SafClient.hentDokumenterForBruker(req.personIdent, token())
 
@@ -39,16 +42,13 @@ fun NormalOpenAPIRoute.dokumentApi() {
             respond(dokumenter)
         }
 
-        route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentRequest, SafDocumentResponse> { req ->
+        route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentRequest, HentDokumentResponse> { req ->
             val gateway = SafHentDokumentGateway.withDefaultRestClient()
-            val dokument = gateway.hentDokument(req.journalpostId, req.dokumentinfoId, token())
+            val response = gateway.hentDokument(req.journalpostId, req.dokumentinfoId, token())
 
-            pipeline.call.response.headers.append(
-                name = "Content-Disposition", value = "inline; filename=${dokument.filnavn}"
-            )
-
-            respond(dokument)
+            respond(HentDokumentResponse(response.dokument))
         }
+
     }
 }
 
@@ -64,3 +64,6 @@ data class HentDokumentRequest(
     @PathParam(description = "Journalpost-ID") val journalpostId: String,
     @PathParam(description = "Dokumentinfo-ID") val dokumentinfoId: String,
 )
+
+@BinaryResponse(contentTypes = ["application/pdf"])
+class HentDokumentResponse(val dokument: InputStream)

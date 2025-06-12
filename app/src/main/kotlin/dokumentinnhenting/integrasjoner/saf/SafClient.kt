@@ -14,7 +14,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBeha
 object SafClient {
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
 
-    val config = ClientConfig(
+    private val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.saf.scope"),
     )
 

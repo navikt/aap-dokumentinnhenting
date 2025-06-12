@@ -12,12 +12,12 @@ import java.net.URI
 class SafRestClient {
     private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
 
-    val config = ClientConfig(
+    private val config = ClientConfig(
         scope = requiredConfigForKey("integrasjon.saf.scope"),
     )
 
     private val client = RestClient.withDefaultResponseHandler(
-        config = SafClient.config,
+        config = config,
         tokenProvider = ClientCredentialsTokenProvider,
         prometheus = prometheus
     )
