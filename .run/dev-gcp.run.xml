@@ -1,0 +1,48 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="dev-gcp" type="KtorApplicationConfigurationType" factoryName="Ktor">
+    <envs>
+      <env name="PORT" value="8082" />
+      <env name="NAIS_APP_NAME" value="dokumentinnhenting" />
+      <env name="NAIS_CLUSTER_NAME" value="LOCAL" />
+      <env name="NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_JDBC_URL" value="jdbc:postgresql://localhost:5436/postgres" />
+      <env name="NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_USERNAME" value="postgres" />
+      <env name="NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_PASSWORD" value="" />
+      <env name="INTEGRASJON_SAF_URL_GRAPHQL" value="https://saf-q2.dev-fss-pub.nais.io/graphql" />
+      <env name="INTEGRASJON_SAF_URL_REST" value="https://saf-q2.dev-fss-pub.nais.io/rest" />
+      <env name="INTEGRASJON_SAF_SCOPE" value="api://dev-fss.teamdokumenthandtering.saf/.default" />
+      <env name="INTEGRASJON_DOKARKIV_URL" value="https://dokarkiv-q2.dev-fss-pub.nais.io" />
+      <env name="INTEGRASJON_DOKARKIV_SCOPE" value="api://dev-fss.teamdokumenthandtering.saf/.default" />
+      <env name="INTEGRASJON_TILGANG_URL" value="https://aap-tilgang.intern.dev.nav.no" />
+      <env name="INTEGRASJON_TILGANG_SCOPE" value="api://dev-gcp.aap.tilgang/.default" />
+      <env name="INTEGRASJON_TILGANG_AZP" value="0612f13d-08fb-44ff-a5ac-1233e2fec0fc" />
+      <env name="INTEGRASJON_BREV_URL" value="https://aap-brev.intern.dev.nav.no" />
+      <env name="INTEGRASJON_BREV_SCOPE" value="api://dev-gcp.aap.brev/.default" />
+      <env name="INTEGRASJON_BREV_AZP" value="d1c38f80-8965-4e41-8831-8a81052ac1e9" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="dokumentinnhenting.AppKt" />
+    <module name="dokumentinnhenting.app.main" />
+    <extension name="net.ashald.envfile">
+      <option name="IS_ENABLED" value="true" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH=".env.dev-gcp" />
+      </ENTRIES>
+    </extension>
+    <option name="alternativeJrePath" />
+    <option name="alternativeJrePathEnabled" value="false" />
+    <option name="includeProvidedScope" value="false" />
+    <option name="mainClass" value="dokumentinnhenting.AppKt" />
+    <option name="passParentEnvs" value="true" />
+    <option name="programParameters" value="" />
+    <option name="shortenCommandLine" />
+    <option name="vmParameters" />
+    <option name="workingDirectory" value="$PROJECT_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

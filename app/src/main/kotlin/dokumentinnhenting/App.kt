@@ -34,6 +34,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import safApi
 import javax.sql.DataSource
+import no.nav.aap.komponenter.config.configForKey
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
@@ -45,7 +46,7 @@ fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
     embeddedServer(Netty, configure = {
         connector {
-            port = 8080
+            port = configForKey("PORT")?.toInt() ?: 8080
         }
         connectionGroupSize = 8
         workerGroupSize = 8
