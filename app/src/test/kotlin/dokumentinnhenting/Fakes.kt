@@ -169,13 +169,14 @@ object Fakes : AutoCloseable {
                                     Journalpost(
                                         journalpostId = "123",
                                         dokumenter = listOf(
-                                            Dokument(
+                                            DokumentInfo(
                                                 dokumentInfoId = "1234",
                                                 tittel = "tittel",
                                                 brevkode = "kode",
                                                 dokumentvarianter = listOf(
                                                     Dokumentvariant(
-                                                        Variantformat.ARKIV
+                                                        variantformat = Variantformat.ARKIV,
+                                                        saksbehandlerHarTilgang = true
                                                     )
                                                 ),
                                             )
@@ -185,7 +186,12 @@ object Fakes : AutoCloseable {
                                         temanavn = "aap",
                                         behandlingstemanavn = "aap",
                                         datoOpprettet = LocalDateTime.now().minusDays(1),
-                                        relevanteDatoer = null
+                                        relevanteDatoer = null,
+                                        journalstatus = Journalstatus.JOURNALFOERT,
+                                        tema = "AAP",
+                                        behandlingstema = null,
+                                        sak = JournalpostSak(JournalpostSak.Sakstype.FAGSAK, "AAP", "KELIVN", "1A2B3C"),
+                                        avsenderMottaker = AvsenderMottaker("0123456789", type = AvsenderMottaker.AvsenderMottakerIdType.FNR, "Test Testesen"),
                                     )
                                 )
                             )

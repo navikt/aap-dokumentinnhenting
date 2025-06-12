@@ -8,6 +8,8 @@ import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import dokumentinnhenting.integrasjoner.saf.*
+import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
+import dokumentinnhenting.util.dokument.mapTilDokumentliste
 import io.ktor.http.*
 import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
@@ -17,8 +19,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBeha
 */
 fun NormalOpenAPIRoute.safApi() {
     route("/saf").post<Unit, List<Doc>, HelseDocRequest> { _, req ->
-        val token = this.token()
-        respond(dokumentFilterDokumentSøk(SafClient.hentDokumenterForSak(req.saksnummer, token)))
+        val dokumenter = SafClient.hentDokumenterForSak(req.saksnummer, token())
+            .flatMap(::mapTilDokumentliste)
+            .dokumentFilterDokumentSøk()
+
+        respond(dokumenter)
     }
 
     route("/saf/{journalpostId}/{dokumentId}").get<DokumentRef,SafDocumentResponse>{ req ->

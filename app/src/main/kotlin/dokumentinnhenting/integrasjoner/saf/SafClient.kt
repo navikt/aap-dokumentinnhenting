@@ -1,15 +1,15 @@
 package dokumentinnhenting.integrasjoner.saf
 
-import dokumentinnhenting.logger
+import java.net.URI
+import java.time.LocalDateTime
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import java.net.URI
-import java.time.LocalDateTime
 
 object SafClient {
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
@@ -24,39 +24,44 @@ object SafClient {
         responseHandler = SafResponseHandler()
     )
 
-    private fun query(request: SafRequest, currentToken: OidcToken): SafDokumentoversiktFagsakDataResponse {
-        val httpRequest = PostRequest(body = request, currentToken = currentToken)
-        return requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
+    fun hentDokumenterForSak(saksnummer: Saksnummer, token: OidcToken): List<Journalpost> {
+        val request = SafRequest(
+            query = getQuery("/saf/dokumentoversiktFagsak.graphql"),
+            variables = DokumentoversiktFagsakVariables(saksnummer.toString())
+        )
+
+        val httpRequest = PostRequest(body = request, currentToken = token)
+        val response: SafDokumentoversiktFagsakDataResponse =
+            requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
+
+        return response.data?.dokumentoversiktFagsak?.journalposter ?: emptyList()
     }
 
-    fun hentDokumenterForSak(saksnummer: Saksnummer, currentToken: OidcToken): List<Doc> {
-        val request = SafRequest(dokumentOversiktQuery.asQuery(), SafRequest.Variables(saksnummer.toString()))
-        val response = query(request, currentToken)
+    fun hentDokumenterForBruker(ident: String, token: OidcToken): List<Journalpost> {
+        // TODO: Støtte filtrering fra frontend
+        val request = SafRequest(
+            query = getQuery("/saf/dokumentoversiktBruker.graphql"),
+            variables = DokumentoversiktBrukerVariables(
+                brukerId = BrukerId(ident, BrukerId.BrukerIdType.FNR),
+                tema = listOf("AAP"),
+                journalposttyper = emptyList(),
+                journalstatuser = emptyList(),
+                foerste = 100,
+            )
+        )
 
-        val dokumentoversiktFagsak = response.data?.dokumentoversiktFagsak ?: return emptyList()
+        val httpRequest = PostRequest(body = request, currentToken = token)
+        val response: SafDokumentoversiktBrukerDataResponse =
+            requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
 
-        return dokumentoversiktFagsak.journalposter.flatMap { journalpost ->
-            journalpost.dokumenter.flatMap { dok ->
-                dok.dokumentvarianter
-                    .filter { it.variantformat === Variantformat.ARKIV }
-                    .map {
-                        Doc(
-                            journalpostId = journalpost.journalpostId,
-                            tema = journalpost.temanavn ?: journalpost.behandlingstemanavn ?: "Ukjent",
-                            dokumentInfoId = dok.dokumentInfoId,
-                            tittel = dok.tittel,
-                            brevkode = dok.brevkode,
-                            variantformat = it.variantformat,
-                            erUtgående = journalpost.journalposttype == Journalposttype.U,
-                            datoOpprettet = if (journalpost.datoOpprettet != null) {
-                                journalpost.datoOpprettet
-                            } else {
-                                journalpost.relevanteDatoer?.first { it.datotype == "DATO_JOURNALFOERT" }?.dato
-                            }!!
-                        )
-                    }
-            }
-        }
+        return response.data?.dokumentoversiktBruker?.journalposter ?: return emptyList()
+    }
+
+    private fun getQuery(name: String): String {
+        val resource = javaClass.getResource(name)
+            ?: throw InternfeilException("Kunne ikke opprette spørring mot SAF")
+
+        return resource.readText().replace(Regex("[\n\t]"), "")
     }
 }
 
@@ -68,7 +73,7 @@ data class Doc(
     val tittel: String,
     val erUtgående: Boolean,
     val datoOpprettet: LocalDateTime,
-    val variantformat: Variantformat
+    val variantformat: Variantformat,
 )
 
 data class KopierJournalpost(
@@ -77,59 +82,3 @@ data class KopierJournalpost(
     val personIdent: String,
     val fagsakId: String,
 )
-
-fun String.asQuery() = this.replace("\n", "")
-
-private const val fagsakId = "\$fagsakId"
-
-// Skjema her: https://github.com/navikt/saf/blob/master/app/src/main/resources/schemas/saf.graphqls
-private val dokumentOversiktQuery = """
-query ($fagsakId: String!)
-{
-  dokumentoversiktFagsak(
-    fagsak: { fagsakId: $fagsakId, fagsaksystem: "KELVIN" }
-   fraDato: null
-   foerste: 100
-    tema: []
-    journalposttyper: []
-    journalstatuser: []
-  ) {
-    journalposter {
-      journalpostId
-      journalposttype
-      behandlingstema
-      relevanteDatoer {
-        dato
-        datotype
-      }
-      antallRetur
-      kanal
-      innsynsregelBeskrivelse
-      dokumenter {
-        dokumentInfoId
-        tittel
-        brevkode
-        dokumentstatus
-        datoFerdigstilt
-        originalJournalpostId
-        skjerming
-        logiskeVedlegg {
-          logiskVedleggId
-          tittel
-        }
-        dokumentvarianter {
-          variantformat
-          saksbehandlerHarTilgang
-          skjerming
-        }
-      }
-    }
-    sideInfo {
-      sluttpeker
-      finnesNesteSide
-      antall
-      totaltAntall
-    }
-  }
-}
-""".trimIndent()

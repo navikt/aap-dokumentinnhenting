@@ -1,9 +1,10 @@
-package dokumentinnhenting.integrasjoner.saf
+package dokumentinnhenting.util.dokument
 
+import dokumentinnhenting.integrasjoner.saf.Doc
 import java.time.LocalDateTime
 
-fun dokumentFilterDokumentSøk(dokumenter: List<Doc>): List<Doc> {
-    return dokumenter.filter { doc ->
+fun List<Doc>.dokumentFilterDokumentSøk(): List<Doc> {
+    return this.filter { doc ->
         sykemelding39Uker(doc)
             || dialogmeldingJournalførtPåAAPYngreEnnEttÅr(doc)
             || dialogmeldingJournalførtPåAAPEldreEnEttÅr(doc)

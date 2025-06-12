@@ -4,6 +4,7 @@ import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import dokumentinnhenting.api.dokumentApi
 import dokumentinnhenting.api.actuator
 import dokumentinnhenting.api.syfoApi
 import dokumentinnhenting.api.testApi
@@ -38,6 +39,7 @@ import no.nav.aap.komponenter.config.configForKey
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
+
 class App
 
 private const val ANTALL_WORKERS = 4
@@ -91,6 +93,7 @@ fun Application.server(
         authenticate(AZURE) {
             apiRouting {
                 safApi()
+                dokumentApi()
                 motorApi(dataSource)
                 syfoApi(dataSource)
                 if (Miljø.erDev()) {
