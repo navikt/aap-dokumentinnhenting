@@ -6,10 +6,14 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.put
+import no.nav.aap.komponenter.httpklient.httpclient.patch
+import no.nav.aap.komponenter.httpklient.httpclient.request.ContentType
+import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.TokenProvider
 
-class DokArkivClient(tokenProvider: TokenProvider ) {
+class DokArkivClient(tokenProvider: TokenProvider) {
     private val baseUri = URI.create(requiredConfigForKey("integrasjon.dokarkiv.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.dokarkiv.scope"))
 
@@ -20,7 +24,7 @@ class DokArkivClient(tokenProvider: TokenProvider ) {
     )
 
     fun endreTemaTilAAP(
-        journalpostId: String
+        journalpostId: String,
     ): String {
         val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
         val request = OppdaterJournalPostRequest(journalpostId)
@@ -36,21 +40,35 @@ class DokArkivClient(tokenProvider: TokenProvider ) {
 
     fun knyttJournalpostTilAnnenSak(
         kildeJournalpostId: String,
-        bruker: Bruker,
-        fagsakId: String,
-        fagsaksystem: String
-    ):KnyttTilAnnenSakResponse {
+        request: KnyttTilAnnenSakRequest,
+        token: OidcToken? = null,
+    ): KnyttTilAnnenSakResponse {
         val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak")
-        val request = KnyttTilAnnenSakRequest(
-            bruker = bruker,
-            fagsakId = fagsakId,
-            fagsaksystem = fagsaksystem,
-        )
-        val httpRequest = PutRequest(
-            body = request,
-        )
+        val httpRequest = PutRequest(body = request, currentToken = token)
 
         return checkNotNull(client.put<KnyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(uri, httpRequest))
+    }
+
+    fun feilregistrerSakstilknytning(
+        kildeJournalpostId: String,
+        token: OidcToken? = null,
+    ) {
+        val uri =
+            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/feilregistrerSakstilknytning")
+        val httpRequest = PatchRequest(body = Unit, currentToken = token)
+
+        return checkNotNull(client.patch(uri, httpRequest) { _, _ -> })
+    }
+
+    fun opphevFeilregistrertSakstilknytning(
+        kildeJournalpostId: String,
+        token: OidcToken? = null,
+    ) {
+        val uri =
+            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/opphevFeilregistrertSakstilknytning")
+        val httpRequest = PatchRequest(body = Unit, currentToken = token)
+
+        return checkNotNull(client.patch(uri, httpRequest) { _, _ -> })
     }
 }
 

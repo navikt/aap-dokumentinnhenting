@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
+import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
@@ -35,12 +36,14 @@ class HåndterMottattDialogmeldingUtfører(
 
         dokArkivClient.knyttJournalpostTilAnnenSak(
             record.journalpostId,
-            OpprettJournalpostRequest.Bruker(
-                record.personIdentPasient,
-                OpprettJournalpostRequest.Bruker.IdType.FNR
-            ),
-            payload.sakOgBehandling.saksnummer,
-            "KELVIN" //TODO: riktig skrivemåte
+            KnyttTilAnnenSakRequest(
+                OpprettJournalpostRequest.Bruker(
+                    record.personIdentPasient,
+                    OpprettJournalpostRequest.Bruker.IdType.FNR
+                ),
+                payload.sakOgBehandling.saksnummer,
+                "KELVIN" //TODO: riktig skrivemåte
+            )
         )
         val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
             DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(record, sakOgBehandling))

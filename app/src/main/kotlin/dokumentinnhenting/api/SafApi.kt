@@ -6,6 +6,7 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
+import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import dokumentinnhenting.integrasjoner.saf.*
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
@@ -38,12 +39,16 @@ fun NormalOpenAPIRoute.safApi() {
         val token = this.token()
         val gateway = DokArkivClient(OnBehalfOfTokenProvider)
         req.forEach{doc ->
-            gateway.knyttJournalpostTilAnnenSak(doc.journalpostId, OpprettJournalpostRequest.Bruker(
-                doc.personIdent,
-                OpprettJournalpostRequest.Bruker.IdType.FNR
-            ),
-                token.token(),
-                doc.tittel)
+            gateway.knyttJournalpostTilAnnenSak(doc.journalpostId,
+                KnyttTilAnnenSakRequest(
+                    bruker = OpprettJournalpostRequest.Bruker(
+                        doc.personIdent,
+                        OpprettJournalpostRequest.Bruker.IdType.FNR
+                    ),
+                    fagsakId = token.token(),
+                    fagsaksystem = doc.tittel
+                )
+            )
         }
         respond(HttpStatusCode.NoContent)
     }
