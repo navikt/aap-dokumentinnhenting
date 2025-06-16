@@ -5,11 +5,6 @@ sql:
   highAvailability: true
   pointInTimeRecovery: true
 
-replicas:
-  min: 2
-  max: 3
-  disableAutoScaling: false
-
 
 kafka:
   pool: nav-prod

@@ -16,9 +16,6 @@ spec:
 
   replicas:
     cpuThresholdPercentage: 90
-    disableAutoScaling: {{replicas.disableAutoScaling}}
-    max: {{replicas.max}}
-    min: {{replicas.min}}
 
   azure:
     application:
