@@ -1,4 +1,4 @@
-val komponenterVersjon = "1.0.261"
+val komponenterVersjon = "1.0.269"
 
 plugins {
     id("dokumentinnhenting.conventions")
