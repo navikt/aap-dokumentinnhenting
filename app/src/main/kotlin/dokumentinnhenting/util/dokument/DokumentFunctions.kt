@@ -12,7 +12,7 @@ fun mapTilDokumentliste(journalpost: Journalpost): List<Doc> = journalpost.dokum
         .map { dokumentvariant ->
             Doc(
                 journalpostId = journalpost.journalpostId,
-                tema = journalpost.temanavn ?: journalpost.behandlingstemanavn ?: "Ukjent",
+                tema = journalpost.tema ?: "Ukjent",
                 dokumentInfoId = dok.dokumentInfoId,
                 tittel = dok.tittel,
                 brevkode = dok.brevkode,

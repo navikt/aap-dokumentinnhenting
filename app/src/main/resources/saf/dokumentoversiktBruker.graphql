@@ -29,6 +29,7 @@ query(
             dokumenter {
                 dokumentInfoId
                 tittel
+                brevkode
                 dokumentvarianter {
                     variantformat
                     saksbehandlerHarTilgang

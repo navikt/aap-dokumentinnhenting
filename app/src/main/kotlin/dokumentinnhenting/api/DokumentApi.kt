@@ -27,7 +27,17 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBeha
 fun NormalOpenAPIRoute.dokumentApi() {
     route("/api/dokumenter").tag(Tags.Dokumenter) {
         route("/bruker").post<Unit, List<Journalpost>, HentDokumentoversiktBrukerRequest> { _, req ->
-            val dokumenter = SafClient.hentDokumenterForBruker(req.personIdent, token())
+            val dokumenter = SafClient.hentDokumenterForBruker(req.personIdent, listOf("AAP"), token())
+
+            respond(dokumenter)
+        }
+
+        route("/bruker/helsedokumenter").post<Unit, List<Doc>, HentDokumentoversiktBrukerRequest> { _, req ->
+            val saksnummer = requireNotNull(req.saksnummer)
+            val dokumenter = SafClient.hentDokumenterForBruker(req.personIdent, listOf("AAP", "OPP", "SYK"), token())
+                .filterNot { it.sak?.fagsakId == saksnummer }
+                .flatMap(::mapTilDokumentliste)
+                .dokumentFilterDokumentSøk()
 
             respond(dokumenter)
         }
@@ -39,6 +49,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
             respond(dokumenter)
         }
 
+        // TODO: Fjerne når frontend har koblet over på bruker/helsedokumenter
         route("/sak/{saksnummer}/helsedokumenter").get<HentDokumentoversiktFagsakParams, List<Doc>> { req ->
             val dokumenter = SafClient.hentDokumenterForSak(Saksnummer(req.saksnummer), token())
                 .flatMap(::mapTilDokumentliste)
@@ -82,6 +93,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
 
 class HentDokumentoversiktBrukerRequest(
     val personIdent: String,
+    val saksnummer: String? = null,
 )
 
 class HentDokumentoversiktFagsakParams(

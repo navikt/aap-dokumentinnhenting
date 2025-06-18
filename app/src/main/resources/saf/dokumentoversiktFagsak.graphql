@@ -11,6 +11,7 @@ query ($fagsakId: String!) {
             journalpostId
             journalposttype
             journalstatus
+            tema
             behandlingstema
             relevanteDatoer {
                 dato

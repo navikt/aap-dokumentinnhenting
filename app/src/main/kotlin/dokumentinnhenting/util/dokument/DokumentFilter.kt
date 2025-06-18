@@ -7,16 +7,9 @@ fun List<Doc>.dokumentFilterDokumentSøk(): List<Doc> {
     return this.filter { doc ->
         sykemelding39Uker(doc)
             || dialogmeldingJournalførtPåAAPYngreEnnEttÅr(doc)
-            || dialogmeldingJournalførtPåAAPEldreEnEttÅr(doc)
             || sykemeldingYngreEnnEttÅr(doc)
             || legeerklæring(doc)
     }
-}
-
-private fun dialogmeldingJournalførtPåAAPEldreEnEttÅr(dokument: Doc): Boolean {
-    val brevkoderDialogmeldingAAP = listOf("900007", "900006")
-    return dokument.brevkode in brevkoderDialogmeldingAAP
-        && eldreEnnEttÅr(dokument.datoOpprettet)
 }
 
 private fun dialogmeldingJournalførtPåAAPYngreEnnEttÅr(dokument: Doc): Boolean {
@@ -41,10 +34,6 @@ private fun legeerklæring(dokument: Doc): Boolean {
 private fun sykemelding39Uker(dokument: Doc): Boolean {
     return dokument.brevkode == "NAV 08-07.04 R"
         && dokument.datoOpprettet > LocalDateTime.now().minusMonths(3)
-}
-
-private fun eldreEnnEttÅr(oprettet: LocalDateTime): Boolean {
-    return oprettet < LocalDateTime.now().minusYears(1)
 }
 
 private fun yngreEnnEttÅr(opprettet: LocalDateTime): Boolean {

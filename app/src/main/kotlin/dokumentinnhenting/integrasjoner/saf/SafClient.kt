@@ -37,13 +37,17 @@ object SafClient {
         return response.data?.dokumentoversiktFagsak?.journalposter ?: emptyList()
     }
 
-    fun hentDokumenterForBruker(ident: String, token: OidcToken): List<Journalpost> {
+    fun hentDokumenterForBruker(
+        ident: String,
+        tema: List<String>,
+        token: OidcToken
+    ): List<Journalpost> {
         // TODO: Støtte filtrering fra frontend
         val request = SafRequest(
             query = getQuery("/saf/dokumentoversiktBruker.graphql"),
             variables = DokumentoversiktBrukerVariables(
                 brukerId = BrukerId(ident, BrukerId.BrukerIdType.FNR),
-                tema = listOf("AAP"),
+                tema = tema,
                 journalposttyper = emptyList(),
                 journalstatuser = emptyList(),
                 foerste = 100,
