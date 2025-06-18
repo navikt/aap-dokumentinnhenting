@@ -33,7 +33,6 @@ import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import safApi
 import javax.sql.DataSource
 import no.nav.aap.komponenter.config.configForKey
 
@@ -92,7 +91,6 @@ fun Application.server(
 
         authenticate(AZURE) {
             apiRouting {
-                safApi()
                 dokumentApi()
                 motorApi(dataSource)
                 syfoApi(dataSource)
