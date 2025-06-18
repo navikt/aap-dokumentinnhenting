@@ -13,6 +13,7 @@ import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakResponse
 import dokumentinnhenting.integrasjoner.saf.Doc
 import dokumentinnhenting.integrasjoner.saf.Journalpost
+import dokumentinnhenting.integrasjoner.saf.Journalstatus
 import dokumentinnhenting.integrasjoner.saf.SafClient
 import dokumentinnhenting.integrasjoner.saf.SafHentDokumentGateway
 import dokumentinnhenting.integrasjoner.saf.Saksnummer
@@ -27,14 +28,20 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBeha
 fun NormalOpenAPIRoute.dokumentApi() {
     route("/api/dokumenter").tag(Tags.Dokumenter) {
         route("/bruker").post<Unit, List<Journalpost>, HentDokumentoversiktBrukerRequest> { _, req ->
-            val dokumenter = SafClient.hentDokumenterForBruker(req.personIdent, listOf("AAP"), token())
+            val dokumenter = SafClient.hentDokumenterForBruker(ident = req.personIdent, token = token())
 
             respond(dokumenter)
         }
 
         route("/bruker/helsedokumenter").post<Unit, List<Doc>, HentDokumentoversiktBrukerRequest> { _, req ->
             val saksnummer = requireNotNull(req.saksnummer)
-            val dokumenter = SafClient.hentDokumenterForBruker(req.personIdent, listOf("AAP", "OPP", "SYK"), token())
+
+            val dokumenter = SafClient.hentDokumenterForBruker(
+                ident = req.personIdent,
+                tema = listOf("AAP", "OPP", "SYK"),
+                statuser = listOf(Journalstatus.JOURNALFOERT, Journalstatus.FERDIGSTILT),
+                token = token()
+            )
                 .filterNot { it.sak?.fagsakId == saksnummer }
                 .flatMap(::mapTilDokumentliste)
                 .dokumentFilterDokumentSøk()

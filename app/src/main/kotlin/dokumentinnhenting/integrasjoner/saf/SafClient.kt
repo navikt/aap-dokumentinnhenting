@@ -39,7 +39,8 @@ object SafClient {
 
     fun hentDokumenterForBruker(
         ident: String,
-        tema: List<String>,
+        tema: List<String> = listOf("AAP"),
+        statuser: List<Journalstatus> = emptyList(),
         token: OidcToken
     ): List<Journalpost> {
         // TODO: Støtte filtrering fra frontend
@@ -49,7 +50,7 @@ object SafClient {
                 brukerId = BrukerId(ident, BrukerId.BrukerIdType.FNR),
                 tema = tema,
                 journalposttyper = emptyList(),
-                journalstatuser = emptyList(),
+                journalstatuser = statuser,
                 foerste = 100,
             )
         )
