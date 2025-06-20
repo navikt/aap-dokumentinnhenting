@@ -40,16 +40,16 @@ object SafClient {
     fun hentDokumenterForBruker(
         ident: String,
         tema: List<String> = listOf("AAP"),
+        typer: List<Journalposttype> = emptyList(),
         statuser: List<Journalstatus> = emptyList(),
         token: OidcToken
     ): List<Journalpost> {
-        // TODO: Støtte filtrering fra frontend
         val request = SafRequest(
             query = getQuery("/saf/dokumentoversiktBruker.graphql"),
             variables = DokumentoversiktBrukerVariables(
                 brukerId = BrukerId(ident, BrukerId.BrukerIdType.FNR),
-                tema = tema,
-                journalposttyper = emptyList(),
+                tema = tema.takeUnless(List<String>::isEmpty) ?: listOf("AAP"),
+                journalposttyper = typer,
                 journalstatuser = statuser,
                 foerste = 100,
             )
@@ -79,11 +79,4 @@ data class Doc(
     val erUtgående: Boolean,
     val datoOpprettet: LocalDateTime,
     val variantformat: Variantformat,
-)
-
-data class KopierJournalpost(
-    val journalpostId: String,
-    val tittel: String,
-    val personIdent: String,
-    val fagsakId: String,
 )

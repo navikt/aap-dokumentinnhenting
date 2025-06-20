@@ -13,6 +13,7 @@ import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakResponse
 import dokumentinnhenting.integrasjoner.saf.Doc
 import dokumentinnhenting.integrasjoner.saf.Journalpost
+import dokumentinnhenting.integrasjoner.saf.Journalposttype
 import dokumentinnhenting.integrasjoner.saf.Journalstatus
 import dokumentinnhenting.integrasjoner.saf.SafClient
 import dokumentinnhenting.integrasjoner.saf.SafHentDokumentGateway
@@ -28,7 +29,13 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBeha
 fun NormalOpenAPIRoute.dokumentApi() {
     route("/api/dokumenter").tag(Tags.Dokumenter) {
         route("/bruker").post<Unit, List<Journalpost>, HentDokumentoversiktBrukerRequest> { _, req ->
-            val dokumenter = SafClient.hentDokumenterForBruker(ident = req.personIdent, token = token())
+            val dokumenter = SafClient.hentDokumenterForBruker(
+                ident = req.personIdent,
+                tema = req.tema,
+                typer = req.typer,
+                statuser = req.statuser,
+                token = token()
+            )
 
             respond(dokumenter)
         }
@@ -98,9 +105,12 @@ fun NormalOpenAPIRoute.dokumentApi() {
     }
 }
 
-class HentDokumentoversiktBrukerRequest(
+data class HentDokumentoversiktBrukerRequest(
     val personIdent: String,
     val saksnummer: String? = null,
+    val tema: List<String> = listOf("AAP"),
+    val typer: List<Journalposttype> = emptyList(),
+    val statuser: List<Journalstatus> = emptyList(),
 )
 
 class HentDokumentoversiktFagsakParams(
