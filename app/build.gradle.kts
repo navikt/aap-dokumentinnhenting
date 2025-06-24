@@ -91,6 +91,7 @@ dependencies {
 
 fun runCommand(command: String): String {
     val execResult = providers.exec {
+        this.workingDir = project.projectDir
         commandLine(command.split("\\s".toRegex()))
     }.standardOutput.asText
 
