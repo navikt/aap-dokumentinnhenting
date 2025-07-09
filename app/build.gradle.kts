@@ -31,7 +31,7 @@ dependencies {
     }
 
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("no.nav.aap.brev:kontrakt:0.0.127")
+    implementation("no.nav.aap.brev:kontrakt:0.0.130")
 
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
