@@ -41,7 +41,7 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation(project(":dbflyway"))
-    implementation("no.nav:ktor-openapi-generator:1.0.115")
+    implementation("no.nav:ktor-openapi-generator:1.0.117")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1")
