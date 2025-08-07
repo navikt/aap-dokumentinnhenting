@@ -11,20 +11,14 @@ import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakResponse
-import dokumentinnhenting.integrasjoner.saf.Doc
-import dokumentinnhenting.integrasjoner.saf.Journalpost
-import dokumentinnhenting.integrasjoner.saf.Journalposttype
-import dokumentinnhenting.integrasjoner.saf.Journalstatus
-import dokumentinnhenting.integrasjoner.saf.SafClient
-import dokumentinnhenting.integrasjoner.saf.SafHentDokumentGateway
-import dokumentinnhenting.integrasjoner.saf.Saksnummer
+import dokumentinnhenting.integrasjoner.saf.*
 import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
-import io.ktor.http.HttpStatusCode
-import java.io.InputStream
-import no.nav.aap.komponenter.httpklient.auth.token
+import io.ktor.http.*
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
+import no.nav.aap.komponenter.server.auth.token
+import java.io.InputStream
 
 fun NormalOpenAPIRoute.dokumentApi() {
     route("/api/dokumenter").tag(Tags.Dokumenter) {
@@ -82,7 +76,8 @@ fun NormalOpenAPIRoute.dokumentApi() {
         route("/{journalpostId}/knyttTilAnnenSak").post<JournalpostIdParams, KnyttTilAnnenSakResponse, KnyttTilAnnenSakRequest> { params, req ->
             val gateway = DokArkivClient(OnBehalfOfTokenProvider)
 
-            val dokarkivResponse = gateway.knyttJournalpostTilAnnenSak(params.journalpostId, req, token())
+            val dokarkivResponse =
+                gateway.knyttJournalpostTilAnnenSak(params.journalpostId, req, token())
 
             respond(dokarkivResponse)
         }
@@ -114,17 +109,17 @@ data class HentDokumentoversiktBrukerRequest(
 )
 
 class HentDokumentoversiktFagsakParams(
-    @PathParam(description = "Saksnummer") val saksnummer: String,
+    @param:PathParam(description = "Saksnummer") val saksnummer: String,
 )
 
 data class HentDokumentParams(
-    @PathParam(description = "Journalpost-ID") val journalpostId: String,
-    @PathParam(description = "Dokumentinfo-ID") val dokumentinfoId: String,
+    @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
+    @param:PathParam(description = "Dokumentinfo-ID") val dokumentinfoId: String,
 )
 
 @BinaryResponse(contentTypes = ["application/pdf"])
 class HentDokumentResponse(val dokument: InputStream)
 
 data class JournalpostIdParams(
-    @PathParam(description = "Journalpost-ID") val journalpostId: String,
+    @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
 )
