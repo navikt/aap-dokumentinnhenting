@@ -17,6 +17,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.verdityper.dokument.Kanal
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
 
@@ -24,6 +25,9 @@ class OppdaterLegeerklæringStatusUtfører (
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val jobbRepository: FlytJobbRepository
 ) : JobbUtfører {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun utfør(input: JobbInput) {
         val record = DefaultJsonMapper.fromJson<DialogmeldingStatusDTO>(input.payload())
         val bestillingId = dialogmeldingRepository.låsBestilling(UUID.fromString(record.bestillingUuid))
@@ -33,6 +37,7 @@ class OppdaterLegeerklæringStatusUtfører (
         if (record.status == MeldingStatusType.AVVIST) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
             val behandlingsflytClient = BehandlingsflytClient
+            log.info("Avvist dialogmelding. Kaller behandlingsflyt. Sak: ${sak.saksnummer}")
             behandlingsflytClient.taSakAvVent(
                 Innsending(
                     saksnummer = Saksnummer(sak.saksnummer),
