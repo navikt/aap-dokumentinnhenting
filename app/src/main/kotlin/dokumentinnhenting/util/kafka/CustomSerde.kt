@@ -17,10 +17,10 @@ fun <T> createGenericSerde(clazz: Class<T>): Serde<T> {
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) // Optional: Use ISO-8601 format
 
     return Serdes.serdeFrom(
-        Serializer { _, data ->
+        { _, data ->
             objectMapper.writeValueAsBytes(data)
         },
-        Deserializer { _, bytes ->
+        { _, bytes ->
             objectMapper.readValue(bytes, clazz)
         }
     )

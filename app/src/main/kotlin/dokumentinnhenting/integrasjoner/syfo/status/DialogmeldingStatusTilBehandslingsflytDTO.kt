@@ -17,4 +17,4 @@ data class DialogmeldingStatusTilBehandslingsflytDTO(
     val fritekst: String
 )
 
-data class HentDialogmeldingStatusDTO(@PathParam("saksnummer") val saksnummer: String)
+data class HentDialogmeldingStatusDTO(@param:PathParam("saksnummer") val saksnummer: String)

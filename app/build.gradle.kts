@@ -42,7 +42,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("com.nimbusds:nimbus-jose-jwt:10.4")
-    implementation("org.flywaydb:flyway-database-postgresql:11.10.3")
+    implementation("org.flywaydb:flyway-database-postgresql:11.10.5")
     implementation("com.zaxxer:HikariCP:6.3.0")
 
     // Felleskomponenter
@@ -76,41 +76,14 @@ dependencies {
         implementation("org.apache.commons:commons-compress:1.27.1") {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
+        implementation("org.apache.commons:commons-lang3:3.18.0")
     }
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
     testImplementation("io.mockk:mockk:1.14.5")
 }
 
-fun runCommand(command: String): String {
-    val execResult = providers.exec {
-        this.workingDir = project.projectDir
-        commandLine(command.split("\\s".toRegex()))
-    }.standardOutput.asText
-
-    return execResult.get()
-}
-
-fun getCheckedOutGitCommitHash(): String {
-    if (System.getenv("GITHUB_ACTIONS") == "true") {
-        return System.getenv("GITHUB_SHA")
-    }
-    return runCommand("git rev-parse --verify HEAD")
-}
-
 tasks {
-    val projectProps by registering(WriteProperties::class) {
-        destinationFile = layout.buildDirectory.file("version.properties")
-        // Define property.
-        property("project.version", getCheckedOutGitCommitHash())
-    }
-
-    processResources {
-        // Depend on output of the task to create properties,
-        // so the properties file will be part of the Java resources.
-        from(projectProps)
-    }
-
     withType<ShadowJar> {
         mergeServiceFiles()
     }
