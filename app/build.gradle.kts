@@ -31,7 +31,7 @@ dependencies {
     }
 
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("no.nav.aap.brev:kontrakt:0.0.132")
+    implementation("no.nav.aap.brev:kontrakt:0.0.138")
 
     implementation(project(":dbflyway"))
     implementation("no.nav:ktor-openapi-generator:1.0.117")
