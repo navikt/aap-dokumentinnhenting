@@ -33,13 +33,6 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("no.nav.aap.brev:kontrakt:0.0.132")
 
-    implementation("io.ktor:ktor-client-auth:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging:$ktorVersion")
-
     implementation(project(":dbflyway"))
     implementation("no.nav:ktor-openapi-generator:1.0.117")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.2")

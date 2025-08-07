@@ -9,18 +9,25 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 
-class FiltrerDialogmeldingUtfører(private val flytJobbRepository: FlytJobbRepository) : JobbUtfører {
+class FiltrerDialogmeldingUtfører(private val flytJobbRepository: FlytJobbRepository) :
+    JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val payload: DialogmeldingMottakDTO = DefaultJsonMapper.fromJson<DialogmeldingMottakDTO>(input.payload())
+        val payload: DialogmeldingMottakDTO =
+            DefaultJsonMapper.fromJson<DialogmeldingMottakDTO>(input.payload())
         val saksInfo = BehandlingsflytClient.finnSakForIdentPåDato(
             payload.personIdentPasient,
             payload.mottattTidspunkt.toLocalDate()
         )
 
-        if(saksInfo?.sakOgBehandlingDTO != null && payload.journalpostId!="0"){
+        if (saksInfo?.sakOgBehandlingDTO != null && payload.journalpostId != "0") {
             flytJobbRepository.leggTil(
                 JobbInput(HåndterMottattDialogmeldingUtfører).medPayload(
-                    DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(payload, saksInfo.sakOgBehandlingDTO))
+                    DefaultJsonMapper.toJson(
+                        DialogmeldingMedSaksknyttning(
+                            payload,
+                            saksInfo.sakOgBehandlingDTO
+                        )
+                    )
                 )
             )
         }

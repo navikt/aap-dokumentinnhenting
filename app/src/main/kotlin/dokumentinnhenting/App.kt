@@ -44,7 +44,8 @@ class App
 private const val ANTALL_WORKERS = 4
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
+    Thread.currentThread()
+        .setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil av type ${e.javaClass}.", e) }
     embeddedServer(Netty, configure = {
         connector {
             port = configForKey("PORT")?.toInt() ?: 8080
@@ -76,7 +77,10 @@ fun Application.server(
         }
         exception<Throwable> { call, cause ->
             logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
+            call.respondText(
+                text = "Feil i tjeneste: ${cause.message}",
+                status = HttpStatusCode.InternalServerError
+            )
         }
     }
 
@@ -128,13 +132,14 @@ fun Application.module(dataSource: DataSource): Motor {
     return motor
 }
 
-fun initDatasource(dbConfig: DbConfig, meterRegistry: MeterRegistry) = HikariDataSource(HikariConfig().apply {
-    jdbcUrl = dbConfig.url
-    username = dbConfig.username
-    password = dbConfig.password
-    maximumPoolSize = 10 + (ANTALL_WORKERS * 2)
-    minimumIdle = 1
-    driverClassName = "org.postgresql.Driver"
-    connectionTestQuery = "SELECT 1"
-    metricRegistry = meterRegistry
-})
+fun initDatasource(dbConfig: DbConfig, meterRegistry: MeterRegistry) =
+    HikariDataSource(HikariConfig().apply {
+        jdbcUrl = dbConfig.url
+        username = dbConfig.username
+        password = dbConfig.password
+        maximumPoolSize = 10 + (ANTALL_WORKERS * 2)
+        minimumIdle = 1
+        driverClassName = "org.postgresql.Driver"
+        connectionTestQuery = "SELECT 1"
+        metricRegistry = meterRegistry
+    })
