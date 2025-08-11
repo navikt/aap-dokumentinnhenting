@@ -43,7 +43,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("com.nimbusds:nimbus-jose-jwt:10.4")
     implementation("org.flywaydb:flyway-database-postgresql:11.10.5")
-    implementation("com.zaxxer:HikariCP:6.3.0")
+    implementation("com.zaxxer:HikariCP:7.0.1")
 
     // Felleskomponenter
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
