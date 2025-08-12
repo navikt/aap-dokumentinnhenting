@@ -14,7 +14,7 @@ class FiltrerDialogmeldingUtfører(private val flytJobbRepository: FlytJobbRepos
     override fun utfør(input: JobbInput) {
         val payload: DialogmeldingMottakDTO =
             DefaultJsonMapper.fromJson<DialogmeldingMottakDTO>(input.payload())
-        val saksInfo = BehandlingsflytClient.finnSakForIdentPåDato(
+        val saksInfo = BehandlingsflytClient.finnÅpenSakForIdentPåDato(
             payload.personIdentPasient,
             payload.mottattTidspunkt.toLocalDate()
         )

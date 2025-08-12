@@ -57,7 +57,7 @@ object BehandlingsflytClient {
         }
     }
 
-    fun finnSakForIdentPåDato(personIdentPasient: String, toLocalDate: LocalDate): NullableSakOgBehandlingDTO? {
+    fun finnÅpenSakForIdentPåDato(personIdentPasient: String, toLocalDate: LocalDate): NullableSakOgBehandlingDTO? {
         val request = PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
