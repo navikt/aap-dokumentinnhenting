@@ -10,4 +10,4 @@ guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
 
 [plugins]
-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.2.0" }
+jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.2.10" }
