@@ -34,7 +34,7 @@ object SafClient {
         val response: SafDokumentoversiktFagsakDataResponse =
             requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
 
-        return response.data?.dokumentoversiktFagsak?.journalposter ?: emptyList()
+        return response.data?.dokumentoversiktFagsak?.journalposter.orEmpty()
     }
 
     fun hentDokumenterForBruker(
@@ -59,7 +59,7 @@ object SafClient {
         val response: SafDokumentoversiktBrukerDataResponse =
             requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
 
-        return response.data?.dokumentoversiktBruker?.journalposter ?: return emptyList()
+        return response.data?.dokumentoversiktBruker?.journalposter.orEmpty()
     }
 
     private fun getQuery(name: String): String {

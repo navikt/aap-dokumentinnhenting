@@ -4,25 +4,31 @@ import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import dokumentinnhenting.api.dokumentApi
 import dokumentinnhenting.api.actuator
+import dokumentinnhenting.api.dokumentApi
 import dokumentinnhenting.api.syfoApi
 import dokumentinnhenting.api.testApi
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.install
+import io.ktor.server.auth.authenticate
+import io.ktor.server.engine.connector
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
+import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.MeterRegistry
+import javax.sql.DataSource
+import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
+import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.AZURE
@@ -33,8 +39,6 @@ import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import javax.sql.DataSource
-import no.nav.aap.komponenter.config.configForKey
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
@@ -68,19 +72,18 @@ fun Application.server(
 
     install(StatusPages) {
         val logger = LoggerFactory.getLogger(App::class.java)
-        exception<BehandlingsflytException> { call, cause ->
-            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respondText(
-                text = "Feil i behandlingsflyt: ${cause.message}",
-                status = HttpStatusCode.InternalServerError
-            )
-        }
         exception<Throwable> { call, cause ->
-            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respondText(
-                text = "Feil i tjeneste: ${cause.message}",
-                status = HttpStatusCode.InternalServerError
-            )
+            when (cause) {
+                is BehandlingsflytException -> {
+                    logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+                    call.respond(InternfeilException("Feil i behandlingsflyt: ${cause.message}"))
+                }
+
+                else -> {
+                    logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+                    call.respond(InternfeilException("Feil i tjeneste: ${cause.message}"))
+                }
+            }
         }
     }
 
