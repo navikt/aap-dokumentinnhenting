@@ -44,6 +44,10 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
                 respondWithStatus(HttpStatusCode.TooManyRequests)
             }
 
+            if (req.behandlerHprNr.length < 7 || req.behandlerHprNr.length > 9) {
+                respondWithStatus(HttpStatusCode.BadRequest)
+            }
+
             val response = dataSource.transaction { connection ->
                 BestillingCache.add(req.saksnummer)
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
