@@ -5,7 +5,11 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.genererBrev
-import no.nav.aap.brev.kontrakt.*
+import dokumentinnhenting.util.metrics.prometheus
+import no.nav.aap.brev.kontrakt.HentSignaturDokumentinnhentingRequest
+import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingRequest
+import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
+import no.nav.aap.brev.kontrakt.Signatur
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
@@ -19,9 +23,15 @@ import java.time.LocalDateTime
 class BrevClient {
     private val baseUri = URI.create(requiredConfigForKey("integrasjon.brev.base.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.brev.scope"))
-    private val client = RestClient.withDefaultResponseHandler(config = config, tokenProvider = ClientCredentialsTokenProvider)
+    private val client = RestClient.withDefaultResponseHandler(
+        config = config, tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = prometheus
+    )
 
-    fun journalførBestilling(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime? ): JournalførBehandlerBestillingResponse {
+    fun journalførBestilling(
+        bestilling: DialogmeldingFullRecord,
+        tidligereBestillingDato: LocalDateTime?
+    ): JournalførBehandlerBestillingResponse {
         val uri = baseUri.resolve("/api/dokumentinnhenting/journalfor-behandler-bestilling")
         val body = konstruerBrev(bestilling, tidligereBestillingDato)
         val httpRequest = PostRequest(
@@ -35,7 +45,8 @@ class BrevClient {
     }
 
     fun ekspederBestilling(ekspederRequest: EkspederBestillingRequest) {
-        val uri =  baseUri.resolve("/api/dokumentinnhenting/ekspeder-journalpost-behandler-bestilling")
+        val uri =
+            baseUri.resolve("/api/dokumentinnhenting/ekspeder-journalpost-behandler-bestilling")
         val request = PostRequest(
             body = ekspederRequest,
             additionalHeaders = listOf(
@@ -43,8 +54,8 @@ class BrevClient {
             ),
         )
         try {
-            client.post(uri = uri, request = request, mapper = { _, _ -> } )
-        } catch (e : Exception) {
+            client.post(uri = uri, request = request, mapper = { _, _ -> })
+        } catch (e: Exception) {
             throw BehandlingsflytException("Feil ved forsøk på å ekspedere bestilling i brev: ${e.message}")
         }
     }
@@ -54,8 +65,11 @@ class BrevClient {
         val dokumentId: String
     )
 
-    private fun konstruerBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): JournalførBehandlerBestillingRequest {
-        val tittel = when(bestilling.dokumentasjonType) {
+    private fun konstruerBrev(
+        bestilling: DialogmeldingFullRecord,
+        tidligereBestillingDato: LocalDateTime?
+    ): JournalførBehandlerBestillingRequest {
+        val tittel = when (bestilling.dokumentasjonType) {
             DokumentasjonType.L40 -> "Forespørsel om legeerklæring og arbeidsuførhet"
             DokumentasjonType.L8 -> "Forespørsel om tilleggsopplysninger"
             DokumentasjonType.L120 -> "Forespørsel om spesialisterklæring"
@@ -84,7 +98,10 @@ class BrevClient {
     fun hentSignaturForhåndsvisning(brukerFnr: String, bestillerNavIdent: String): Signatur? {
         val uri = baseUri.resolve("/api/dokumentinnhenting/forhandsvis-signatur")
         val request = PostRequest(
-            body = HentSignaturDokumentinnhentingRequest(brukerFnr = brukerFnr, bestillerNavIdent = bestillerNavIdent),
+            body = HentSignaturDokumentinnhentingRequest(
+                brukerFnr = brukerFnr,
+                bestillerNavIdent = bestillerNavIdent
+            ),
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
             ),
@@ -93,12 +110,19 @@ class BrevClient {
     }
 
     //Todo: Flytte hele greien til sanity så vi faktisk får noe fornuftig stuktur? Brev skal også refaktorere bruken av denne
-    private fun mapPdfBrev(bestilling: DialogmeldingFullRecord, tidligereBestillingDato: LocalDateTime?): List<String> {
+    private fun mapPdfBrev(
+        bestilling: DialogmeldingFullRecord,
+        tidligereBestillingDato: LocalDateTime?
+    ): List<String> {
         val brev = genererBrev(
             BrevGenerering(
-                bestilling.personNavn, bestilling.personIdent, bestilling.fritekst, bestilling.dokumentasjonType, tidligereBestillingDato
+                bestilling.personNavn,
+                bestilling.personIdent,
+                bestilling.fritekst,
+                bestilling.dokumentasjonType,
+                tidligereBestillingDato
             )
         )
-        return brev.split("\n").map{it.replace("""\n""", "")}
+        return brev.split("\n").map { it.replace("""\n""", "") }
     }
 }

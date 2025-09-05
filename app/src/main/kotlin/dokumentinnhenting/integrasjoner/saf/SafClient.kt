@@ -1,7 +1,6 @@
 package dokumentinnhenting.integrasjoner.saf
 
-import java.net.URI
-import java.time.LocalDateTime
+import dokumentinnhenting.util.metrics.prometheus
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -10,6 +9,8 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
+import java.net.URI
+import java.time.LocalDateTime
 
 object SafClient {
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
@@ -21,7 +22,8 @@ object SafClient {
     private val client = RestClient(
         config = config,
         tokenProvider = OnBehalfOfTokenProvider,
-        responseHandler = SafResponseHandler()
+        responseHandler = SafResponseHandler(),
+        prometheus = prometheus
     )
 
     fun hentDokumenterForSak(saksnummer: Saksnummer, token: OidcToken): List<Journalpost> {

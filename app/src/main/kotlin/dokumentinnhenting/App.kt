@@ -12,19 +12,14 @@ import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.install
-import io.ktor.server.auth.authenticate
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
-import io.ktor.server.routing.routing
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
-import javax.sql.DataSource
 import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -39,6 +34,7 @@ import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import javax.sql.DataSource
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
@@ -49,7 +45,12 @@ private const val ANTALL_WORKERS = 4
 
 fun main() {
     Thread.currentThread()
-        .setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil av type ${e.javaClass}.", e) }
+        .setUncaughtExceptionHandler { _, e ->
+            SECURE_LOGGER.error(
+                "Uhåndtert feil av type ${e.javaClass}.",
+                e
+            )
+        }
     embeddedServer(Netty, configure = {
         connector {
             port = configForKey("PORT")?.toInt() ?: 8080
@@ -114,7 +115,8 @@ fun Application.module(dataSource: DataSource): Motor {
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
         logInfoProvider = NoExtraLogInfoProvider,
-        jobber = ProsesseringsJobber.alle()
+        jobber = ProsesseringsJobber.alle(),
+        prometheus = prometheus,
     )
 
     dataSource.transaction { dbConnection ->

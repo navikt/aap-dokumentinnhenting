@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.saf
 
+import dokumentinnhenting.util.metrics.prometheus
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -38,7 +39,8 @@ class SafHentDokumentGateway(private val restClient: RestClient<InputStream>) {
             return SafHentDokumentGateway(
                 RestClient.withDefaultResponseHandler(
                     config = config,
-                    tokenProvider = OnBehalfOfTokenProvider
+                    tokenProvider = OnBehalfOfTokenProvider,
+                    prometheus = prometheus
                 )
             )
         }

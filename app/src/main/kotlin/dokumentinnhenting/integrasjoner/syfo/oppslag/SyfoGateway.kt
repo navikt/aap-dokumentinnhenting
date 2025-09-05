@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.oppslag
 
+import dokumentinnhenting.util.metrics.prometheus
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
@@ -17,6 +18,7 @@ class SyfoGateway {
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
         tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = prometheus
     )
 
     fun frisøkBehandlerOppslag(frisøk: String): List<BehandlerOppslagResponse> {
@@ -28,8 +30,12 @@ class SyfoGateway {
         )
 
         try {
-            return requireNotNull(client.get(uri = URI.create("$syfoUri/api/v1/behandler/search"), request = request, mapper = { body, _ -> DefaultJsonMapper.fromJson(body)} ))
-        } catch (e : Exception) {
+            return requireNotNull(
+                client.get(
+                    uri = URI.create("$syfoUri/api/v1/behandler/search"),
+                    request = request,
+                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body) }))
+        } catch (e: Exception) {
             throw RuntimeException("Feil ved oppslag av behandler i syfo: ${e.message}")
         }
     }

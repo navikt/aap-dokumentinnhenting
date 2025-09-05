@@ -1,17 +1,16 @@
 package dokumentinnhenting.integrasjoner.dokarkiv
 
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest.Bruker
-import java.net.URI
+import dokumentinnhenting.util.metrics.prometheus
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.put
-import no.nav.aap.komponenter.httpklient.httpclient.patch
-import no.nav.aap.komponenter.httpklient.httpclient.request.ContentType
 import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.TokenProvider
+import java.net.URI
 
 class DokArkivClient(tokenProvider: TokenProvider) {
     private val baseUri = URI.create(requiredConfigForKey("integrasjon.dokarkiv.url"))
@@ -20,7 +19,8 @@ class DokArkivClient(tokenProvider: TokenProvider) {
     private val client = RestClient(
         config = config,
         tokenProvider = tokenProvider,
-        responseHandler = HåndterConflictResponseHandler()
+        responseHandler = HåndterConflictResponseHandler(),
+        prometheus = prometheus
     )
 
     fun endreTemaTilAAP(
@@ -33,7 +33,12 @@ class DokArkivClient(tokenProvider: TokenProvider) {
         )
 
         val response =
-            checkNotNull(client.put<OppdaterJournalPostRequest, OppdaterJournalpostResponse>(uri, httpRequest))
+            checkNotNull(
+                client.put<OppdaterJournalPostRequest, OppdaterJournalpostResponse>(
+                    uri,
+                    httpRequest
+                )
+            )
 
         return response.journalPostId
     }
@@ -43,10 +48,16 @@ class DokArkivClient(tokenProvider: TokenProvider) {
         request: KnyttTilAnnenSakRequest,
         token: OidcToken? = null,
     ): KnyttTilAnnenSakResponse {
-        val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak")
+        val uri =
+            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak")
         val httpRequest = PutRequest(body = request, currentToken = token)
 
-        return checkNotNull(client.put<KnyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(uri, httpRequest))
+        return checkNotNull(
+            client.put<KnyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(
+                uri,
+                httpRequest
+            )
+        )
     }
 
     fun feilregistrerSakstilknytning(
