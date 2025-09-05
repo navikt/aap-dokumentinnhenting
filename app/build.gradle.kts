@@ -26,9 +26,6 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    constraints {
-        implementation("io.netty:netty-common:4.2.3.Final")
-    }
 
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("no.nav.aap.brev:kontrakt:0.0.147")
