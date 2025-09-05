@@ -8,18 +8,24 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import org.slf4j.LoggerFactory
 
 class FiltrerDialogmeldingUtfører(private val flytJobbRepository: FlytJobbRepository) :
     JobbUtfører {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun utfør(input: JobbInput) {
         val payload: DialogmeldingMottakDTO =
             DefaultJsonMapper.fromJson<DialogmeldingMottakDTO>(input.payload())
+
+        log.info("Henter saksinfo fra behandlingsflyt for dialogmelding med journalpostId ${payload.journalpostId}")
         val saksInfo = BehandlingsflytClient.finnÅpenSakForIdentPåDato(
             payload.personIdentPasient,
             payload.mottattTidspunkt.toLocalDate()
         )
 
-        if (saksInfo?.sakOgBehandlingDTO != null && payload.journalpostId != "0" && payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null){
+        if (saksInfo?.sakOgBehandlingDTO != null && payload.journalpostId != "0" && payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
             flytJobbRepository.leggTil(
                 JobbInput(HåndterMottattDialogmeldingUtfører).medPayload(
                     DefaultJsonMapper.toJson(
