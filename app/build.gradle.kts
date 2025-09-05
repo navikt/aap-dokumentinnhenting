@@ -11,7 +11,7 @@ val ktorVersion = "3.2.3"
 val kafkaVersion = "4.1.0"
 val komponenterVersjon = "1.0.346"
 val behandlingsflytVersjon = "0.0.408"
-val tilgangVersjon = "1.0.99"
+val tilgangVersjon = "1.0.117"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
