@@ -39,7 +39,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
 
             val dokumenter = SafClient.hentDokumenterForBruker(
                 ident = req.personIdent,
-                tema = listOf("AAP", "OPP", "SYK"),
+                tema = listOf("AAP", "OPP", "SYK", "SYM"),
                 statuser = listOf(Journalstatus.JOURNALFOERT, Journalstatus.FERDIGSTILT),
                 token = token()
             )
