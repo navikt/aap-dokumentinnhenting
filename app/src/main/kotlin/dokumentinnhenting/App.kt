@@ -76,12 +76,20 @@ fun Application.server(
         exception<Throwable> { call, cause ->
             when (cause) {
                 is BehandlingsflytException -> {
-                    logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+                    logger.error(
+                        "Uhåndtert feil ved kall til '{}' av type ${cause.javaClass}. Melding: ${cause.message}",
+                        call.request.local.uri,
+                        cause
+                    )
                     call.respond(InternfeilException("Feil i behandlingsflyt: ${cause.message}"))
                 }
 
                 else -> {
-                    logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+                    logger.error(
+                        "Uhåndtert feil ved kall til '{}' av type ${cause.javaClass}. Melding: ${cause.message}",
+                        call.request.local.uri,
+                        cause
+                    )
                     call.respond(InternfeilException("Feil i tjeneste: ${cause.message}"))
                 }
             }
