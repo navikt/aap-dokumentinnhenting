@@ -35,6 +35,8 @@ import no.nav.aap.motor.retry.RetryService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
+import no.nav.aap.komponenter.httpklient.exception.ApiException
+import no.nav.aap.tilgang.respondWithError
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
@@ -71,30 +73,7 @@ fun Application.server(
         InfoModel(title = "AAP - Dokumentinnhenting")
     )
 
-    install(StatusPages) {
-        val logger = LoggerFactory.getLogger(App::class.java)
-        exception<Throwable> { call, cause ->
-            when (cause) {
-                is BehandlingsflytException -> {
-                    logger.error(
-                        "Uhåndtert feil ved kall til '{}' av type ${cause.javaClass}. Melding: ${cause.message}",
-                        call.request.local.uri,
-                        cause
-                    )
-                    call.respond(InternfeilException("Feil i behandlingsflyt: ${cause.message}"))
-                }
-
-                else -> {
-                    logger.error(
-                        "Uhåndtert feil ved kall til '{}' av type ${cause.javaClass}. Melding: ${cause.message}",
-                        call.request.local.uri,
-                        cause
-                    )
-                    call.respond(InternfeilException("Feil i tjeneste: ${cause.message}"))
-                }
-            }
-        }
-    }
+    install(StatusPages, StatusPagesConfigHelper.setup())
 
     val dataSource = initDatasource(config.DbConfig, prometheus)
     Migrering.migrate(dataSource)
