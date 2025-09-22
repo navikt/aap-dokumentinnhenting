@@ -7,3 +7,17 @@ services:
       - '5436:5432'
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
+  texas:
+    image: ghcr.io/nais/texas:latest
+    ports:
+      - "7162:7162"
+    environment:
+      AZURE_ENABLED: "true"
+      BIND_ADDRESS: "0.0.0.0:7162"
+      DOWNSTREAM_APP_NAME: dokumentinnhenting
+      DOWNSTREAM_APP_NAMESPACE: aap
+      DOWNSTREAM_APP_CLUSTER: dev-gcp
+      NAIS_POD_NAME: dokumentinnhenting-lokal
+    restart: on-failure
+    env_file:
+      - .env.dev-gcp

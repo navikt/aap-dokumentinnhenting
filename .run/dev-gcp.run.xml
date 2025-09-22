@@ -18,6 +18,9 @@
       <env name="INTEGRASJON_BREV_URL" value="https://aap-brev.intern.dev.nav.no" />
       <env name="INTEGRASJON_BREV_SCOPE" value="api://dev-gcp.aap.brev/.default" />
       <env name="INTEGRASJON_BREV_AZP" value="d1c38f80-8965-4e41-8831-8a81052ac1e9" />
+      <env name="NAIS_TOKEN_ENDPOINT" value="http://host.docker.internal:7162/api/v1/token" />
+      <env name="NAIS_TOKEN_EXCHANGE_ENDPOINT" value="http://host.docker.internal:7162/api/v1/token/exchange" />
+      <env name="NAIS_TOKEN_INTROSPECTION_ENDPOINT" value="http://host.docker.internal:7162/api/v1/introspect" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="dokumentinnhenting.AppKt" />
     <module name="dokumentinnhenting.app.main" />
