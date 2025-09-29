@@ -3,15 +3,15 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("dokumentinnhenting.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.2.3"
+    id("io.ktor.plugin") version "3.3.0"
     application
 }
 
-val ktorVersion = "3.2.3"
+val ktorVersion = "3.3.0"
 val kafkaVersion = "4.1.0"
-val komponenterVersjon = "1.0.362"
-val behandlingsflytVersjon = "0.0.408"
-val tilgangVersjon = "1.0.99"
+val komponenterVersjon = "1.0.375"
+val behandlingsflytVersjon = "0.0.446"
+val tilgangVersjon = "1.0.128"
 val jacksonVersjon = "2.20.0"
 
 application {
@@ -32,7 +32,7 @@ dependencies {
     implementation("no.nav.aap.brev:kontrakt:0.0.147")
 
     implementation(project(":dbflyway"))
-    implementation("no.nav:ktor-openapi-generator:1.0.122")
+    implementation("no.nav:ktor-openapi-generator:1.0.125")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.4")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
@@ -83,6 +83,7 @@ dependencies {
 
 tasks {
     withType<ShadowJar> {
+        duplicatesStrategy = DuplicatesStrategy.WARN
         mergeServiceFiles()
     }
     withType<Test> {
