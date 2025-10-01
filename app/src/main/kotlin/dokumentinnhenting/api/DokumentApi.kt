@@ -50,18 +50,8 @@ fun NormalOpenAPIRoute.dokumentApi() {
             respond(dokumenter)
         }
 
-        route("/sak/{saksnummer}").get<HentDokumentoversiktFagsakParams, List<Doc>> { req ->
+        route("/sak/{saksnummer}").get<HentDokumentoversiktFagsakParams, List<Journalpost>> { req ->
             val dokumenter = SafClient.hentDokumenterForSak(Saksnummer(req.saksnummer), token())
-                .flatMap(::mapTilDokumentliste)
-
-            respond(dokumenter)
-        }
-
-        // TODO: Fjerne når frontend har koblet over på bruker/helsedokumenter
-        route("/sak/{saksnummer}/helsedokumenter").get<HentDokumentoversiktFagsakParams, List<Doc>> { req ->
-            val dokumenter = SafClient.hentDokumenterForSak(Saksnummer(req.saksnummer), token())
-                .flatMap(::mapTilDokumentliste)
-                .dokumentFilterDokumentSøk()
 
             respond(dokumenter)
         }

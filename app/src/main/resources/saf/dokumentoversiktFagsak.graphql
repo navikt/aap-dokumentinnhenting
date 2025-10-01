@@ -21,6 +21,8 @@ query ($fagsakId: String!) {
             kanal
             innsynsregelBeskrivelse
             behandlingstema
+            datoOpprettet
+            tittel
             dokumenter {
                 dokumentInfoId
                 tittel
