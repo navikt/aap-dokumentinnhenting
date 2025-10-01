@@ -14,6 +14,7 @@ import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakResponse
 import dokumentinnhenting.integrasjoner.saf.*
 import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
+import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
 import io.ktor.http.*
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
@@ -51,9 +52,10 @@ fun NormalOpenAPIRoute.dokumentApi() {
         }
 
         route("/sak/{saksnummer}").get<HentDokumentoversiktFagsakParams, List<Journalpost>> { req ->
-            val dokumenter = SafClient.hentDokumenterForSak(Saksnummer(req.saksnummer), token())
+            val journalposter = SafClient.hentDokumenterForSak(Saksnummer(req.saksnummer), token())
+                .mapKunVariantformatArkiv()
 
-            respond(dokumenter)
+            respond(journalposter)
         }
 
         route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentParams, HentDokumentResponse> { req ->

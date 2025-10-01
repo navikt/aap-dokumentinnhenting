@@ -1,6 +1,7 @@
 package dokumentinnhenting.util.dokument
 
 import dokumentinnhenting.integrasjoner.saf.Doc
+import dokumentinnhenting.integrasjoner.saf.DokumentInfo
 import dokumentinnhenting.integrasjoner.saf.Journalpost
 import dokumentinnhenting.integrasjoner.saf.Journalposttype
 import dokumentinnhenting.integrasjoner.saf.RelevantDato
@@ -23,3 +24,14 @@ fun mapTilDokumentliste(journalpost: Journalpost): List<Doc> = journalpost.dokum
             )
         }
 }
+
+fun List<Journalpost>.mapKunVariantformatArkiv() = this
+    .mapNotNull {
+        val dokumenter = it.dokumenter.filter(DokumentInfo::harVariantformatArkiv)
+
+        if (dokumenter.isEmpty()) null
+        else it.copy(dokumenter = dokumenter)
+    }
+
+private fun DokumentInfo.harVariantformatArkiv(): Boolean =
+    this.dokumentvarianter.any { variant -> variant.variantformat == Variantformat.ARKIV }
