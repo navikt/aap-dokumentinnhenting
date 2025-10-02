@@ -32,7 +32,7 @@ dependencies {
     implementation("no.nav.aap.brev:kontrakt:0.0.154")
 
     implementation(project(":dbflyway"))
-    implementation("no.nav:ktor-openapi-generator:1.0.125")
+    implementation("no.nav:ktor-openapi-generator:1.0.128")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.4")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
