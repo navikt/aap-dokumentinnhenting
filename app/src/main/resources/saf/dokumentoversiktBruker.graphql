@@ -42,6 +42,7 @@ query(
             avsenderMottaker {
                 id
                 navn
+                type
                 erLikBruker
             }
             kanal
