@@ -11,7 +11,7 @@ val ktorVersion = "3.3.1"
 val kafkaVersion = "4.1.0"
 val komponenterVersjon = "1.0.401"
 val behandlingsflytVersjon = "0.0.446"
-val tilgangVersjon = "1.0.136"
+val tilgangVersjon = "1.0.137"
 val jacksonVersjon = "2.20.0"
 
 application {
