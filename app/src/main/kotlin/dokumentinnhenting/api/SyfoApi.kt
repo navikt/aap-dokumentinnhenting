@@ -42,10 +42,12 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             ) { _, req ->
             if (BestillingCache.contains(req.saksnummer)) {
                 respondWithStatus(HttpStatusCode.TooManyRequests)
+                return@authorizedPost
             }
 
             if (req.behandlerHprNr.length < 7 || req.behandlerHprNr.length > 9) {
                 respondWithStatus(HttpStatusCode.BadRequest)
+                return@authorizedPost
             }
 
             val response = dataSource.transaction { connection ->
