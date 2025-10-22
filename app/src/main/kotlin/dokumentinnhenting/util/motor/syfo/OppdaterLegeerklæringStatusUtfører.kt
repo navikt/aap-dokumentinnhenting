@@ -32,12 +32,12 @@ class OppdaterLegeerklæringStatusUtfører (
         val record = DefaultJsonMapper.fromJson<DialogmeldingStatusDTO>(input.payload())
         val bestillingId = dialogmeldingRepository.låsBestilling(UUID.fromString(record.bestillingUuid))
         val eksisterendeRecord = dialogmeldingRepository.hentByDialogId(bestillingId)
+        dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
 
         if (eksisterendeRecord != null && eksisterendeRecord.status == record.status) {
             return
         }
 
-        dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
         val avvistLegeerklæringId = UUID.randomUUID()
 
         if (record.status == MeldingStatusType.AVVIST) {
