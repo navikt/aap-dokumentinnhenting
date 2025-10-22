@@ -31,7 +31,14 @@ class OppdaterLegeerklæringStatusUtfører (
     override fun utfør(input: JobbInput) {
         val record = DefaultJsonMapper.fromJson<DialogmeldingStatusDTO>(input.payload())
         val bestillingId = dialogmeldingRepository.låsBestilling(UUID.fromString(record.bestillingUuid))
+        val eksisterendeRecord = dialogmeldingRepository.hentByDialogId(bestillingId)
         dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
+
+        if (eksisterendeRecord != null && eksisterendeRecord.status == record.status) {
+            log.info("Mottok oppdatering på dialogmelding $bestillingId uten endring i status, ${record.status}.")
+            return
+        }
+
         val avvistLegeerklæringId = UUID.randomUUID()
 
         if (record.status == MeldingStatusType.AVVIST) {
