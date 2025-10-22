@@ -35,6 +35,7 @@ class OppdaterLegeerklæringStatusUtfører (
         dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
 
         if (eksisterendeRecord != null && eksisterendeRecord.status == record.status) {
+            log.info("Mottok oppdatering på dialogmelding $bestillingId uten endring i status, ${record.status}.")
             return
         }
 
