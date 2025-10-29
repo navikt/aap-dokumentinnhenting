@@ -11,7 +11,7 @@ val ktorVersion = "3.3.1"
 val kafkaVersion = "4.1.0"
 val komponenterVersjon = "1.0.414"
 val behandlingsflytVersjon = "0.0.446"
-val tilgangVersjon = "1.0.141"
+val tilgangVersjon = "1.0.143"
 val jacksonVersjon = "2.20.0"
 
 application {
@@ -29,7 +29,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
 
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("no.nav.aap.brev:kontrakt:0.0.166")
+    implementation("no.nav.aap.brev:kontrakt:0.0.167")
 
     implementation(project(":dbflyway"))
     implementation("no.nav:ktor-openapi-generator:1.0.131")
