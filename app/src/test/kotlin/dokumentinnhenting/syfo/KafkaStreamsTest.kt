@@ -1,6 +1,5 @@
 package dokumentinnhenting.syfo
 
-import dokumentinnhenting.Fakes
 import dokumentinnhenting.integrasjoner.syfo.SYFO_STATUS_DIALOGMELDING_TOPIC
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
@@ -17,6 +16,7 @@ import dokumentinnhenting.util.kafka.CustomSerde
 import dokumentinnhenting.util.kafka.createGenericSerde
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TopologyTestDriver
@@ -31,15 +31,15 @@ import javax.sql.DataSource
 import kotlin.test.assertEquals
 
 class KafkaStreamsTest {
-    private lateinit var testDriver: TopologyTestDriver
     private lateinit var inputTopic: TestInputTopic<String, Any>
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
-    val fakes = Fakes
+
+    private lateinit var testDriver: TopologyTestDriver
+    private lateinit var dataSource: TestDataSource
 
     @BeforeEach
     fun setup() {
-        InitTestDatabase.migrate()
-        val dataSource = InitTestDatabase.freshDatabase()
+        dataSource = TestDataSource()
         val topology = createDialogmeldingStreamTopology(dataSource)
 
         val props = Properties().apply {
@@ -64,7 +64,7 @@ class KafkaStreamsTest {
     @AfterEach
     fun teardown() {
         testDriver.close()
-//        InitTestDatabase.clean()
+        dataSource.close()
     }
 
     @Test
