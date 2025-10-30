@@ -15,7 +15,6 @@ import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.CustomSerde
 import dokumentinnhenting.util.kafka.createGenericSerde
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TestInputTopic
@@ -69,7 +68,6 @@ class KafkaStreamsTest {
 
     @Test
     fun `process dialogmelding status`() {
-        val dataSource = InitTestDatabase.freshDatabase()
         val uuid = UUID.randomUUID()
         val bestillingUuid = uuid.toString()
 
@@ -106,7 +104,6 @@ class KafkaStreamsTest {
 
     @Test
     fun `process dialogmelding mottak`() {
-        val dataSource = InitTestDatabase.freshDatabase()
         val uuid = UUID.randomUUID()
 
         val saksnummer = "saksnummer"
