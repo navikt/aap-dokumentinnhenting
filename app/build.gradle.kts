@@ -12,7 +12,7 @@ val kafkaVersion = "4.1.0"
 val komponenterVersjon = "1.0.418"
 val behandlingsflytVersjon = "0.0.446"
 val tilgangVersjon = "1.0.147"
-val jacksonVersjon = "2.20.0"
+val jacksonVersjon = "2.20.1"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -66,7 +66,7 @@ dependencies {
     // Test
     testImplementation(kotlin("test"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.5")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.1")
     testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.testcontainers:postgresql:1.21.3")
