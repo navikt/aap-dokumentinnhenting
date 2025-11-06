@@ -83,11 +83,8 @@ dependencies {
 
 tasks {
     withType<ShadowJar> {
-        duplicatesStrategy = DuplicatesStrategy.WARN
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
-    }
-    withType<Test> {
-        useJUnitPlatform()
     }
 }
 

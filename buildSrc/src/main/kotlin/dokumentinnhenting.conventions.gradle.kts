@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+// Felles kode for alle build.gradle.kts filer som laster inn denne conventions pluginen
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
@@ -7,34 +7,31 @@ plugins {
 group = "no.nav.aap.dokumentinnhenting"
 version = project.findProperty("version")?.toString() ?: "0.0.0"
 
-repositories {
-    mavenCentral()
-    maven("https://packages.confluent.io/maven/")
-    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-    maven {
-        name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/navikt/behandlingsflyt")
-        credentials {
-            username = "x-access-token"
-            password = (project.findProperty("githubPassword")
-                ?: System.getenv("GITHUB_PASSWORD")
-                ?: System.getenv("GITHUB_TOKEN")
-                ?: error("")).toString()
+tasks {
+    test {
+        useJUnitPlatform()
+        maxParallelForks = 1
+        testLogging {
+            events("passed", "skipped", "failed")
         }
     }
-}
-
-tasks.test {
-    useJUnitPlatform()
-    maxParallelForks = 1
 }
 
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
     }
 }
+
+// Pass på at når vi kaller JavaExec eller Test tasks så bruker vi samme språk-versjon som vi kompilerer til
+val toolchainLauncher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(21))
+}
+tasks.withType<Test>().configureEach { javaLauncher.set(toolchainLauncher) }
+tasks.withType<JavaExec>().configureEach { javaLauncher.set(toolchainLauncher) }
 
 
 kotlin.sourceSets["main"].kotlin.srcDirs("main")
