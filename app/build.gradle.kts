@@ -3,11 +3,11 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("dokumentinnhenting.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.3.1"
+    id("io.ktor.plugin") version "3.3.2"
     application
 }
 
-val ktorVersion = "3.3.1"
+val ktorVersion = "3.3.2"
 val kafkaVersion = "4.1.0"
 val komponenterVersjon = "1.0.428"
 val behandlingsflytVersjon = "0.0.481"
@@ -33,14 +33,14 @@ dependencies {
 
     implementation(project(":dbflyway"))
     implementation("no.nav:ktor-openapi-generator:1.0.131")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
     implementation("ch.qos.logback:logback-classic:1.5.20")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-    implementation("com.nimbusds:nimbus-jose-jwt:10.5")
-    implementation("org.flywaydb:flyway-database-postgresql:11.15.0")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.6")
+    implementation("org.flywaydb:flyway-database-postgresql:11.16.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
@@ -65,7 +65,7 @@ dependencies {
 
     // Test
     testImplementation(kotlin("test"))
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.5")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
     testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.1")
     testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
