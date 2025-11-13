@@ -69,13 +69,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.1")
     testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("org.testcontainers:postgresql:1.21.3")
-    constraints {
-        implementation("org.apache.commons:commons-compress:1.28.0") {
-            because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
-        }
-        implementation("org.apache.commons:commons-lang3:3.19.0")
-    }
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.1")
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
     testImplementation("io.mockk:mockk:1.14.6")
