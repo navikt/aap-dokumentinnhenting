@@ -122,7 +122,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             )
         ) { _, req ->
             val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
-            SECURE_LOGGER.info("fritekst: '${req.fritekst}', resultat: ${behandlere.map { it.etternavn }}")
+
             respond(behandlere)
         }
 
