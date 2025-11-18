@@ -4,6 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
+import dokumentinnhenting.SECURE_LOGGER
 import dokumentinnhenting.integrasjoner.brev.BrevClient
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
@@ -30,6 +31,7 @@ import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
 import java.util.UUID
 import javax.sql.DataSource
+
 
 fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
     val syfoApiRolle = "syfo-api"
@@ -120,6 +122,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             )
         ) { _, req ->
             val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
+            SECURE_LOGGER.info("fritekst: '${req.fritekst}', resultat: ${behandlere.map { it.etternavn }}")
             respond(behandlere)
         }
 

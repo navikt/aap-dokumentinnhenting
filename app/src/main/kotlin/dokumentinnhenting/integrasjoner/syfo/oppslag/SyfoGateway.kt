@@ -11,6 +11,8 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import java.net.URI
 
+
+
 class SyfoGateway {
     private val syfoUri = requiredConfigForKey("integrasjon.syfo.base.url")
     private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.syfo.scope"))
