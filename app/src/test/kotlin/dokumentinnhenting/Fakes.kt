@@ -223,49 +223,28 @@ object Fakes : AutoCloseable {
                     call.respond(
                         listOf(
                             BehandlerOppslagResponse(
-                                "type1",
-                                UUID.randomUUID().toString(),
-                                "32341234123",
-                                "Peppa",
-                                "The",
-                                "Pig",
-                                "33333",
-                                "Fløyen Kontor",
-                                "Bergensveien",
-                                "5221",
-                                "Bergen",
-                                "11223344",
-                                "hprId"
+                                behandlerRef = UUID.randomUUID().toString(),
+                                fornavn = "Peppa",
+                                mellomnavn = "The",
+                                etternavn = "Pig",
+                                kontor = "Fløyen Kontor",
+                                hprId = "hprId"
                             ),
                             BehandlerOppslagResponse(
-                                "type2",
-                                UUID.randomUUID().toString(),
-                                "22341234123",
-                                "Ola",
-                                "Brunost",
-                                "Fårepølse",
-                                "33333",
-                                "Fløyen Kontor",
-                                "Bergensveien",
-                                "5221",
-                                "Bergen",
-                                "44332211",
-                                "hprId"
+                                behandlerRef = UUID.randomUUID().toString(),
+                                fornavn = "Ola",
+                                mellomnavn = "Brunost",
+                                etternavn = "Fårepølse",
+                                kontor = "Fløyen Kontor",
+                                hprId = "hprId"
                             ),
                             BehandlerOppslagResponse(
-                                "type3",
-                                UUID.randomUUID().toString(),
-                                "12341234123",
-                                "Kari",
-                                "",
-                                "Tau",
-                                "33333",
-                                "Fløyen Kontor",
-                                "Bergensveien",
-                                "5221",
-                                "Bergen",
-                                "22113344",
-                                "hrpId"
+                                behandlerRef = UUID.randomUUID().toString(),
+                                fornavn = "Kari",
+                                mellomnavn = "",
+                                etternavn = "Tau",
+                                kontor = "Fløyen Kontor",
+                                hprId = "hrpId"
                             ),
                         )
                     )
