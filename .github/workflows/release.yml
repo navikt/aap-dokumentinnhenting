@@ -29,12 +29,10 @@ jobs:
     secrets: inherit
 
   dev:
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'dev-gcp'
+    needs: gradle
     permissions:
       contents: read
       id-token: write
-    needs: gradle
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     concurrency: deploy-dev
     secrets: inherit
@@ -45,8 +43,7 @@ jobs:
 
   prod:
     needs: dev
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'prod-gcp'
+    if: github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp'
     permissions:
       contents: read
       id-token: write
