@@ -15,6 +15,7 @@ on:
     branches: [ main ]
     paths-ignore:
       - '.github/**'
+      - '.run/**'
 
 jobs:
   gradle:
