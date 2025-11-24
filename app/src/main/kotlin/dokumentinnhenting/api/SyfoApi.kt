@@ -121,7 +121,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
                 applicationsOnly = false
             )
         ) { _, req ->
-            val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
+            val behandlere = SyfoGateway.frisøkBehandlerOppslag(req.fritekst)
 
             respond(behandlere)
         }

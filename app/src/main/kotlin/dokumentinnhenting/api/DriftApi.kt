@@ -16,7 +16,7 @@ fun NormalOpenAPIRoute.driftApi() {
         route("/syfo/behandleroppslag/search").authorizedPost<Unit, List<BehandlerOppslagResponse>, FritekstRequest>(
             AuthorizationBodyPathConfig(operasjon = Operasjon.DRIFTE, applicationsOnly = false)
         ) { _, req ->
-            val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
+            val behandlere = SyfoGateway.frisøkBehandlerOppslag(req.fritekst)
 
             respond(behandlere)
         }

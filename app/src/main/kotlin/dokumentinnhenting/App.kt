@@ -51,6 +51,10 @@ fun main() {
                 e
             )
         }
+
+    logger.info("LANG: ${System.getenv("LANG")}")
+    logger.info("LC_ALL: ${System.getenv("LC_ALL")}")
+
     embeddedServer(Netty, configure = {
         connector {
             port = configForKey("PORT")?.toInt() ?: 8080

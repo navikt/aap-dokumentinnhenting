@@ -9,8 +9,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import org.slf4j.LoggerFactory
 
-class SyfoGateway {
+object SyfoGateway {
+    private val secureLogger = LoggerFactory.getLogger("secureLog")
+
     private val syfoUri = requiredConfigForKey("integrasjon.syfo.base.url")
     private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.syfo.scope"))
 
@@ -20,11 +23,13 @@ class SyfoGateway {
         prometheus = prometheus
     )
 
-    fun frisøkBehandlerOppslag(frisøk: String): List<BehandlerOppslagResponse> {
+    fun frisøkBehandlerOppslag(fritekst: String): List<BehandlerOppslagResponse> {
+        secureLogger.info("Mottatt forespørsel om frisøk behandleroppslag med fritekst='$fritekst'")
+
         val request = GetRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
-                Header("searchstring", frisøk)
+                Header("searchstring", fritekst)
             )
         )
 
