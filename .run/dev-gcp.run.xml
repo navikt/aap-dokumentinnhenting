@@ -15,9 +15,11 @@
       <env name="INTEGRASJON_TILGANG_URL" value="https://aap-tilgang.intern.dev.nav.no" />
       <env name="INTEGRASJON_TILGANG_SCOPE" value="api://dev-gcp.aap.tilgang/.default" />
       <env name="INTEGRASJON_TILGANG_AZP" value="0612f13d-08fb-44ff-a5ac-1233e2fec0fc" />
-      <env name="INTEGRASJON_BREV_URL" value="https://aap-brev.intern.dev.nav.no" />
+      <env name="INTEGRASJON_BREV_BASE_URL" value="https://aap-brev.intern.dev.nav.no" />
       <env name="INTEGRASJON_BREV_SCOPE" value="api://dev-gcp.aap.brev/.default" />
       <env name="INTEGRASJON_BREV_AZP" value="d1c38f80-8965-4e41-8831-8a81052ac1e9" />
+      <env name="INTEGRASJON_SYFO_BASE_URL" value="https://isdialogmelding.intern.dev.nav.no" />
+      <env name="INTEGRASJON_SYFO_SCOPE" value="api://dev-gcp.teamsykefravr.isdialogmelding/.default" />
       <env name="NAIS_TOKEN_ENDPOINT" value="http://host.docker.internal:7162/api/v1/token" />
       <env name="NAIS_TOKEN_EXCHANGE_ENDPOINT" value="http://host.docker.internal:7162/api/v1/token/exchange" />
       <env name="NAIS_TOKEN_INTROSPECTION_ENDPOINT" value="http://host.docker.internal:7162/api/v1/introspect" />
