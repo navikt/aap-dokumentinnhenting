@@ -73,7 +73,7 @@ object ClientCredentialsTokenProvider : TokenProvider {
         }
 
         log.info("Fetching new token for scope: $scope")
-        val response = httpClient.post(config.tokenEndpoint.toURL()) {
+        val response = httpClient.post(config.tokenEndpoint.toString()) {
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.FormUrlEncoded)
             header("Cache-Control", "no-cache")
@@ -121,7 +121,7 @@ object OnBehalfOfTokenProvider : TokenProvider {
         }
 
         log.info("Exchanging token for scope: $scope")
-        val response = httpClient.post(config.tokenEndpoint.toURL()) {
+        val response = httpClient.post(config.tokenEndpoint.toString()) {
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.FormUrlEncoded)
             header("Cache-Control", "no-cache")
