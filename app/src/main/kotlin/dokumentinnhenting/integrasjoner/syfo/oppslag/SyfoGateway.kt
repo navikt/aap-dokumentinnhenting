@@ -21,10 +21,12 @@ class SyfoGateway {
     )
 
     fun frisøkBehandlerOppslag(frisøk: String): List<BehandlerOppslagResponse> {
+        val searchstring = frisøk.replace(Regex("[æøåÆØÅ]"), "_")
+
         val request = GetRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
-                Header("searchstring", frisøk)
+                Header("searchstring", searchstring)
             )
         )
 
