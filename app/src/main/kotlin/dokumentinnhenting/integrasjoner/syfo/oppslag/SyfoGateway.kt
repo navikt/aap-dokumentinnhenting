@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
+import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 
@@ -21,19 +22,16 @@ class SyfoGateway {
     )
 
     fun frisøkBehandlerOppslag(frisøk: String): List<BehandlerOppslagResponse> {
-        // Hack pga. encoding-problemer med æ, ø, å mot Syfo sitt API
-        val searchstring = frisøk.replace(Regex("[æøåÆØÅ]"), "_")
-
-        val request = GetRequest(
+        val request = PostRequest(
             additionalHeaders = listOf(
                 Header("Accept", "application/json"),
-                Header("searchstring", searchstring)
-            )
+            ),
+            body = SearchRequest(frisøk)
         )
 
         try {
             return requireNotNull(
-                client.get(
+                client.post(
                     uri = URI.create("$syfoUri/api/v1/behandler/search"),
                     request = request,
                     mapper = { body, _ -> DefaultJsonMapper.fromJson(body) })
@@ -43,3 +41,7 @@ class SyfoGateway {
         }
     }
 }
+
+data class SearchRequest(
+    val searchstring: String,
+)
