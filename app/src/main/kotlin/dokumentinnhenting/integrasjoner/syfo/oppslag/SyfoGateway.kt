@@ -21,6 +21,7 @@ class SyfoGateway {
     )
 
     fun frisøkBehandlerOppslag(frisøk: String): List<BehandlerOppslagResponse> {
+        // Hack pga. encoding-problemer med æ, ø, å mot Syfo sitt API
         val searchstring = frisøk.replace(Regex("[æøåÆØÅ]"), "_")
 
         val request = GetRequest(
