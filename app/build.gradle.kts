@@ -31,6 +31,11 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("no.nav.aap.brev:kontrakt:0.0.190")
 
+    // Ktor client dependencies
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+
     implementation(project(":dbflyway"))
     implementation("no.nav:ktor-openapi-generator:1.0.131")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
@@ -44,7 +49,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
-    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon") // for exception types used in status pages
     implementation("no.nav.aap.kelvin:json:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")

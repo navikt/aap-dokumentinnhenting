@@ -1,11 +1,11 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
+import dokumentinnhenting.http.ClientCredentialsTokenProvider
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode

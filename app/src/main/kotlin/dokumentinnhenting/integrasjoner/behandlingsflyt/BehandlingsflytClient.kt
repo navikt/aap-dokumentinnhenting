@@ -1,79 +1,92 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt
 
-import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.http.ClientCredentialsTokenProvider
+import dokumentinnhenting.http.HttpClientFactory
+import io.ktor.client.call.body
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.post
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.json.DefaultJsonMapper
-import java.net.URI
 import java.time.LocalDate
-import java.util.*
 
 object BehandlingsflytClient {
-    private val uri = requiredConfigForKey("behandlingsflyt.base.url")
-    private val config = ClientConfig(scope = requiredConfigForKey("behandlingsflyt.scope"))
+    private val baseUrl = requiredConfigForKey("behandlingsflyt.base.url")
+    private val scope = requiredConfigForKey("behandlingsflyt.scope")
 
-    private val client = RestClient.withDefaultResponseHandler(
-        config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
-        prometheus = prometheus
-    )
+    private val httpClient = HttpClientFactory.create()
 
     fun taSakAvVent(taAvVentRequest: Innsending) {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = taAvVentRequest
-        )
+        runBlocking {
+            try {
+                val token = ClientCredentialsTokenProvider.getToken(scope)
+                val response = httpClient.post("$baseUrl/api/hendelse/send") {
+                    accept(ContentType.Application.Json)
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(token)
+                    setBody(taAvVentRequest)
+                }
 
-        try {
-            return requireNotNull(
-                client.post(
-                    uri = URI.create("$uri/api/hendelse/send"),
-                    request = request,
-                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body) }))
-        } catch (e: Exception) {
-            throw BehandlingsflytException("Feil ved forsøk på å ta sak av vent i behandlingsflyt: ${e.message}")
+                if (!response.status.isSuccess()) {
+                    throw BehandlingsflytException("Feil ved forsøk på å ta sak av vent i behandlingsflyt: ${response.status} - ${response.bodyAsText()}")
+                }
+            } catch (e: BehandlingsflytException) {
+                throw e
+            } catch (e: Exception) {
+                throw BehandlingsflytException("Feil ved forsøk på å ta sak av vent i behandlingsflyt: ${e.message}")
+            }
         }
     }
 
     fun sendVarslingsbrev(varselRequest: VarselOmBrevbestillingDto) {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = varselRequest
-        )
+        runBlocking {
+            try {
+                val token = ClientCredentialsTokenProvider.getToken(scope)
+                val response = httpClient.post("$baseUrl/api/brev/bestillingvarsel") {
+                    accept(ContentType.Application.Json)
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(token)
+                    setBody(varselRequest)
+                }
 
-        try {
-            val uri = URI.create("$uri/api/brev/bestillingvarsel")
-            client.post<_, Unit>(uri, request)
-        } catch (e: Exception) {
-            throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
+                if (!response.status.isSuccess()) {
+                    throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${response.status} - ${response.bodyAsText()}")
+                }
+            } catch (e: BehandlingsflytException) {
+                throw e
+            } catch (e: Exception) {
+                throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
+            }
         }
     }
 
     fun finnÅpenSakForIdentPåDato(personIdentPasient: String, toLocalDate: LocalDate): NullableSakOgBehandlingDTO? {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = FinnBehandlingForIdentDTO(personIdentPasient, toLocalDate),
-        )
+        return runBlocking {
+            try {
+                val token = ClientCredentialsTokenProvider.getToken(scope)
+                val response = httpClient.post("$baseUrl/api/sak/finnSisteBehandlinger") {
+                    accept(ContentType.Application.Json)
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(token)
+                    setBody(FinnBehandlingForIdentDTO(personIdentPasient, toLocalDate))
+                }
 
-        try {
-            return client.post(
-                    uri = URI.create(uri).resolve("/api/sak/finnSisteBehandlinger"),
-                    request = request,
-                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
-        } catch (e: Exception) {
-            throw BehandlingsflytException("Feilet ved henting av sak/behandling for ident: ${e.message}")
+                if (!response.status.isSuccess()) {
+                    throw BehandlingsflytException("Feilet ved henting av sak/behandling for ident: ${response.status} - ${response.bodyAsText()}")
+                }
+
+                response.body<NullableSakOgBehandlingDTO>()
+            } catch (e: BehandlingsflytException) {
+                throw e
+            } catch (e: Exception) {
+                throw BehandlingsflytException("Feilet ved henting av sak/behandling for ident: ${e.message}")
+            }
         }
     }
 

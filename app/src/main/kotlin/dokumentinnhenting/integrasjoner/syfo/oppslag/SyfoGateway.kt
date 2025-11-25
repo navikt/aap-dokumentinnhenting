@@ -1,42 +1,41 @@
 package dokumentinnhenting.integrasjoner.syfo.oppslag
 
-import dokumentinnhenting.util.metrics.prometheus
-import java.net.URI
+import dokumentinnhenting.http.ClientCredentialsTokenProvider
+import dokumentinnhenting.http.HttpClientFactory
+import io.ktor.client.call.body
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.json.DefaultJsonMapper
 
 class SyfoGateway {
-    private val syfoUri = requiredConfigForKey("integrasjon.syfo.base.url")
-    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.syfo.scope"))
-
-    private val client = RestClient.withDefaultResponseHandler(
-        config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
-        prometheus = prometheus
-    )
+    private val syfoUrl = requiredConfigForKey("integrasjon.syfo.base.url")
+    private val scope = requiredConfigForKey("integrasjon.syfo.scope")
+    private val httpClient = HttpClientFactory.create()
 
     fun frisøkBehandlerOppslag(frisøk: String): List<BehandlerOppslagResponse> {
-        val request = GetRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-                Header("searchstring", frisøk)
-            )
-        )
+        return runBlocking {
+            try {
+                val token = ClientCredentialsTokenProvider.getToken(scope)
+                val response = httpClient.get("$syfoUrl/api/v1/behandler/search") {
+                    accept(ContentType.Application.Json)
+                    bearerAuth(token)
+                    header("searchstring", frisøk)
+                }
 
-        try {
-            return requireNotNull(
-                client.get(
-                    uri = URI.create("$syfoUri/api/v1/behandler/search"),
-                    request = request,
-                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body) })
-            )
-        } catch (e: Exception) {
-            throw RuntimeException("Feil ved oppslag av behandler i syfo: ${e.message}")
+                if (!response.status.isSuccess()) {
+                    throw RuntimeException("Feil ved oppslag av behandler i syfo: ${response.status} - ${response.bodyAsText()}")
+                }
+
+                response.body<List<BehandlerOppslagResponse>>()
+            } catch (e: Exception) {
+                throw RuntimeException("Feil ved oppslag av behandler i syfo: ${e.message}")
+            }
         }
     }
 }

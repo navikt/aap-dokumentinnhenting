@@ -1,44 +1,39 @@
 package dokumentinnhenting.integrasjoner.saf
 
-import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.http.ClientCredentialsTokenProvider
+import dokumentinnhenting.http.HttpClientFactory
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readRawBytes
+import io.ktor.http.ContentType
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import java.net.URI
 
 class SafRestClient {
-    private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
-
-    private val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.saf.scope"),
-    )
-
-    private val client = RestClient.withDefaultResponseHandler(
-        config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
-        prometheus = prometheus
-    )
+    private val restUrl = requiredConfigForKey("integrasjon.saf.url.rest")
+    private val scope = requiredConfigForKey("integrasjon.saf.scope")
+    private val httpClient = HttpClientFactory.create()
 
     fun hentDokumentMedJournalpostId(journalpostId: String, dokumentId: String): ByteArray {
-        val request = GetRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json")
-            )
-        )
+        return runBlocking {
+            try {
+                val token = ClientCredentialsTokenProvider.getToken(scope)
+                val response = httpClient.get("$restUrl/hentdokument/$journalpostId/$dokumentId/${Variantformat.ARKIV}") {
+                    accept(ContentType.Application.Json)
+                    bearerAuth(token)
+                }
 
-        try {
-            val response = requireNotNull(
-                client.get(
-                    uri = URI.create("$restUrl/hentdokument/${journalpostId}/${dokumentId}/${Variantformat.ARKIV}"),
-                    request = request,
-                    mapper = { body, _ -> body })
-            )
-            return response.readAllBytes()
-        } catch (e: Exception) {
-            throw RuntimeException("Feil ved henting av dokument i saf: ${e.message}", e)
+                if (!response.status.isSuccess()) {
+                    throw RuntimeException("Feil ved henting av dokument i saf: ${response.status} - ${response.bodyAsText()}")
+                }
+
+                response.readRawBytes()
+            } catch (e: Exception) {
+                throw RuntimeException("Feil ved henting av dokument i saf: ${e.message}", e)
+            }
         }
     }
 }

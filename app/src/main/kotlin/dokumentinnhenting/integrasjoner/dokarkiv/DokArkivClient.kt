@@ -1,85 +1,121 @@
 package dokumentinnhenting.integrasjoner.dokarkiv
 
+import dokumentinnhenting.http.HttpClientFactory
+import dokumentinnhenting.http.OnBehalfOfTokenProvider
+import dokumentinnhenting.http.TokenProvider
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest.Bruker
-import dokumentinnhenting.util.metrics.prometheus
+import io.ktor.client.call.body
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.patch
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.put
-import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
-import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.TokenProvider
-import java.net.URI
+import org.slf4j.LoggerFactory
 
-class DokArkivClient(tokenProvider: TokenProvider) {
-    private val baseUri = URI.create(requiredConfigForKey("integrasjon.dokarkiv.url"))
-    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.dokarkiv.scope"))
-
-    private val client = RestClient(
-        config = config,
-        tokenProvider = tokenProvider,
-        responseHandler = HåndterConflictResponseHandler(),
-        prometheus = prometheus
-    )
+class DokArkivClient(private val tokenProvider: TokenProvider = OnBehalfOfTokenProvider) {
+    private val baseUrl = requiredConfigForKey("integrasjon.dokarkiv.url")
+    private val scope = requiredConfigForKey("integrasjon.dokarkiv.scope")
+    private val httpClient = HttpClientFactory.create()
+    private val log = LoggerFactory.getLogger(DokArkivClient::class.java)
 
     fun endreTemaTilAAP(
         journalpostId: String,
     ): String {
-        val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
-        val request = OppdaterJournalPostRequest(journalpostId)
-        val httpRequest = PutRequest(
-            body = request,
-        )
+        return runBlocking {
+            val token = tokenProvider.getToken(scope)
+            val request = OppdaterJournalPostRequest(journalpostId)
 
-        val response =
-            checkNotNull(
-                client.put<OppdaterJournalPostRequest, OppdaterJournalpostResponse>(
-                    uri,
-                    httpRequest
-                )
-            )
+            val response = httpClient.put("$baseUrl/rest/journalpostapi/v1/journalpost/$journalpostId") {
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.Json)
+                bearerAuth(token)
+                setBody(request)
+            }
 
-        return response.journalPostId
+            if (!response.status.isSuccess() && response.status != HttpStatusCode.Conflict) {
+                throw RuntimeException("Failed to update journalpost tema: ${response.status} - ${response.bodyAsText()}")
+            }
+
+            if (response.status == HttpStatusCode.Conflict) {
+                log.warn("Got HTTP 409 Conflict when updating journalpost. Attempting to parse response as expected.")
+            }
+
+            response.body<OppdaterJournalpostResponse>().journalPostId
+        }
     }
 
     fun knyttJournalpostTilAnnenSak(
         kildeJournalpostId: String,
         request: KnyttTilAnnenSakRequest,
-        token: OidcToken? = null,
+        currentToken: String? = null,
     ): KnyttTilAnnenSakResponse {
-        val uri =
-            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak")
-        val httpRequest = PutRequest(body = request, currentToken = token)
+        return runBlocking {
+            val token = tokenProvider.getToken(scope, currentToken)
 
-        return checkNotNull(
-            client.put<KnyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(
-                uri,
-                httpRequest
-            )
-        )
+            val response = httpClient.put("$baseUrl/rest/journalpostapi/v1/journalpost/$kildeJournalpostId/knyttTilAnnenSak") {
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.Json)
+                bearerAuth(token)
+                setBody(request)
+            }
+
+            if (!response.status.isSuccess() && response.status != HttpStatusCode.Conflict) {
+                throw RuntimeException("Failed to link journalpost to another sak: ${response.status} - ${response.bodyAsText()}")
+            }
+
+            if (response.status == HttpStatusCode.Conflict) {
+                log.warn("Got HTTP 409 Conflict. Attempting to parse response as expected.")
+            }
+
+            response.body<KnyttTilAnnenSakResponse>()
+        }
     }
 
     fun feilregistrerSakstilknytning(
         kildeJournalpostId: String,
-        token: OidcToken? = null,
+        currentToken: String? = null,
     ) {
-        val uri =
-            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/feilregistrerSakstilknytning")
-        val httpRequest = PatchRequest(body = Unit, currentToken = token)
+        runBlocking {
+            val token = tokenProvider.getToken(scope, currentToken)
 
-        return checkNotNull(client.patch(uri, httpRequest) { _, _ -> })
+            val response = httpClient.patch("$baseUrl/rest/journalpostapi/v1/journalpost/$kildeJournalpostId/feilregistrer/feilregistrerSakstilknytning") {
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.Json)
+                bearerAuth(token)
+                setBody(Unit)
+            }
+
+            if (!response.status.isSuccess() && response.status != HttpStatusCode.Conflict) {
+                throw RuntimeException("Failed to feilregistrer sakstilknytning: ${response.status} - ${response.bodyAsText()}")
+            }
+        }
     }
 
     fun opphevFeilregistrertSakstilknytning(
         kildeJournalpostId: String,
-        token: OidcToken? = null,
+        currentToken: String? = null,
     ) {
-        val uri =
-            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/opphevFeilregistrertSakstilknytning")
-        val httpRequest = PatchRequest(body = Unit, currentToken = token)
+        runBlocking {
+            val token = tokenProvider.getToken(scope, currentToken)
 
-        return checkNotNull(client.patch(uri, httpRequest) { _, _ -> })
+            val response = httpClient.patch("$baseUrl/rest/journalpostapi/v1/journalpost/$kildeJournalpostId/feilregistrer/opphevFeilregistrertSakstilknytning") {
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.Json)
+                bearerAuth(token)
+                setBody(Unit)
+            }
+
+            if (!response.status.isSuccess() && response.status != HttpStatusCode.Conflict) {
+                throw RuntimeException("Failed to opphev feilregistrert sakstilknytning: ${response.status} - ${response.bodyAsText()}")
+            }
+        }
     }
 }
 
