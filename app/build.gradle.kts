@@ -3,11 +3,11 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("dokumentinnhenting.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.3.2"
+    id("io.ktor.plugin") version "3.3.3"
     application
 }
 
-val ktorVersion = "3.3.2"
+val ktorVersion = "3.3.3"
 val kafkaVersion = "4.1.0"
 val komponenterVersjon = "1.0.450"
 val behandlingsflytVersjon = "0.0.493"
@@ -40,7 +40,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.6")
-    implementation("org.flywaydb:flyway-database-postgresql:11.17.1")
+    implementation("org.flywaydb:flyway-database-postgresql:11.17.2")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
