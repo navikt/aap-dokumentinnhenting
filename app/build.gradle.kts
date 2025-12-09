@@ -72,7 +72,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.2")
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
-    testImplementation("io.mockk:mockk:1.14.6")
+    testImplementation("io.mockk:mockk:1.14.7")
 }
 
 tasks {
