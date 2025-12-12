@@ -33,14 +33,14 @@ dependencies {
 
     implementation(project(":dbflyway"))
     implementation("no.nav:ktor-openapi-generator:1.0.131")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
     implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.6")
-    implementation("org.flywaydb:flyway-database-postgresql:11.18.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.19.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
