@@ -3,9 +3,9 @@ package dokumentinnhenting.api
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.behandlingsflyt.VarselOmBrevbestillingDto
-import dokumentinnhenting.integrasjoner.brev.BrevClient
+import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import io.ktor.http.*
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
@@ -35,7 +35,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 applicationsOnly = true)
         ) { _, req ->
 
-            val behandlingsflytClient = BehandlingsflytClient
+            val behandlingsflytClient = BehandlingsflytGateway
             val avvistLegeerklæringId = UUID.randomUUID()
             behandlingsflytClient.taSakAvVent(
                 Innsending(
@@ -60,9 +60,9 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
-                val brevClient = BrevClient()
-                brevClient.ekspederBestilling(
-                    BrevClient.EkspederBestillingRequest(
+                val brevGateway = BrevGateway()
+                brevGateway.ekspederBestilling(
+                    BrevGateway.EkspederBestillingRequest(
                         fullRecord.journalpostId!!, fullRecord.dokumentId!!
                     ))
             }
@@ -79,7 +79,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
-                val behandlingsflytClient = BehandlingsflytClient
+                val behandlingsflytClient = BehandlingsflytGateway
                 behandlingsflytClient.sendVarslingsbrev(
                     VarselOmBrevbestillingDto(
                         BehandlingReferanse(

@@ -1,7 +1,7 @@
 package dokumentinnhenting.util.motor.syfo.syfosteg
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dokumentinnhenting.integrasjoner.saf.SafRestClient
+import dokumentinnhenting.integrasjoner.saf.SafRestGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.config.ProducerConfig
@@ -55,7 +55,7 @@ class BestillLegeerklæringSteg(
     }
 
     private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, record: DialogmeldingFullRecord): DialogmeldingToBehandlerBestillingDTO {
-        val pdfBrev: ByteArray = SafRestClient().hentDokumentMedJournalpostId(
+        val pdfBrev: ByteArray = SafRestGateway().hentDokumentMedJournalpostId(
             requireNotNull(record.journalpostId), requireNotNull(record.dokumentId)
         )
 

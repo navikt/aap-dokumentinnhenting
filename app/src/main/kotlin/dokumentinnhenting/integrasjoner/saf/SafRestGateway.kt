@@ -9,7 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import java.net.URI
 
-class SafRestClient {
+class SafRestGateway {
     private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
 
     private val config = ClientConfig(

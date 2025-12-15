@@ -12,7 +12,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBeha
 import java.net.URI
 import java.time.LocalDateTime
 
-object SafClient {
+object SafGateway {
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.graphql"))
 
     private val config = ClientConfig(

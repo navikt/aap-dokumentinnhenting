@@ -1,6 +1,6 @@
 package dokumentinnhenting.util.motor.syfo
 
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.behandlingsflyt.VarselOmBrevbestillingDto
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
@@ -13,7 +13,7 @@ import no.nav.aap.motor.JobbUtfører
 
 class SendVarslingsbrevUtfører : JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val behandlingsflytClient = BehandlingsflytClient
+        val behandlingsflytClient = BehandlingsflytGateway
 
         val record = DefaultJsonMapper.fromJson<DialogmeldingFullRecord>(input.payload())
 

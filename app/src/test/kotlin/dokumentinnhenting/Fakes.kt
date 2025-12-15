@@ -2,7 +2,7 @@ package dokumentinnhenting
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.saf.*
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import io.ktor.http.*
@@ -122,8 +122,8 @@ object Fakes : AutoCloseable {
         routing {
             post("/api/sak/finnSisteBehandlinger") {
                 call.respond(
-                    BehandlingsflytClient.NullableSakOgBehandlingDTO(
-                        BehandlingsflytClient.SakOgBehandling(
+                    BehandlingsflytGateway.NullableSakOgBehandlingDTO(
+                        BehandlingsflytGateway.SakOgBehandling(
                             personIdent = "personIdentPasient",
                             saksnummer = "saksnummer",
                             "",

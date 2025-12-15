@@ -1,7 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
-import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
+import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -21,7 +21,7 @@ class dummyJobbUtfører : JobbUtfører {
 }
 
 class HåndterMottattDialogmeldingUtfører(
-    private val dokArkivClient: DokArkivClient,
+    private val dokArkivGateway: DokarkivGateway,
     private val flytJobbRepository: FlytJobbRepository,
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
@@ -34,7 +34,7 @@ class HåndterMottattDialogmeldingUtfører(
             return dummyJobbUtfører().utfør(input)
         }
 
-        dokArkivClient.knyttJournalpostTilAnnenSak(
+        dokArkivGateway.knyttJournalpostTilAnnenSak(
             record.journalpostId,
             KnyttTilAnnenSakRequest(
                 OpprettJournalpostRequest.Bruker(
@@ -55,7 +55,7 @@ class HåndterMottattDialogmeldingUtfører(
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return HåndterMottattDialogmeldingUtfører(
-                DokArkivClient(ClientCredentialsTokenProvider),
+                DokarkivGateway(ClientCredentialsTokenProvider),
                 FlytJobbRepository(connection)
             )
         }

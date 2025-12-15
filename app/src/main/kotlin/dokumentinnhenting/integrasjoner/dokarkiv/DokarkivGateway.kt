@@ -12,7 +12,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.TokenProvider
 import java.net.URI
 
-class DokArkivClient(tokenProvider: TokenProvider) {
+class DokarkivGateway(tokenProvider: TokenProvider) {
     private val baseUri = URI.create(requiredConfigForKey("integrasjon.dokarkiv.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.dokarkiv.scope"))
 

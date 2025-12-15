@@ -1,6 +1,6 @@
 package dokumentinnhenting.util.motor.syfo.syfosteg
 
-import dokumentinnhenting.integrasjoner.brev.BrevClient
+import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.slf4j.LoggerFactory
@@ -8,7 +8,7 @@ import java.util.*
 
 class JournalførBestillingSteg(
     private val dialogmeldingRepository: DialogmeldingRepository,
-    private val brevClient: BrevClient
+    private val brevGateway: BrevGateway
 ): SyfoSteg.Utfører {
     private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
 
@@ -21,7 +21,7 @@ class JournalførBestillingSteg(
         override fun konstruer(connection: DBConnection): SyfoSteg.Utfører {
             return JournalførBestillingSteg(
                 DialogmeldingRepository(connection),
-                BrevClient()
+                BrevGateway()
             )
         }
     }
@@ -32,7 +32,7 @@ class JournalførBestillingSteg(
         val tidligereTilhørendeBestillingsdato = bestilling.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
 
         try {
-            val journalpostResponse = brevClient.journalførBestilling(bestilling, tidligereTilhørendeBestillingsdato)
+            val journalpostResponse = brevGateway.journalførBestilling(bestilling, tidligereTilhørendeBestillingsdato)
             val dokumentId = journalpostResponse.dokumenter[0]
 
             if (!journalpostResponse.journalpostFerdigstilt) {
