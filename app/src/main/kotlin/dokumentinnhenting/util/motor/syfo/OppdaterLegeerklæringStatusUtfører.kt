@@ -43,9 +43,9 @@ class OppdaterLegeerklæringStatusUtfører (
 
         if (record.status == MeldingStatusType.AVVIST) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
-            val behandlingsflytClient = BehandlingsflytGateway
+            val behandlingsflytGateway = BehandlingsflytGateway
             log.info("Avvist dialogmelding. Kaller behandlingsflyt. Sak: ${sak.saksnummer}")
-            behandlingsflytClient.taSakAvVent(
+            behandlingsflytGateway.taSakAvVent(
                 Innsending(
                     saksnummer = Saksnummer(sak.saksnummer),
                     referanse = InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),

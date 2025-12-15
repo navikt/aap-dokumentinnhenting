@@ -14,14 +14,14 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.dokument.Kanal
 
-class TaSakAvVentUtfører(private val behandlingsflytClient: BehandlingsflytGateway) : JobbUtfører {
+class TaSakAvVentUtfører(private val behandlingsflytGateway: BehandlingsflytGateway) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
 
         val record = payload.dialogmeldingMottatt
         val sakOgBehandling = payload.sakOgBehandling
 
-        behandlingsflytClient.taSakAvVent(
+        behandlingsflytGateway.taSakAvVent(
             Innsending(
                 Saksnummer(sakOgBehandling.saksnummer),
                 referanse = InnsendingReferanse(

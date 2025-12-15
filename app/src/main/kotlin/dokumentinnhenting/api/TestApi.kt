@@ -35,9 +35,9 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 applicationsOnly = true)
         ) { _, req ->
 
-            val behandlingsflytClient = BehandlingsflytGateway
+            val behandlingsflytGateway = BehandlingsflytGateway
             val avvistLegeerklæringId = UUID.randomUUID()
-            behandlingsflytClient.taSakAvVent(
+            behandlingsflytGateway.taSakAvVent(
                 Innsending(
                     saksnummer = Saksnummer(req.saksnummer),
                     referanse = InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
@@ -60,8 +60,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
-                val brevGateway = BrevGateway()
-                brevGateway.ekspederBestilling(
+                BrevGateway().ekspederBestilling(
                     BrevGateway.EkspederBestillingRequest(
                         fullRecord.journalpostId!!, fullRecord.dokumentId!!
                     ))
@@ -79,8 +78,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
-                val behandlingsflytClient = BehandlingsflytGateway
-                behandlingsflytClient.sendVarslingsbrev(
+                BehandlingsflytGateway.sendVarslingsbrev(
                     VarselOmBrevbestillingDto(
                         BehandlingReferanse(
                             fullRecord.behandlingsReferanse
