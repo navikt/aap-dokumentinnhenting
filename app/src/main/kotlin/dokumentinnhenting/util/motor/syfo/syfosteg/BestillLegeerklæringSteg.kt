@@ -12,6 +12,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.util.*
+import kotlinx.coroutines.runBlocking
 
 const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-behandler-dialogmelding-bestilling"
 const val KILDE = "AAP"
@@ -55,9 +56,11 @@ class BestillLegeerklæringSteg(
     }
 
     private fun mapToDialogMeldingBestilling(dialogmeldingUuid: UUID, record: DialogmeldingFullRecord): DialogmeldingToBehandlerBestillingDTO {
-        val pdfBrev: ByteArray = SafRestGateway().hentDokumentMedJournalpostId(
-            requireNotNull(record.journalpostId), requireNotNull(record.dokumentId)
-        )
+        val pdfBrev: ByteArray = runBlocking {
+            SafRestGateway.hentDokumentMedJournalpostId(
+                requireNotNull(record.journalpostId), requireNotNull(record.dokumentId)
+            )
+        }
 
         val kodeStruktur = mapDialogmeldingKodeStruktur(record.dokumentasjonType)
         return DialogmeldingToBehandlerBestillingDTO(

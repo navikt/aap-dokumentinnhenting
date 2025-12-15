@@ -30,6 +30,7 @@ import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
 import java.util.UUID
 import javax.sql.DataSource
+import no.nav.aap.komponenter.server.auth.token
 
 
 fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
@@ -120,7 +121,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
                 applicationsOnly = false
             )
         ) { _, req ->
-            val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst)
+            val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst, token().token())
 
             respond(behandlere)
         }

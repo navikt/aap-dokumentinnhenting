@@ -1,60 +1,51 @@
 package dokumentinnhenting.integrasjoner.brev
 
+import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
+import dokumentinnhenting.integrasjoner.azure.defaultHttpClient
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.genererBrev
-import dokumentinnhenting.util.metrics.prometheus
+import io.ktor.client.call.body
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import java.time.LocalDateTime
 import no.nav.aap.brev.kontrakt.HentSignaturDokumentinnhentingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
 import no.nav.aap.brev.kontrakt.Signatur
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.post
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import java.net.URI
-import java.time.LocalDateTime
 
 class BrevGateway {
-    private val baseUri = URI.create(requiredConfigForKey("integrasjon.brev.base.url"))
-    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.brev.scope"))
-    private val client = RestClient.withDefaultResponseHandler(
-        config = config, tokenProvider = ClientCredentialsTokenProvider,
-        prometheus = prometheus
-    )
+    private val baseUri = requiredConfigForKey("integrasjon.brev.base.url")
+    private val scope = requiredConfigForKey("integrasjon.brev.scope")
 
-    fun journalførBestilling(
+    suspend fun journalførBestilling(
         bestilling: DialogmeldingFullRecord,
-        tidligereBestillingDato: LocalDateTime?
+        tidligereBestillingDato: LocalDateTime?,
     ): JournalførBehandlerBestillingResponse {
-        val uri = baseUri.resolve("/api/dokumentinnhenting/journalfor-behandler-bestilling")
-        val body = konstruerBrev(bestilling, tidligereBestillingDato)
-        val httpRequest = PostRequest(
-            body = body,
-            additionalHeaders = listOf(
-                Header("Nav-Consumer-Id", "aap-dokumentinnhenting"),
-                Header("Accept", "application/json")
-            )
-        )
-        return requireNotNull(client.post(uri, httpRequest))
+        return defaultHttpClient.post("$baseUri/api/dokumentinnhenting/journalfor-behandler-bestilling") {
+            bearerAuth(SystemTokenProvider.getToken(scope, null))
+            header("Nav-Consumer-Id", "aap-dokumentinnhenting")
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
+            setBody(konstruerBrev(bestilling, tidligereBestillingDato))
+        }.body()
     }
 
-    fun ekspederBestilling(ekspederRequest: EkspederBestillingRequest) {
-        val uri =
-            baseUri.resolve("/api/dokumentinnhenting/ekspeder-journalpost-behandler-bestilling")
-        val request = PostRequest(
-            body = ekspederRequest,
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-        )
+    suspend fun ekspederBestilling(ekspederRequest: EkspederBestillingRequest) {
         try {
-            client.post(uri = uri, request = request, mapper = { _, _ -> })
+            defaultHttpClient.post("$baseUri/api/dokumentinnhenting/ekspeder-journalpost-behandler-bestilling") {
+                bearerAuth(SystemTokenProvider.getToken(scope, null))
+                contentType(ContentType.Application.Json)
+                setBody(ekspederRequest)
+            }
         } catch (e: Exception) {
             throw BehandlingsflytException("Feil ved forsøk på å ekspedere bestilling i brev: ${e.message}")
         }
@@ -62,12 +53,12 @@ class BrevGateway {
 
     data class EkspederBestillingRequest(
         val journalpostId: String,
-        val dokumentId: String
+        val dokumentId: String,
     )
 
     private fun konstruerBrev(
         bestilling: DialogmeldingFullRecord,
-        tidligereBestillingDato: LocalDateTime?
+        tidligereBestillingDato: LocalDateTime?,
     ): JournalførBehandlerBestillingRequest {
         val tittel = when (bestilling.dokumentasjonType) {
             DokumentasjonType.L40 -> "Forespørsel om legeerklæring og arbeidsuførhet"
@@ -95,24 +86,23 @@ class BrevGateway {
         return request
     }
 
-    fun hentSignaturForhåndsvisning(brukerFnr: String, bestillerNavIdent: String): Signatur? {
-        val uri = baseUri.resolve("/api/dokumentinnhenting/forhandsvis-signatur")
-        val request = PostRequest(
-            body = HentSignaturDokumentinnhentingRequest(
-                brukerFnr = brukerFnr,
-                bestillerNavIdent = bestillerNavIdent
-            ),
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
+    suspend fun hentSignaturForhåndsvisning(brukerFnr: String, bestillerNavIdent: String): Signatur? {
+        val request = HentSignaturDokumentinnhentingRequest(
+            brukerFnr = brukerFnr,
+            bestillerNavIdent = bestillerNavIdent
         )
-        return client.post(uri = uri, request = request)
+        return defaultHttpClient.post("$baseUri/api/dokumentinnhenting/forhandsvis-signatur") {
+            bearerAuth(SystemTokenProvider.getToken(scope, null))
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
     }
 
     //Todo: Flytte hele greien til sanity så vi faktisk får noe fornuftig stuktur? Brev skal også refaktorere bruken av denne
     private fun mapPdfBrev(
         bestilling: DialogmeldingFullRecord,
-        tidligereBestillingDato: LocalDateTime?
+        tidligereBestillingDato: LocalDateTime?,
     ): List<String> {
         val brev = genererBrev(
             BrevGenerering(

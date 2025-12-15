@@ -20,6 +20,7 @@ import no.nav.aap.verdityper.dokument.Kanal
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
+import kotlinx.coroutines.runBlocking
 
 class OppdaterLegeerklæringStatusUtfører (
     private val dialogmeldingRepository: DialogmeldingRepository,
@@ -59,12 +60,13 @@ class OppdaterLegeerklæringStatusUtfører (
         }
         else if (record.status == MeldingStatusType.OK) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
-            val brevGateway = BrevGateway()
-            brevGateway.ekspederBestilling(
-                BrevGateway.EkspederBestillingRequest(
-                    requireNotNull(sak.journalpostId), (requireNotNull(sak.dokumentId))
+            runBlocking {
+                BrevGateway().ekspederBestilling(
+                    BrevGateway.EkspederBestillingRequest(
+                        requireNotNull(sak.journalpostId), (requireNotNull(sak.dokumentId))
+                    )
                 )
-            )
+            }
 
             if (sak.dokumentasjonType.skalVarsleBruker()) {
                 val jobb =

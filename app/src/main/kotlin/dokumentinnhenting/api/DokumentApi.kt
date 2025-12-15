@@ -8,6 +8,7 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
+import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakResponse
@@ -59,14 +60,13 @@ fun NormalOpenAPIRoute.dokumentApi() {
         }
 
         route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentParams, HentDokumentResponse> { req ->
-            val gateway = SafHentDokumentGateway.withDefaultRestClient()
-            val response = gateway.hentDokument(req.journalpostId, req.dokumentinfoId, token())
+            val response = SafHentDokumentGateway.hentDokument(req.journalpostId, req.dokumentinfoId, token())
 
             respond(HentDokumentResponse(response.dokument))
         }
 
         route("/{journalpostId}/knyttTilAnnenSak").post<JournalpostIdParams, KnyttTilAnnenSakResponse, KnyttTilAnnenSakRequest> { params, req ->
-            val gateway = DokarkivGateway(OnBehalfOfTokenProvider)
+            val gateway = DokarkivGateway(OboTokenProvider)
 
             val dokarkivResponse =
                 gateway.knyttJournalpostTilAnnenSak(params.journalpostId, req, token())
@@ -75,7 +75,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
         }
 
         route("/{journalpostId}/feilregistrer/feilregistrerSakstilknytning").post<JournalpostIdParams, String, Unit> { params, _ ->
-            val gateway = DokarkivGateway(OnBehalfOfTokenProvider)
+            val gateway = DokarkivGateway(OboTokenProvider)
 
             gateway.feilregistrerSakstilknytning(params.journalpostId, token())
 
@@ -83,7 +83,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
         }
 
         route("/{journalpostId}/feilregistrer/opphevFeilregistrertSakstilknytning").post<JournalpostIdParams, String, Unit> { params, _ ->
-            val gateway = DokarkivGateway(OnBehalfOfTokenProvider)
+            val gateway = DokarkivGateway(OboTokenProvider)
 
             gateway.opphevFeilregistrertSakstilknytning(params.journalpostId, token())
 

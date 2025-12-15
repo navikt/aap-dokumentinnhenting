@@ -1,85 +1,50 @@
 package dokumentinnhenting.integrasjoner.dokarkiv
 
+import dokumentinnhenting.integrasjoner.azure.TokenProviderV2
+import dokumentinnhenting.integrasjoner.azure.defaultHttpClient
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest.Bruker
-import dokumentinnhenting.util.metrics.prometheus
+import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.patch
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.put
-import no.nav.aap.komponenter.httpklient.httpclient.request.PatchRequest
-import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.TokenProvider
-import java.net.URI
 
-class DokarkivGateway(tokenProvider: TokenProvider) {
-    private val baseUri = URI.create(requiredConfigForKey("integrasjon.dokarkiv.url"))
-    val config = ClientConfig(scope = requiredConfigForKey("integrasjon.dokarkiv.scope"))
+class DokarkivGateway(private val tokenProvider: TokenProviderV2) {
+    private val baseUri = requiredConfigForKey("integrasjon.dokarkiv.url")
+    private val scope = requiredConfigForKey("integrasjon.dokarkiv.scope")
 
-    private val client = RestClient(
-        config = config,
-        tokenProvider = tokenProvider,
-        responseHandler = HåndterConflictResponseHandler(),
-        prometheus = prometheus
-    )
-
-    fun endreTemaTilAAP(
-        journalpostId: String,
-    ): String {
-        val uri = baseUri.resolve("/rest/journalpostapi/v1/journalpost/${journalpostId}")
-        val request = OppdaterJournalPostRequest(journalpostId)
-        val httpRequest = PutRequest(
-            body = request,
-        )
-
-        val response =
-            checkNotNull(
-                client.put<OppdaterJournalPostRequest, OppdaterJournalpostResponse>(
-                    uri,
-                    httpRequest
-                )
-            )
-
-        return response.journalPostId
-    }
-
-    fun knyttJournalpostTilAnnenSak(
+    suspend fun knyttJournalpostTilAnnenSak(
         kildeJournalpostId: String,
         request: KnyttTilAnnenSakRequest,
         token: OidcToken? = null,
     ): KnyttTilAnnenSakResponse {
-        val uri =
-            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak")
-        val httpRequest = PutRequest(body = request, currentToken = token)
-
-        return checkNotNull(
-            client.put<KnyttTilAnnenSakRequest, KnyttTilAnnenSakResponse>(
-                uri,
-                httpRequest
-            )
-        )
+        return defaultHttpClient.put("$baseUri/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak") {
+            bearerAuth(tokenProvider.getToken(scope, token?.token()))
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
     }
 
-    fun feilregistrerSakstilknytning(
+    suspend fun feilregistrerSakstilknytning(
         kildeJournalpostId: String,
         token: OidcToken? = null,
     ) {
-        val uri =
-            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/feilregistrerSakstilknytning")
-        val httpRequest = PatchRequest(body = Unit, currentToken = token)
-
-        return checkNotNull(client.patch(uri, httpRequest) { _, _ -> })
+        defaultHttpClient.patch("$baseUri/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/feilregistrerSakstilknytning") {
+            bearerAuth(tokenProvider.getToken(scope, token?.token()))
+        }
     }
 
-    fun opphevFeilregistrertSakstilknytning(
+    suspend fun opphevFeilregistrertSakstilknytning(
         kildeJournalpostId: String,
         token: OidcToken? = null,
     ) {
-        val uri =
-            baseUri.resolve("/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/opphevFeilregistrertSakstilknytning")
-        val httpRequest = PatchRequest(body = Unit, currentToken = token)
-
-        return checkNotNull(client.patch(uri, httpRequest) { _, _ -> })
+        defaultHttpClient.patch("$baseUri/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/opphevFeilregistrertSakstilknytning") {
+            bearerAuth(tokenProvider.getToken(scope, token?.token()))
+        }
     }
 }
 
@@ -94,16 +59,4 @@ data class KnyttTilAnnenSakRequest(
 
 data class KnyttTilAnnenSakResponse(
     val nyJournalpostId: String,
-)
-
-data class OppdaterJournalPostRequest(
-    val tema: String = "AAP",
-)
-
-data class OppdaterJournalpostResponse(
-    val journalPostId: String,
-)
-
-data class KopierJournalpostResponse(
-    val kopierJournalpostId: String,
 )
