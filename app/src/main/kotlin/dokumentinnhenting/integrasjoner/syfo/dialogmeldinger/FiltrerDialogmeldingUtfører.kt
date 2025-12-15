@@ -1,6 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -20,7 +20,7 @@ class FiltrerDialogmeldingUtfører(private val flytJobbRepository: FlytJobbRepos
             DefaultJsonMapper.fromJson<DialogmeldingMottakDTO>(input.payload())
 
         log.info("Henter saksinfo fra behandlingsflyt for dialogmelding med journalpostId ${payload.journalpostId}")
-        val saksInfo = BehandlingsflytClient.finnÅpenSakForIdentPåDato(
+        val saksInfo = BehandlingsflytGateway.finnÅpenSakForIdentPåDato(
             payload.personIdentPasient,
             payload.mottattTidspunkt.toLocalDate()
         )

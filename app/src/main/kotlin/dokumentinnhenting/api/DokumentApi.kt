@@ -8,7 +8,7 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
-import dokumentinnhenting.integrasjoner.dokarkiv.DokArkivClient
+import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakResponse
 import dokumentinnhenting.integrasjoner.saf.*
@@ -24,7 +24,7 @@ import java.io.InputStream
 fun NormalOpenAPIRoute.dokumentApi() {
     route("/api/dokumenter").tag(Tags.Dokumenter) {
         route("/bruker").post<Unit, List<Journalpost>, HentDokumentoversiktBrukerRequest> { _, req ->
-            val dokumenter = SafClient.hentDokumenterForBruker(
+            val dokumenter = SafGateway.hentDokumenterForBruker(
                 ident = req.personIdent,
                 tema = req.tema,
                 typer = req.typer,
@@ -38,7 +38,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
         route("/bruker/helsedokumenter").post<Unit, List<Doc>, HentDokumentoversiktBrukerRequest> { _, req ->
             val saksnummer = requireNotNull(req.saksnummer)
 
-            val dokumenter = SafClient.hentDokumenterForBruker(
+            val dokumenter = SafGateway.hentDokumenterForBruker(
                 ident = req.personIdent,
                 tema = listOf("AAP", "OPP", "SYK", "SYM"),
                 statuser = listOf(Journalstatus.JOURNALFOERT, Journalstatus.FERDIGSTILT),
@@ -52,7 +52,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
         }
 
         route("/sak/{saksnummer}").get<HentDokumentoversiktFagsakParams, List<Journalpost>> { req ->
-            val journalposter = SafClient.hentDokumenterForSak(Saksnummer(req.saksnummer), token())
+            val journalposter = SafGateway.hentDokumenterForSak(Saksnummer(req.saksnummer), token())
                 .mapKunVariantformatArkiv()
 
             respond(journalposter)
@@ -66,7 +66,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
         }
 
         route("/{journalpostId}/knyttTilAnnenSak").post<JournalpostIdParams, KnyttTilAnnenSakResponse, KnyttTilAnnenSakRequest> { params, req ->
-            val gateway = DokArkivClient(OnBehalfOfTokenProvider)
+            val gateway = DokarkivGateway(OnBehalfOfTokenProvider)
 
             val dokarkivResponse =
                 gateway.knyttJournalpostTilAnnenSak(params.journalpostId, req, token())
@@ -75,7 +75,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
         }
 
         route("/{journalpostId}/feilregistrer/feilregistrerSakstilknytning").post<JournalpostIdParams, String, Unit> { params, _ ->
-            val gateway = DokArkivClient(OnBehalfOfTokenProvider)
+            val gateway = DokarkivGateway(OnBehalfOfTokenProvider)
 
             gateway.feilregistrerSakstilknytning(params.journalpostId, token())
 
@@ -83,7 +83,7 @@ fun NormalOpenAPIRoute.dokumentApi() {
         }
 
         route("/{journalpostId}/feilregistrer/opphevFeilregistrertSakstilknytning").post<JournalpostIdParams, String, Unit> { params, _ ->
-            val gateway = DokArkivClient(OnBehalfOfTokenProvider)
+            val gateway = DokarkivGateway(OnBehalfOfTokenProvider)
 
             gateway.opphevFeilregistrertSakstilknytning(params.journalpostId, token())
 

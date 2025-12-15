@@ -3,9 +3,9 @@ package dokumentinnhenting.api
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.behandlingsflyt.VarselOmBrevbestillingDto
-import dokumentinnhenting.integrasjoner.brev.BrevClient
+import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import io.ktor.http.*
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
@@ -35,9 +35,9 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 applicationsOnly = true)
         ) { _, req ->
 
-            val behandlingsflytClient = BehandlingsflytClient
+            val behandlingsflytGateway = BehandlingsflytGateway
             val avvistLegeerklæringId = UUID.randomUUID()
-            behandlingsflytClient.taSakAvVent(
+            behandlingsflytGateway.taSakAvVent(
                 Innsending(
                     saksnummer = Saksnummer(req.saksnummer),
                     referanse = InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
@@ -60,9 +60,8 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
-                val brevClient = BrevClient()
-                brevClient.ekspederBestilling(
-                    BrevClient.EkspederBestillingRequest(
+                BrevGateway().ekspederBestilling(
+                    BrevGateway.EkspederBestillingRequest(
                         fullRecord.journalpostId!!, fullRecord.dokumentId!!
                     ))
             }
@@ -79,8 +78,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
-                val behandlingsflytClient = BehandlingsflytClient
-                behandlingsflytClient.sendVarslingsbrev(
+                BehandlingsflytGateway.sendVarslingsbrev(
                     VarselOmBrevbestillingDto(
                         BehandlingReferanse(
                             fullRecord.behandlingsReferanse

@@ -1,6 +1,6 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt.jobber
 
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingMedSaksknyttning
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
@@ -14,14 +14,14 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.verdityper.dokument.JournalpostId
 import no.nav.aap.verdityper.dokument.Kanal
 
-class TaSakAvVentUtfører(private val behandlingsflytClient: BehandlingsflytClient) : JobbUtfører {
+class TaSakAvVentUtfører(private val behandlingsflytGateway: BehandlingsflytGateway) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
 
         val record = payload.dialogmeldingMottatt
         val sakOgBehandling = payload.sakOgBehandling
 
-        behandlingsflytClient.taSakAvVent(
+        behandlingsflytGateway.taSakAvVent(
             Innsending(
                 Saksnummer(sakOgBehandling.saksnummer),
                 referanse = InnsendingReferanse(
@@ -38,7 +38,7 @@ class TaSakAvVentUtfører(private val behandlingsflytClient: BehandlingsflytClie
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return TaSakAvVentUtfører(
-                BehandlingsflytClient
+                BehandlingsflytGateway
             )
         }
 

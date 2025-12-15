@@ -20,7 +20,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import java.net.URI
 import java.time.LocalDateTime
 
-class BrevClient {
+class BrevGateway {
     private val baseUri = URI.create(requiredConfigForKey("integrasjon.brev.base.url"))
     val config = ClientConfig(scope = requiredConfigForKey("integrasjon.brev.scope"))
     private val client = RestClient.withDefaultResponseHandler(

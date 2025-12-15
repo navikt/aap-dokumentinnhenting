@@ -1,7 +1,7 @@
 package dokumentinnhenting.util.motor.syfo
 
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytClient
-import dokumentinnhenting.integrasjoner.brev.BrevClient
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
+import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
@@ -43,9 +43,9 @@ class OppdaterLegeerklæringStatusUtfører (
 
         if (record.status == MeldingStatusType.AVVIST) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
-            val behandlingsflytClient = BehandlingsflytClient
+            val behandlingsflytGateway = BehandlingsflytGateway
             log.info("Avvist dialogmelding. Kaller behandlingsflyt. Sak: ${sak.saksnummer}")
-            behandlingsflytClient.taSakAvVent(
+            behandlingsflytGateway.taSakAvVent(
                 Innsending(
                     saksnummer = Saksnummer(sak.saksnummer),
                     referanse = InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
@@ -59,9 +59,9 @@ class OppdaterLegeerklæringStatusUtfører (
         }
         else if (record.status == MeldingStatusType.OK) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
-            val brevClient = BrevClient()
-            brevClient.ekspederBestilling(
-                BrevClient.EkspederBestillingRequest(
+            val brevGateway = BrevGateway()
+            brevGateway.ekspederBestilling(
+                BrevGateway.EkspederBestillingRequest(
                     requireNotNull(sak.journalpostId), (requireNotNull(sak.dokumentId))
                 )
             )

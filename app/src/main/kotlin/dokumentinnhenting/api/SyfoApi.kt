@@ -4,8 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import dokumentinnhenting.SECURE_LOGGER
-import dokumentinnhenting.integrasjoner.brev.BrevClient
+import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
@@ -133,7 +132,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
                 applicationsOnly = true
             )
         ) { _, req ->
-            val signatur = BrevClient().hentSignaturForhåndsvisning(req.personIdent, req.bestillerNavIdent)
+            val signatur = BrevGateway().hentSignaturForhåndsvisning(req.personIdent, req.bestillerNavIdent)
             val response = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val tidligereBestilling =
