@@ -14,7 +14,7 @@ fun main() {
     val fakes = Fakes
 
     // Starter server
-    embeddedServer(Netty, port = 8080) {
+    embeddedServer(Netty, port = 8082) {
         val dbConfig = DbConfig(
             url = postgres.jdbcUrl,
             username = postgres.username,
@@ -34,7 +34,7 @@ fun main() {
         )
         module(fakes)
 
-        val datasource = initDatasource(dbConfig, SimpleMeterRegistry())
+        initDatasource(dbConfig, SimpleMeterRegistry())
 
     }.start(wait = true)
 }
