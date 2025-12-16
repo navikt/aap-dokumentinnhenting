@@ -9,9 +9,9 @@ plugins {
 
 val ktorVersion = "3.3.3"
 val kafkaVersion = "8.1.1-ce"
-val komponenterVersjon = "1.0.463"
+val komponenterVersjon = "1.0.464"
 val behandlingsflytVersjon = "0.0.508"
-val tilgangVersjon = "1.0.172"
+val tilgangVersjon = "1.0.175"
 val jacksonVersjon = "2.20.1"
 
 application {
@@ -32,7 +32,7 @@ dependencies {
     implementation("no.nav.aap.brev:kontrakt:0.0.202")
 
     implementation(project(":dbflyway"))
-    implementation("no.nav:ktor-openapi-generator:1.0.131")
+    implementation("no.nav:ktor-openapi-generator:1.0.132")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
