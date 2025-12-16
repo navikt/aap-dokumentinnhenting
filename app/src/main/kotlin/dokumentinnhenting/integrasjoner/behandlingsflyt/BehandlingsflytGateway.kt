@@ -1,7 +1,7 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt
 
+import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
-import dokumentinnhenting.integrasjoner.azure.defaultHttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post

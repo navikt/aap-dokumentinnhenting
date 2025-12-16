@@ -35,10 +35,8 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 applicationsOnly = true
             )
         ) { _, req ->
-
-            val behandlingsflytGateway = BehandlingsflytGateway
             val avvistLegeerklæringId = UUID.randomUUID()
-            behandlingsflytGateway.taSakAvVent(
+            BehandlingsflytGateway.taSakAvVent(
                 Innsending(
                     saksnummer = Saksnummer(req.saksnummer),
                     referanse = InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),

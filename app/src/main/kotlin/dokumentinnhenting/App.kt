@@ -12,6 +12,13 @@ import dokumentinnhenting.api.testApi
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.ContentType
+import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
@@ -28,6 +35,7 @@ import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.json.DefaultJsonMapper.objectMapper
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
@@ -135,3 +143,18 @@ fun initDatasource(dbConfig: DbConfig, meterRegistry: MeterRegistry) =
         connectionTestQuery = "SELECT 1"
         metricRegistry = meterRegistry
     })
+
+internal val defaultHttpClient = HttpClient(CIO) {
+    expectSuccess = true
+
+    install(ContentNegotiation) {
+        register(ContentType.Application.Json, JacksonConverter(objectMapper()))
+    }
+    install(HttpRequestRetry) {
+        retryOnException(maxRetries = 3) // on exceptions during network send, other than timeouts
+        exponentialDelay()
+    }
+    install(HttpTimeout) {
+        requestTimeoutMillis = 5_000
+    }
+}

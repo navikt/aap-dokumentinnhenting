@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 
 internal object AzureAdGateway {
     private val config = AzureConfig()
-    private val httpClient: HttpClient = defaultHttpClient
+    private val httpClient: HttpClient = azureHttpClient
 
     private val azureClientId = config.clientId
     private val azureClientSecret = config.clientSecret
@@ -96,7 +96,7 @@ data class AzureAdToken(
     }
 }
 
-internal val defaultHttpClient = HttpClient(CIO) {
+private val azureHttpClient = HttpClient(CIO) {
     expectSuccess = true
     install(ContentNegotiation) {
         jackson {

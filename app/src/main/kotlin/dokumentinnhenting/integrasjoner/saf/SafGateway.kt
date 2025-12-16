@@ -1,7 +1,7 @@
 package dokumentinnhenting.integrasjoner.saf
 
+import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
-import dokumentinnhenting.integrasjoner.azure.defaultHttpClient
 import dokumentinnhenting.util.graphql.ErrorCode
 import dokumentinnhenting.util.graphql.GraphQLError
 import io.ktor.client.call.body

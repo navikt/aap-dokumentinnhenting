@@ -12,15 +12,20 @@ import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakResponse
-import dokumentinnhenting.integrasjoner.saf.*
+import dokumentinnhenting.integrasjoner.saf.Doc
+import dokumentinnhenting.integrasjoner.saf.Journalpost
+import dokumentinnhenting.integrasjoner.saf.Journalposttype
+import dokumentinnhenting.integrasjoner.saf.Journalstatus
+import dokumentinnhenting.integrasjoner.saf.SafGateway
+import dokumentinnhenting.integrasjoner.saf.SafHentDokumentGateway
+import dokumentinnhenting.integrasjoner.saf.Saksnummer
 import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
 import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
-import io.ktor.http.*
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import no.nav.aap.komponenter.server.auth.token
+import io.ktor.http.HttpStatusCode
 import java.io.InputStream
+import no.nav.aap.komponenter.server.auth.token
 
 fun NormalOpenAPIRoute.dokumentApi() {
     route("/api/dokumenter").tag(Tags.Dokumenter) {

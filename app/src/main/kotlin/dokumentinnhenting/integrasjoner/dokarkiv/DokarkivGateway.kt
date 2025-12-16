@@ -1,7 +1,7 @@
 package dokumentinnhenting.integrasjoner.dokarkiv
 
+import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.TokenProviderV2
-import dokumentinnhenting.integrasjoner.azure.defaultHttpClient
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest.Bruker
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth

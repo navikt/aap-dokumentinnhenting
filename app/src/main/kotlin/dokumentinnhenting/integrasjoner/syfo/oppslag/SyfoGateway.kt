@@ -1,7 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.oppslag
 
+import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
-import dokumentinnhenting.integrasjoner.azure.defaultHttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
