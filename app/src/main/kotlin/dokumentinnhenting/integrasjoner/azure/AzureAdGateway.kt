@@ -11,13 +11,12 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.forms.submitForm
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.Parameters
-import io.ktor.http.isSuccess
 import io.ktor.serialization.jackson.jackson
 import java.time.Instant
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
@@ -70,14 +69,10 @@ internal object AzureAdGateway {
     }
 
     private suspend fun getToken(formParameters: Parameters): AzureAdToken {
-        val res: HttpResponse = httpClient.submitForm(azureTokenEndpoint, formParameters) {
+        return httpClient.submitForm(azureTokenEndpoint, formParameters) {
             accept(ContentType.Application.Json)
-        }
-
-        if (!res.status.isSuccess()) {
-            secureLog.warn("Feilet token-kall {}: {}", res.status.value, res.bodyAsText())
-        }
-        return res.body<AzureAdToken>()
+            header("Cache-Control", "no-cache")
+        }.body()
     }
 }
 
@@ -105,10 +100,11 @@ private val azureHttpClient = HttpClient(CIO) {
         }
     }
     install(HttpRequestRetry) {
-        retryOnException(maxRetries = 3) // on exceptions during network send, other than timeouts
+        retryOnException(maxRetries = 3)
         exponentialDelay()
     }
     install(HttpTimeout) {
-        requestTimeoutMillis = 5_000
+        connectTimeoutMillis = 2.seconds.inWholeMilliseconds
+        requestTimeoutMillis = 10.seconds.inWholeMilliseconds
     }
 }

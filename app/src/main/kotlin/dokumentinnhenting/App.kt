@@ -31,6 +31,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.MeterRegistry
 import javax.sql.DataSource
+import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -150,11 +151,8 @@ internal val defaultHttpClient = HttpClient(CIO) {
     install(ContentNegotiation) {
         register(ContentType.Application.Json, JacksonConverter(objectMapper()))
     }
-    install(HttpRequestRetry) {
-        retryOnException(maxRetries = 3) // on exceptions during network send, other than timeouts
-        exponentialDelay()
-    }
     install(HttpTimeout) {
-        requestTimeoutMillis = 5_000
+        connectTimeoutMillis = 10.seconds.inWholeMilliseconds
+        requestTimeoutMillis = 30.seconds.inWholeMilliseconds
     }
 }
