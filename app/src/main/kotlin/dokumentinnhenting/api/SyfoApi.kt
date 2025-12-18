@@ -21,16 +21,16 @@ import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDTO
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.BestillingCache
 import io.ktor.http.HttpStatusCode
+import java.util.UUID
+import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.SakPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
-import java.util.UUID
-import javax.sql.DataSource
-import no.nav.aap.komponenter.server.auth.token
 
 
 fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
@@ -121,7 +121,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
                 applicationsOnly = false
             )
         ) { _, req ->
-            val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst, token().token())
+            val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst, token())
 
             respond(behandlere)
         }

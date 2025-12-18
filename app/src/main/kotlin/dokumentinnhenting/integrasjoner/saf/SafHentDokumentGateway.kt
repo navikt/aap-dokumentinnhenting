@@ -25,7 +25,7 @@ object SafHentDokumentGateway {
         // for gyldige verdier
 
         val res = defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/ARKIV") {
-            bearerAuth(OboTokenProvider.getToken(scope, currentToken.token()))
+            bearerAuth(OboTokenProvider.getToken(scope, currentToken))
         }
 
         val headers = res.headers

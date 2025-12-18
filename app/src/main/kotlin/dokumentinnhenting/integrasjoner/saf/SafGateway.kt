@@ -30,7 +30,7 @@ object SafGateway {
         )
 
         val response = defaultHttpClient.post(graphqlUrl) {
-            bearerAuth(OboTokenProvider.getToken(scope, token.token()))
+            bearerAuth(OboTokenProvider.getToken(scope, token))
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body<SafDokumentoversiktFagsakDataResponse>()
@@ -61,7 +61,7 @@ object SafGateway {
         )
 
         val response = defaultHttpClient.post(graphqlUrl) {
-            bearerAuth(OboTokenProvider.getToken(scope, token.token()))
+            bearerAuth(OboTokenProvider.getToken(scope, token))
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body<SafDokumentoversiktBrukerDataResponse>()

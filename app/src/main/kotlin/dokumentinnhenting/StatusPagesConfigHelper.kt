@@ -6,12 +6,9 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.JsonConvertException
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.log
-import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
 import java.net.http.HttpTimeoutException
-import no.nav.aap.komponenter.httpklient.exception.ApiErrorCode
 import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException

@@ -11,7 +11,6 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.forms.submitForm
-import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.Parameters
 import io.ktor.serialization.jackson.jackson
@@ -19,8 +18,8 @@ import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import org.slf4j.LoggerFactory
 
 internal object AzureAdGateway {
     private val config = AzureConfig()
@@ -33,11 +32,12 @@ internal object AzureAdGateway {
     private val mutex = Mutex()
 
     private val tokens: HashMap<String, AzureAdToken> = hashMapOf()
-    private val secureLog = LoggerFactory.getLogger("secureLog")
 
-    suspend fun getOboToken(scope: String, token: String): AzureAdToken {
+    suspend fun getOboToken(scope: String, token: OidcToken): AzureAdToken {
+        if (token.isClientCredentials()) return getSystemToken(scope)
+
         return mutex.withLock {
-            tokens[scope]
+            tokens["$scope:${token.navIdent()}"]
                 ?.takeUnless { it.isExpired() }
                 ?: getToken(
                     Parameters.build {
@@ -45,7 +45,7 @@ internal object AzureAdGateway {
                         append("client_secret", azureClientSecret)
                         append("client_assertion_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
                         append("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
-                        append("assertion", token)
+                        append("assertion", token.token())
                         append("scope", scope)
                         append("requested_token_use", "on_behalf_of")
                     }
@@ -71,7 +71,6 @@ internal object AzureAdGateway {
     private suspend fun getToken(formParameters: Parameters): AzureAdToken {
         return httpClient.submitForm(azureTokenEndpoint, formParameters) {
             accept(ContentType.Application.Json)
-            header("Cache-Control", "no-cache")
         }.body()
     }
 }

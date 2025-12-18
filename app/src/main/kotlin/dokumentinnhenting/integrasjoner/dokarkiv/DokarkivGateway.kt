@@ -23,7 +23,7 @@ class DokarkivGateway(private val tokenProvider: TokenProviderV2) {
         token: OidcToken? = null,
     ): KnyttTilAnnenSakResponse {
         return defaultHttpClient.put("$baseUri/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/knyttTilAnnenSak") {
-            bearerAuth(tokenProvider.getToken(scope, token?.token()))
+            bearerAuth(tokenProvider.getToken(scope, token))
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body()
@@ -34,7 +34,7 @@ class DokarkivGateway(private val tokenProvider: TokenProviderV2) {
         token: OidcToken? = null,
     ) {
         defaultHttpClient.patch("$baseUri/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/feilregistrerSakstilknytning") {
-            bearerAuth(tokenProvider.getToken(scope, token?.token()))
+            bearerAuth(tokenProvider.getToken(scope, token))
         }
     }
 
@@ -43,7 +43,7 @@ class DokarkivGateway(private val tokenProvider: TokenProviderV2) {
         token: OidcToken? = null,
     ) {
         defaultHttpClient.patch("$baseUri/rest/journalpostapi/v1/journalpost/${kildeJournalpostId}/feilregistrer/opphevFeilregistrertSakstilknytning") {
-            bearerAuth(tokenProvider.getToken(scope, token?.token()))
+            bearerAuth(tokenProvider.getToken(scope, token))
         }
     }
 }

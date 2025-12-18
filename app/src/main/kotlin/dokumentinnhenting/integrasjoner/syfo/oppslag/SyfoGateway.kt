@@ -10,12 +10,13 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 class SyfoGateway {
     private val syfoUri = requiredConfigForKey("integrasjon.syfo.base.url")
     private val scope = requiredConfigForKey("integrasjon.syfo.scope")
 
-    suspend fun frisøkBehandlerOppslag(frisøk: String, token: String): List<BehandlerOppslagResponse> {
+    suspend fun frisøkBehandlerOppslag(frisøk: String, token: OidcToken): List<BehandlerOppslagResponse> {
         return try {
             defaultHttpClient.post("$syfoUri/api/v1/behandler/search") {
                 accept(ContentType.Application.Json)
