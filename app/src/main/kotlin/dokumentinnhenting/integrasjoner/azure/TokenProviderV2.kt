@@ -8,7 +8,7 @@ interface TokenProviderV2 {
 
 object OboTokenProvider : TokenProviderV2 {
     override suspend fun getToken(scope: String, token: OidcToken?): String {
-        require(token != null) {
+        requireNotNull(token) {
             "Kan ikke hente OBO-token uten innkommende token"
         }
 
