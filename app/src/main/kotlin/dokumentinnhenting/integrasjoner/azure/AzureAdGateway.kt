@@ -31,10 +31,12 @@ internal object AzureAdGateway {
 
     private val mutex = Mutex()
 
-    private val tokens: HashMap<String, AzureAdToken> = hashMapOf()
+    private val tokens: MutableMap<String, AzureAdToken> = mutableMapOf()
 
     suspend fun getOboToken(scope: String, token: OidcToken): AzureAdToken {
-        if (token.isClientCredentials()) return getSystemToken(scope)
+        require(!token.isClientCredentials()) {
+            "OboToken skal ikke brukes for systembruker (client credentials)"
+        }
 
         val key = "$scope:${token.navIdent()}"
 
@@ -45,11 +47,11 @@ internal object AzureAdGateway {
                     Parameters.build {
                         append("client_id", azureClientId)
                         append("client_secret", azureClientSecret)
-                        append("client_assertion_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
+                        append("scope", scope)
                         append("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
                         append("assertion", token.token())
-                        append("scope", scope)
                         append("requested_token_use", "on_behalf_of")
+                        append("client_assertion_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
                     }
                 ).also { tokens[key] = it }
         }
@@ -94,6 +96,7 @@ data class AzureAdToken(
 
 private val azureHttpClient = HttpClient(CIO) {
     expectSuccess = true
+
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
@@ -107,5 +110,6 @@ private val azureHttpClient = HttpClient(CIO) {
     install(HttpTimeout) {
         connectTimeoutMillis = 2.seconds.inWholeMilliseconds
         requestTimeoutMillis = 10.seconds.inWholeMilliseconds
+        socketTimeoutMillis = 10.seconds.inWholeMilliseconds
     }
 }
