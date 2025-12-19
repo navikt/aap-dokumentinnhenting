@@ -36,8 +36,10 @@ internal object AzureAdGateway {
     suspend fun getOboToken(scope: String, token: OidcToken): AzureAdToken {
         if (token.isClientCredentials()) return getSystemToken(scope)
 
+        val key = "$scope:${token.navIdent()}"
+
         return mutex.withLock {
-            tokens["$scope:${token.navIdent()}"]
+            tokens[key]
                 ?.takeUnless { it.isExpired() }
                 ?: getToken(
                     Parameters.build {
@@ -49,7 +51,7 @@ internal object AzureAdGateway {
                         append("scope", scope)
                         append("requested_token_use", "on_behalf_of")
                     }
-                ).also { tokens[scope] = it }
+                ).also { tokens[key] = it }
         }
     }
 
