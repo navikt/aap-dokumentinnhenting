@@ -37,10 +37,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
-    implementation("ch.qos.logback:logback-classic:1.5.22")
+    implementation("ch.qos.logback:logback-classic:1.5.23")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.6")
-    implementation("org.flywaydb:flyway-database-postgresql:11.19.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.20.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
