@@ -7,7 +7,10 @@ import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.behandlingsflyt.VarselOmBrevbestillingDto
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
+import java.time.LocalDateTime
+import java.util.UUID
+import javax.sql.DataSource
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.AvvistLegeerklæringId
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
@@ -20,9 +23,6 @@ import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.verdityper.dokument.Kanal
-import java.time.LocalDateTime
-import java.util.*
-import javax.sql.DataSource
 
 // Dette API'et er kun for testmiljø for å kunne teste hele verdikjeden
 fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
@@ -32,12 +32,11 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = testApiRolle,
-                applicationsOnly = true)
+                applicationsOnly = true
+            )
         ) { _, req ->
-
-            val behandlingsflytGateway = BehandlingsflytGateway
             val avvistLegeerklæringId = UUID.randomUUID()
-            behandlingsflytGateway.taSakAvVent(
+            BehandlingsflytGateway.taSakAvVent(
                 Innsending(
                     saksnummer = Saksnummer(req.saksnummer),
                     referanse = InnsendingReferanse(AvvistLegeerklæringId(avvistLegeerklæringId)),
@@ -54,17 +53,19 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = testApiRolle,
-                applicationsOnly = true)
+                applicationsOnly = true
+            )
         ) { _, req ->
-            dataSource.transaction { connection ->
+            val fullRecord = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
-                val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
+                requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
-                BrevGateway().ekspederBestilling(
-                    BrevGateway.EkspederBestillingRequest(
-                        fullRecord.journalpostId!!, fullRecord.dokumentId!!
-                    ))
             }
+            val bestillingRequest = BrevGateway.EkspederBestillingRequest(
+                fullRecord.journalpostId!!, fullRecord.dokumentId!!
+            )
+
+            BrevGateway().ekspederBestilling(bestillingRequest)
             respond("", HttpStatusCode.OK)
         }
 
@@ -72,34 +73,36 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = testApiRolle,
-                applicationsOnly = true)
+                applicationsOnly = true
+            )
         ) { _, req ->
-            dataSource.transaction { connection ->
+            val fullRecord =dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
-                val fullRecord = requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
+                requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
+            }
 
-                BehandlingsflytGateway.sendVarslingsbrev(
-                    VarselOmBrevbestillingDto(
-                        BehandlingReferanse(
-                            fullRecord.behandlingsReferanse
-                        ),
-                        fullRecord.dialogmeldingUuid,
-                        Vedlegg(
-                            fullRecord.journalpostId!!,
-                            fullRecord.dokumentId!!
-                        )
+            BehandlingsflytGateway.sendVarslingsbrev(
+                VarselOmBrevbestillingDto(
+                    BehandlingReferanse(
+                        fullRecord.behandlingsReferanse
+                    ),
+                    fullRecord.dialogmeldingUuid,
+                    Vedlegg(
+                        fullRecord.journalpostId!!,
+                        fullRecord.dokumentId!!
                     )
                 )
-            }
+            )
             respond("", HttpStatusCode.OK)
         }
     }
 
 }
+
 data class TaAvVentRequest(
-    val saksnummer: String
+    val saksnummer: String,
 )
 
 data class TestRequest(
-    val dialogid: UUID
+    val dialogid: UUID,
 )

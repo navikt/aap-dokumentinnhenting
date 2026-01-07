@@ -1,41 +1,29 @@
 package dokumentinnhenting.integrasjoner.syfo.oppslag
 
-import dokumentinnhenting.util.metrics.prometheus
-import java.net.URI
+import dokumentinnhenting.defaultHttpClient
+import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
+import io.ktor.client.call.body
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 class SyfoGateway {
     private val syfoUri = requiredConfigForKey("integrasjon.syfo.base.url")
-    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.syfo.scope"))
+    private val scope = requiredConfigForKey("integrasjon.syfo.scope")
 
-    private val client = RestClient.withDefaultResponseHandler(
-        config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
-        prometheus = prometheus
-    )
-
-    fun frisøkBehandlerOppslag(frisøk: String): List<BehandlerOppslagResponse> {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = SearchRequest(frisøk)
-        )
-
-        try {
-            return requireNotNull(
-                client.post(
-                    uri = URI.create("$syfoUri/api/v1/behandler/search"),
-                    request = request,
-                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body) })
-            )
+    suspend fun frisøkBehandlerOppslag(frisøk: String, token: OidcToken): List<BehandlerOppslagResponse> {
+        return try {
+            defaultHttpClient.post("$syfoUri/api/v1/behandler/search") {
+                accept(ContentType.Application.Json)
+                bearerAuth(OboTokenProvider.getToken(scope, token))
+                contentType(ContentType.Application.Json)
+                setBody(SearchRequest(frisøk))
+            }.body()
         } catch (e: Exception) {
             throw RuntimeException("Feil ved oppslag av behandler i syfo: ${e.message}")
         }

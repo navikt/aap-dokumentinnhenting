@@ -1,78 +1,51 @@
 package dokumentinnhenting.integrasjoner.saf
 
-import dokumentinnhenting.util.metrics.prometheus
-import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBehalfOfTokenProvider
-import org.slf4j.LoggerFactory
+import dokumentinnhenting.defaultHttpClient
+import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
+import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
+import io.ktor.http.Headers
+import io.ktor.http.contentType
 import java.io.InputStream
-import java.net.URI
-import java.net.http.HttpHeaders
-
-private val log = LoggerFactory.getLogger(SafHentDokumentGateway::class.java)
+import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 // TODO: Fjerne/kombinere denne med SafRestClient etter at denne er testet skikkelig (VETLE).
-class SafHentDokumentGateway(private val restClient: RestClient<InputStream>) {
-    private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
+object SafHentDokumentGateway {
+    private val safBaseUrl = requiredConfigForKey("integrasjon.saf.url.rest")
+    private val scope = requiredConfigForKey("integrasjon.saf.scope")
 
-    companion object {
-        val config = ClientConfig(
-            scope = requiredConfigForKey("integrasjon.saf.scope"),
-        )
-
-        fun extractFileNameFromHeaders(headers: HttpHeaders): String? {
-            val value = headers.map()["Content-Disposition"]?.firstOrNull()
-            if (value.isNullOrBlank()) {
-                return null
-            }
-            val regex =
-                Regex("filename=([^;]+)")
-
-            val matchResult = regex.find(value)
-            return matchResult?.groupValues?.get(1)
-        }
-
-        fun withDefaultRestClient(): SafHentDokumentGateway {
-            return SafHentDokumentGateway(
-                RestClient.withDefaultResponseHandler(
-                    config = config,
-                    tokenProvider = OnBehalfOfTokenProvider,
-                    prometheus = prometheus
-                )
-            )
-        }
-    }
-
-    fun hentDokument(
+    suspend fun hentDokument(
         journalpostId: String,
         dokumentInfoId: String,
-        currentToken: OidcToken
+        currentToken: OidcToken,
     ): SafDocumentResponse {
         // Se https://confluence.adeo.no/display/BOA/Enum%3A+Variantformat
         // for gyldige verdier
-        val safURI = URI.create("$restUrl/hentdokument/${journalpostId}/${dokumentInfoId}/ARKIV")
 
-        log.info("Kaller SAF med URL: ${safURI}.")
-        val respons = restClient.get(
-            uri = safURI,
-            request = GetRequest(currentToken = currentToken),
-            mapper = { body, headers ->
-                val contentType = headers.map()["Content-Type"]?.firstOrNull()
-                val filnavn: String? = extractFileNameFromHeaders(headers)
+        val res = defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/ARKIV") {
+            bearerAuth(OboTokenProvider.getToken(scope, currentToken))
+        }
 
-                if (contentType == null || filnavn == null) {
-                    throw IllegalStateException("Respons inneholdt ikke korrekte headere: $headers")
-                }
-                SafDocumentResponse(dokument = body, contentType = contentType, filnavn = filnavn)
-            }
-        )
+        val headers = res.headers
+        val contentType = res.contentType().toString()
+        val filnavn: String = extractFileNameFromHeaders(headers)
+            ?: throw IllegalStateException("Respons inneholdt ikke korrekte headere: $headers")
 
-        return respons!!
+        return SafDocumentResponse(dokument = res.body(), contentType = contentType, filnavn = filnavn)
     }
 
+    private fun extractFileNameFromHeaders(headers: Headers): String? {
+        val value = headers["Content-Disposition"]
+        if (value.isNullOrBlank()) {
+            return null
+        }
+        return Regex("filename=([^;]+)")
+            .find(value)
+            ?.groupValues
+            ?.get(1)
+    }
 }
 
 data class SafDocumentResponse(val dokument: InputStream, val contentType: String, val filnavn: String)

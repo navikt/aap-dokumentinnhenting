@@ -5,6 +5,9 @@ import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import java.time.LocalDateTime
+import java.util.UUID
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.AvvistLegeerklæringId
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
@@ -18,8 +21,6 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.verdityper.dokument.Kanal
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.util.*
 
 class OppdaterLegeerklæringStatusUtfører (
     private val dialogmeldingRepository: DialogmeldingRepository,
@@ -59,12 +60,13 @@ class OppdaterLegeerklæringStatusUtfører (
         }
         else if (record.status == MeldingStatusType.OK) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
-            val brevGateway = BrevGateway()
-            brevGateway.ekspederBestilling(
-                BrevGateway.EkspederBestillingRequest(
-                    requireNotNull(sak.journalpostId), (requireNotNull(sak.dokumentId))
+            runBlocking {
+                BrevGateway().ekspederBestilling(
+                    BrevGateway.EkspederBestillingRequest(
+                        requireNotNull(sak.journalpostId), (requireNotNull(sak.dokumentId))
+                    )
                 )
-            )
+            }
 
             if (sak.dokumentasjonType.skalVarsleBruker()) {
                 val jobb =

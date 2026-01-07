@@ -1,77 +1,56 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt
 
-import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.defaultHttpClient
+import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
+import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import java.time.LocalDate
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.post
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.json.DefaultJsonMapper
-import java.net.URI
-import java.time.LocalDate
-import java.util.*
 
 object BehandlingsflytGateway {
     private val uri = requiredConfigForKey("behandlingsflyt.base.url")
-    private val config = ClientConfig(scope = requiredConfigForKey("behandlingsflyt.scope"))
+    private val scope = requiredConfigForKey("behandlingsflyt.scope")
 
-    private val client = RestClient.withDefaultResponseHandler(
-        config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
-        prometheus = prometheus
-    )
-
-    fun taSakAvVent(taAvVentRequest: Innsending) {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = taAvVentRequest
-        )
-
+    fun taSakAvVent(taAvVentRequest: Innsending) = runBlocking {
         try {
-            return requireNotNull(
-                client.post(
-                    uri = URI.create("$uri/api/hendelse/send"),
-                    request = request,
-                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body) }))
+            defaultHttpClient.post("$uri/api/hendelse/send") {
+                bearerAuth(SystemTokenProvider.getToken(scope, null))
+                contentType(ContentType.Application.Json)
+                setBody(taAvVentRequest)
+            }
         } catch (e: Exception) {
             throw BehandlingsflytException("Feil ved forsøk på å ta sak av vent i behandlingsflyt: ${e.message}")
         }
     }
 
-    fun sendVarslingsbrev(varselRequest: VarselOmBrevbestillingDto) {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = varselRequest
-        )
-
+    fun sendVarslingsbrev(varselRequest: VarselOmBrevbestillingDto) = runBlocking {
         try {
-            val uri = URI.create("$uri/api/brev/bestillingvarsel")
-            client.post<_, Unit>(uri, request)
+            defaultHttpClient.post("$uri/api/brev/bestillingvarsel") {
+                bearerAuth(SystemTokenProvider.getToken(scope, null))
+                contentType(ContentType.Application.Json)
+                setBody(varselRequest)
+            }
         } catch (e: Exception) {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
     }
 
-    fun finnÅpenSakForIdentPåDato(personIdentPasient: String, toLocalDate: LocalDate): NullableSakOgBehandlingDTO? {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = FinnBehandlingForIdentDTO(personIdentPasient, toLocalDate),
-        )
-
+    fun finnÅpenSakForIdentPåDato(
+        personIdentPasient: String,
+        toLocalDate: LocalDate,
+    ): NullableSakOgBehandlingDTO? = runBlocking {
         try {
-            return client.post(
-                    uri = URI.create(uri).resolve("/api/sak/finnSisteBehandlinger"),
-                    request = request,
-                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body)})
+            defaultHttpClient.post("$uri/api/sak/finnSisteBehandlinger") {
+                bearerAuth(SystemTokenProvider.getToken(scope, null))
+                contentType(ContentType.Application.Json)
+                setBody(FinnBehandlingForIdentDTO(personIdentPasient, toLocalDate))
+            }.body()
         } catch (e: Exception) {
             throw BehandlingsflytException("Feilet ved henting av sak/behandling for ident: ${e.message}")
         }
@@ -81,15 +60,15 @@ object BehandlingsflytGateway {
         val personIdent: String,
         val saksnummer: String,
         val status: String,
-        val sisteBehandlingStatus: String
+        val sisteBehandlingStatus: String,
     )
 
     data class FinnBehandlingForIdentDTO(
         val ident: String,
-        val mottattTidspunkt: LocalDate
+        val mottattTidspunkt: LocalDate,
     )
 
     data class NullableSakOgBehandlingDTO(
-        val sakOgBehandlingDTO: SakOgBehandling?
+        val sakOgBehandlingDTO: SakOgBehandling?,
     )
 }

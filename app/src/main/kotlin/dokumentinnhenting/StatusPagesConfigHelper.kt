@@ -2,14 +2,13 @@ package dokumentinnhenting
 
 import com.fasterxml.jackson.core.JacksonException
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.JsonConvertException
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.log
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
 import java.net.http.HttpTimeoutException
-import no.nav.aap.komponenter.httpklient.exception.ApiErrorCode
 import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
@@ -34,6 +33,17 @@ object StatusPagesConfigHelper {
                 is ApiException -> {
                     logger.warn(cause.message, cause)
                     call.respondWithError(cause)
+                }
+
+                /**
+                 * Midlertidig for å fange opp og sikre forløpende håndtering av kjente feil
+                 **/
+                is ClientRequestException -> {
+                    logger.error(
+                        "Uhåndtert ClientRequestException (${cause.response.status}) ved kall til '$uri': ",
+                        cause
+                    )
+                    call.respondWithError(InternfeilException("Feil ved kall til ekstern tjeneste"))
                 }
 
                 is ManglerTilgangException -> {

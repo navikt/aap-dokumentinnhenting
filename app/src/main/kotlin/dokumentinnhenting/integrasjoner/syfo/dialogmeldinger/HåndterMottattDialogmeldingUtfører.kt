@@ -1,11 +1,12 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
+import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
@@ -34,17 +35,20 @@ class HåndterMottattDialogmeldingUtfører(
             return dummyJobbUtfører().utfør(input)
         }
 
-        dokArkivGateway.knyttJournalpostTilAnnenSak(
-            record.journalpostId,
-            KnyttTilAnnenSakRequest(
-                OpprettJournalpostRequest.Bruker(
-                    record.personIdentPasient,
-                    OpprettJournalpostRequest.Bruker.IdType.FNR
-                ),
-                payload.sakOgBehandling.saksnummer,
-                "KELVIN" //TODO: riktig skrivemåte
+        runBlocking {
+            dokArkivGateway.knyttJournalpostTilAnnenSak(
+                record.journalpostId,
+                KnyttTilAnnenSakRequest(
+                    OpprettJournalpostRequest.Bruker(
+                        record.personIdentPasient,
+                        OpprettJournalpostRequest.Bruker.IdType.FNR
+                    ),
+                    payload.sakOgBehandling.saksnummer,
+                    "KELVIN" //TODO: riktig skrivemåte
+                )
             )
-        )
+        }
+
         val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
             DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(record, sakOgBehandling))
         )
@@ -55,7 +59,7 @@ class HåndterMottattDialogmeldingUtfører(
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return HåndterMottattDialogmeldingUtfører(
-                DokarkivGateway(ClientCredentialsTokenProvider),
+                DokarkivGateway(OboTokenProvider),
                 FlytJobbRepository(connection)
             )
         }

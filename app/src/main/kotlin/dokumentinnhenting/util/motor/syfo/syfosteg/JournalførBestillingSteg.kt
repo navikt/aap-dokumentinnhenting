@@ -2,9 +2,10 @@ package dokumentinnhenting.util.motor.syfo.syfosteg
 
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import java.util.UUID
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.slf4j.LoggerFactory
-import java.util.*
 
 class JournalførBestillingSteg(
     private val dialogmeldingRepository: DialogmeldingRepository,
@@ -32,7 +33,9 @@ class JournalførBestillingSteg(
         val tidligereTilhørendeBestillingsdato = bestilling.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet }
 
         try {
-            val journalpostResponse = brevGateway.journalførBestilling(bestilling, tidligereTilhørendeBestillingsdato)
+            val journalpostResponse = runBlocking {
+                brevGateway.journalførBestilling(bestilling, tidligereTilhørendeBestillingsdato)
+            }
             val dokumentId = journalpostResponse.dokumenter[0]
 
             if (!journalpostResponse.journalpostFerdigstilt) {

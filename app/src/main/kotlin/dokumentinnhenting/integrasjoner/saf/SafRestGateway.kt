@@ -1,42 +1,24 @@
 package dokumentinnhenting.integrasjoner.saf
 
-import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.defaultHttpClient
+import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
+import io.ktor.client.call.body
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
+import io.ktor.http.ContentType
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import java.net.URI
 
-class SafRestGateway {
-    private val restUrl = URI.create(requiredConfigForKey("integrasjon.saf.url.rest"))
+object SafRestGateway {
+    private val safBaseUrl = requiredConfigForKey("integrasjon.saf.url.rest")
+    private val scope = requiredConfigForKey("integrasjon.saf.scope")
 
-    private val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.saf.scope"),
-    )
-
-    private val client = RestClient.withDefaultResponseHandler(
-        config = config,
-        tokenProvider = ClientCredentialsTokenProvider,
-        prometheus = prometheus
-    )
-
-    fun hentDokumentMedJournalpostId(journalpostId: String, dokumentId: String): ByteArray {
-        val request = GetRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json")
-            )
-        )
-
-        try {
-            val response = requireNotNull(
-                client.get(
-                    uri = URI.create("$restUrl/hentdokument/${journalpostId}/${dokumentId}/${Variantformat.ARKIV}"),
-                    request = request,
-                    mapper = { body, _ -> body })
-            )
-            return response.readAllBytes()
+    suspend fun hentDokumentMedJournalpostId(journalpostId: String, dokumentId: String): ByteArray {
+        return try {
+            defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentId}/${Variantformat.ARKIV}") {
+                accept(ContentType.Application.Json)
+                bearerAuth(SystemTokenProvider.getToken(scope, null))
+            }.body()
         } catch (e: Exception) {
             throw RuntimeException("Feil ved henting av dokument i saf: ${e.message}", e)
         }

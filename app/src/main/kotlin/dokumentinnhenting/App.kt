@@ -12,6 +12,13 @@ import dokumentinnhenting.api.testApi
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.ContentType
+import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
@@ -24,10 +31,12 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.MeterRegistry
 import javax.sql.DataSource
+import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.json.DefaultJsonMapper.objectMapper
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
@@ -135,3 +144,15 @@ fun initDatasource(dbConfig: DbConfig, meterRegistry: MeterRegistry) =
         connectionTestQuery = "SELECT 1"
         metricRegistry = meterRegistry
     })
+
+internal val defaultHttpClient = HttpClient(CIO) {
+    expectSuccess = true
+
+    install(ContentNegotiation) {
+        register(ContentType.Application.Json, JacksonConverter(objectMapper()))
+    }
+    install(HttpTimeout) {
+        connectTimeoutMillis = 10.seconds.inWholeMilliseconds
+        requestTimeoutMillis = 30.seconds.inWholeMilliseconds
+    }
+}
