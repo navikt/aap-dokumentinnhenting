@@ -1,6 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
-import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
+import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
@@ -59,7 +59,7 @@ class HåndterMottattDialogmeldingUtfører(
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return HåndterMottattDialogmeldingUtfører(
-                DokarkivGateway(OboTokenProvider),
+                DokarkivGateway(SystemTokenProvider),
                 FlytJobbRepository(connection)
             )
         }
