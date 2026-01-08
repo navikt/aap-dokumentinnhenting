@@ -3,6 +3,7 @@ package dokumentinnhenting
 import com.fasterxml.jackson.core.JacksonException
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.JsonConvertException
 import io.ktor.server.application.ApplicationCall
@@ -81,6 +82,7 @@ object StatusPagesConfigHelper {
                     )
                 }
 
+                is HttpRequestTimeoutException,
                 is HttpTimeoutException -> {
                     logger.warn("Timeout ved kall til '$uri'", cause)
                     call.respondWithError(
