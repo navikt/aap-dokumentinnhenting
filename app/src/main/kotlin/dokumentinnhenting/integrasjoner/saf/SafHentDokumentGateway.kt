@@ -3,12 +3,15 @@ package dokumentinnhenting.integrasjoner.saf
 import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.http.Headers
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import java.io.InputStream
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 // TODO: Fjerne/kombinere denne med SafRestClient etter at denne er testet skikkelig (VETLE).
@@ -24,8 +27,14 @@ object SafHentDokumentGateway {
         // Se https://confluence.adeo.no/display/BOA/Enum%3A+Variantformat
         // for gyldige verdier
 
-        val res = defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/ARKIV") {
-            bearerAuth(OboTokenProvider.getToken(scope, currentToken))
+        val res = try {
+            defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/ARKIV") {
+                bearerAuth(OboTokenProvider.getToken(scope, currentToken))
+            }
+        } catch (e: ClientRequestException) {
+            if (e.response.status == HttpStatusCode.Forbidden) {
+                throw IkkeTillattException("Mangler tilgang til å se dokument i SAF")
+            } else throw e
         }
 
         val headers = res.headers
