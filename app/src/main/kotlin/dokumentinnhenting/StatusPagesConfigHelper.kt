@@ -11,11 +11,8 @@ import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
 import java.net.http.HttpTimeoutException
 import no.nav.aap.komponenter.httpklient.exception.ApiException
-import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
-import no.nav.aap.komponenter.httpklient.httpclient.error.IkkeFunnetException
-import no.nav.aap.komponenter.httpklient.httpclient.error.ManglerTilgangException
 import no.nav.aap.komponenter.json.DeserializationException
 import org.slf4j.LoggerFactory
 
@@ -45,21 +42,6 @@ object StatusPagesConfigHelper {
                         cause
                     )
                     call.respondWithError(InternfeilException("Feil ved kall til ekstern tjeneste"))
-                }
-
-                is ManglerTilgangException -> {
-                    logger.warn("Mangler tilgang til å vise route: '$uri'", cause)
-                    call.respondWithError(IkkeTillattException(message = "Mangler tilgang"))
-                }
-
-                is IkkeFunnetException -> {
-                    logger.error("Fikk 404 fra ekstern integrasjon", cause)
-                    call.respondWithError(
-                        ApiException(
-                            status = HttpStatusCode.NotFound,
-                            message = "Fikk 404 fra ekstern integrasjon. Dette er mest sannsynlig en systemfeil."
-                        )
-                    )
                 }
 
                 is BehandlingsflytException -> {
