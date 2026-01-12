@@ -43,7 +43,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
-    implementation("ch.qos.logback:logback-classic:1.5.23")
+    implementation("ch.qos.logback:logback-classic:1.5.24")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.6")
     implementation("org.flywaydb:flyway-database-postgresql:11.20.0")
@@ -71,7 +71,7 @@ dependencies {
     // Test
     testImplementation(kotlin("test"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.2")
     testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
