@@ -38,15 +38,15 @@ dependencies {
     implementation("no.nav.aap.brev:kontrakt:0.0.211")
 
     implementation(project(":dbflyway"))
-    implementation("no.nav:ktor-openapi-generator:1.0.134")
+    implementation("no.nav:ktor-openapi-generator:1.0.136")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
     implementation("ch.qos.logback:logback-classic:1.5.24")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-    implementation("com.nimbusds:nimbus-jose-jwt:10.6")
-    implementation("org.flywaydb:flyway-database-postgresql:11.20.0")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.7")
+    implementation("org.flywaydb:flyway-database-postgresql:11.20.1")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
@@ -70,7 +70,7 @@ dependencies {
 
     // Test
     testImplementation(kotlin("test"))
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.7")
     testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.2")
     testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
