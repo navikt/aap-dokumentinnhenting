@@ -2,6 +2,7 @@ package dokumentinnhenting
 
 import com.fasterxml.jackson.core.JacksonException
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
@@ -61,6 +62,16 @@ object StatusPagesConfigHelper {
 
                     call.respondWithError(
                         UgyldigForespørselException(message = "Deserialiseringsfeil ved kall til '$uri'")
+                    )
+                }
+
+                is ConnectTimeoutException -> {
+                    logger.warn("Tilkoblingstimeout ved kall til '$uri'", cause)
+                    call.respondWithError(
+                        ApiException(
+                            status = HttpStatusCode.RequestTimeout,
+                            message = "Kunne ikke nå tjenesten. Vennligst prøv igjen om litt."
+                        )
                     )
                 }
 
