@@ -14,7 +14,6 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
-// TODO: Fjerne/kombinere denne med SafRestClient etter at denne er testet skikkelig (VETLE).
 object SafHentDokumentGateway {
     private val safBaseUrl = requiredConfigForKey("integrasjon.saf.url.rest")
     private val scope = requiredConfigForKey("integrasjon.saf.scope")
