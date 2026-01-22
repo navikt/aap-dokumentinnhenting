@@ -12,7 +12,7 @@ val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "1.0.488"
 val behandlingsflytVersjon = "0.0.533"
 val tilgangVersjon = "1.0.177"
-val jacksonVersjon = "2.20.1"
+val jacksonVersjon = "2.21.0"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
