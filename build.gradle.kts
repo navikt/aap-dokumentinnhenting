@@ -7,9 +7,6 @@ plugins {
     id("aap.conventions")
 }
 
-subprojects {
-    // no-op; just ensuring subprojects are configured
-}
 
 
 // Call the tasks of the subprojects
