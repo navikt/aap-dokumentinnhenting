@@ -1,7 +1,7 @@
 val komponenterVersjon = "1.0.488"
 
 plugins {
-    id("dokumentinnhenting.conventions")
+    id("aap.conventions")
 }
 
 dependencies {
