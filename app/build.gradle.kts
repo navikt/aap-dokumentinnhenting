@@ -3,16 +3,16 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.3.3"
+    id("io.ktor.plugin") version "3.4.0"
     application
 }
 
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "1.0.488"
 val behandlingsflytVersjon = "0.0.533"
 val tilgangVersjon = "1.0.177"
-val jacksonVersjon = "2.20.1"
+val jacksonVersjon = "2.21.0"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -38,7 +38,7 @@ dependencies {
     implementation("no.nav.aap.brev:kontrakt:0.0.216")
 
     implementation(project(":dbflyway"))
-    implementation("no.nav:ktor-openapi-generator:1.0.136")
+    implementation("no.nav:ktor-openapi-generator:1.0.137")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.2")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
