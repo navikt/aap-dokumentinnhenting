@@ -12,9 +12,14 @@ import io.ktor.http.contentType
 import java.io.InputStream
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
+import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 object SafHentDokumentGateway {
+    private val logger: Logger = LoggerFactory.getLogger(SafHentDokumentGateway::class.java)
+
     private val safBaseUrl = requiredConfigForKey("integrasjon.saf.url.rest")
     private val scope = requiredConfigForKey("integrasjon.saf.scope")
 
@@ -31,9 +36,16 @@ object SafHentDokumentGateway {
                 bearerAuth(OboTokenProvider.getToken(scope, currentToken))
             }
         } catch (e: ClientRequestException) {
-            if (e.response.status == HttpStatusCode.Forbidden) {
-                throw IkkeTillattException("Mangler tilgang til å se dokument i SAF")
-            } else throw e
+            when (e.response.status) {
+                HttpStatusCode.Forbidden -> {
+                    throw IkkeTillattException("Mangler tilgang til å se dokument i SAF")
+                }
+                HttpStatusCode.NotFound -> {
+                    logger.warn("Fant ikke dokument i SAF. JournalpostId: $journalpostId, DokumentInfoId: $dokumentInfoId")
+                    throw VerdiIkkeFunnetException("Dokument ikke funnet i Joark.")
+                }
+                else -> throw e
+            }
         }
 
         val headers = res.headers
