@@ -3,16 +3,16 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.3.3"
+    id("io.ktor.plugin") version "3.4.0"
     application
 }
 
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "1.0.934"
 val behandlingsflytVersjon = "0.0.540"
 val tilgangVersjon = "1.0.178"
-val jacksonVersjon = "2.20.1"
+val jacksonVersjon = "2.21.0"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -43,7 +43,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
-    implementation("ch.qos.logback:logback-classic:1.5.25")
+    implementation("ch.qos.logback:logback-classic:1.5.26")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.7")
     implementation("org.flywaydb:flyway-database-postgresql:11.20.2")
