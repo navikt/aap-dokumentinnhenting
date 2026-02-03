@@ -35,7 +35,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("no.nav.aap.brev:kontrakt:0.0.225")
+    implementation("no.nav.aap.brev:kontrakt:0.0.226")
 
     implementation(project(":dbflyway"))
     implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
