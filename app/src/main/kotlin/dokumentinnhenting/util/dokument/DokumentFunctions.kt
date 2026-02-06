@@ -15,7 +15,7 @@ fun mapTilDokumentliste(journalpost: Journalpost): List<Doc> = journalpost.dokum
                 journalpostId = journalpost.journalpostId,
                 tema = journalpost.tema ?: "Ukjent",
                 dokumentInfoId = dok.dokumentInfoId,
-                tittel = dok.tittel,
+                tittel = dok.tittel ?: "Mangler tittel",
                 brevkode = dok.brevkode,
                 variantformat = dokumentvariant.variantformat,
                 erUtgående = journalpost.journalposttype == Journalposttype.U,
