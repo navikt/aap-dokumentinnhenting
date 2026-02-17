@@ -3,16 +3,16 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.3.3"
+    id("io.ktor.plugin") version "3.4.0"
     application
 }
 
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "1.0.937"
 val behandlingsflytVersjon = "0.0.550"
 val tilgangVersjon = "1.0.178"
-val jacksonVersjon = "2.20.1"
+val jacksonVersjon = "2.21.0"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -39,11 +39,11 @@ dependencies {
 
     implementation(project(":dbflyway"))
     implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
-    implementation("ch.qos.logback:logback-classic:1.5.25")
+    implementation("ch.qos.logback:logback-classic:1.5.31")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.7")
     implementation("org.flywaydb:flyway-database-postgresql:11.20.2")
@@ -77,7 +77,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
-    testImplementation("io.mockk:mockk:1.14.7")
+    testImplementation("io.mockk:mockk:1.14.9")
 }
 
 tasks {
