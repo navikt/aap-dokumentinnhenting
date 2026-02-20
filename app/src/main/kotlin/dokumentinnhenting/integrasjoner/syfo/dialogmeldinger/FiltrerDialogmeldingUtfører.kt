@@ -25,13 +25,13 @@ class FiltrerDialogmeldingUtfører(private val flytJobbRepository: FlytJobbRepos
             payload.mottattTidspunkt.toLocalDate()
         )
 
-        if (saksInfo?.sakOgBehandlingDTO != null && payload.journalpostId != "0" && payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
+        if (saksInfo != null && payload.journalpostId != "0" && payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
             flytJobbRepository.leggTil(
                 JobbInput(HåndterMottattDialogmeldingUtfører).medPayload(
                     DefaultJsonMapper.toJson(
-                        DialogmeldingMedSaksknyttning(
+                        DialogmeldingMedSakstilknytning(
                             payload,
-                            saksInfo.sakOgBehandlingDTO
+                            saksInfo
                         )
                     )
                 )

@@ -1,7 +1,7 @@
 package dokumentinnhenting.integrasjoner.behandlingsflyt.jobber
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
-import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingMedSaksknyttning
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingMedSakstilknytning
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.InnsendingType
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
@@ -16,7 +16,7 @@ import no.nav.aap.verdityper.dokument.Kanal
 
 class TaSakAvVentUtfører(private val behandlingsflytGateway: BehandlingsflytGateway) : JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
+        val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSakstilknytning>(input.payload())
 
         val record = payload.dialogmeldingMottatt
         val sakOgBehandling = payload.sakOgBehandling
