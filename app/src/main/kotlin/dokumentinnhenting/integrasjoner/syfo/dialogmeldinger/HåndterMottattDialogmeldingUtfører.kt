@@ -26,7 +26,7 @@ class HåndterMottattDialogmeldingUtfører(
     private val flytJobbRepository: FlytJobbRepository,
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSaksknyttning>(input.payload())
+        val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSakstilknytning>(input.payload())
 
 
         val record = payload.dialogmeldingMottatt
@@ -50,7 +50,7 @@ class HåndterMottattDialogmeldingUtfører(
         }
 
         val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
-            DefaultJsonMapper.toJson(DialogmeldingMedSaksknyttning(record, sakOgBehandling))
+            DefaultJsonMapper.toJson(DialogmeldingMedSakstilknytning(record, sakOgBehandling))
         )
         flytJobbRepository.leggTil(jobb)
     }

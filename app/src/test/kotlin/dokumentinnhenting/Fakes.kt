@@ -16,11 +16,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.brev.kontrakt.Signatur
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 
 object Fakes : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
@@ -28,10 +28,10 @@ object Fakes : AutoCloseable {
     private val azure = embeddedServer(Netty, port = 8081, module = { azureFake() })
     private val saf = embeddedServer(Netty, port = 0, module = { safFake() })
     private val syfo = embeddedServer(Netty, port = 0, module = { syfoFake() })
-    private val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
+    private val behandlingsflyt =
+        embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
     private val brev = embeddedServer(Netty, port = 0, module = { brevFake() })
 
-    private val started = AtomicBoolean(false)
 
     init {
         azure.start()
@@ -42,9 +42,13 @@ object Fakes : AutoCloseable {
 
         Runtime.getRuntime().addShutdownHook(Thread { close() })
 
-        Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
+        Thread.currentThread()
+            .setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure
-        System.setProperty("azure.openid.config.token.endpoint", "http://localhost:${azurePort()}/token")
+        System.setProperty(
+            "azure.openid.config.token.endpoint",
+            "http://localhost:${azurePort()}/token"
+        )
         System.setProperty("azure.app.client.id", "dokumentinnhenting")
         System.setProperty("azure.app.client.secret", "")
         System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azurePort()}/jwks")
@@ -115,21 +119,24 @@ object Fakes : AutoCloseable {
                     call.request.local.uri,
                     cause
                 )
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
             }
         }
 
         routing {
             post("/api/sak/finnSisteBehandlinger") {
+                val answer = BehandlingsflytGateway.SakOgBehandling(
+                    saksnummer = "saksnummer"
+                )
                 call.respond(
-                    BehandlingsflytGateway.NullableSakOgBehandlingDTO(
-                        BehandlingsflytGateway.SakOgBehandling(
-                            personIdent = "personIdentPasient",
-                            saksnummer = "saksnummer",
-                            "",
-                            sisteBehandlingStatus = ""
-                        )
-                    )
+                    """
+                        {
+                        "sakOgBehandlingDTO": ${DefaultJsonMapper.toJson(answer)}
+                        }
+                    """.trimIndent()
                 )
             }
             post("/api/brev/bestillingvarsel") {
@@ -155,8 +162,15 @@ object Fakes : AutoCloseable {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                this@safFake.log.info("AZURE :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+                this@safFake.log.info(
+                    "AZURE :: Ukjent feil ved kall til '{}'",
+                    call.request.local.uri,
+                    cause
+                )
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
             }
         }
         routing {
@@ -190,8 +204,17 @@ object Fakes : AutoCloseable {
                                         journalstatus = Journalstatus.JOURNALFOERT,
                                         tema = "AAP",
                                         behandlingstema = null,
-                                        sak = JournalpostSak(JournalpostSak.Sakstype.FAGSAK, "AAP", "KELIVN", "1A2B3C"),
-                                        avsenderMottaker = AvsenderMottaker("0123456789", type = AvsenderMottaker.AvsenderMottakerIdType.FNR, "Test Testesen"),
+                                        sak = JournalpostSak(
+                                            JournalpostSak.Sakstype.FAGSAK,
+                                            "AAP",
+                                            "KELIVN",
+                                            "1A2B3C"
+                                        ),
+                                        avsenderMottaker = AvsenderMottaker(
+                                            "0123456789",
+                                            type = AvsenderMottaker.AvsenderMottakerIdType.FNR,
+                                            "Test Testesen"
+                                        ),
                                     )
                                 )
                             )
@@ -213,8 +236,15 @@ object Fakes : AutoCloseable {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                this@syfoFake.log.info("SYFO :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+                this@syfoFake.log.info(
+                    "SYFO :: Ukjent feil ved kall til '{}'",
+                    call.request.local.uri,
+                    cause
+                )
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
             }
         }
         routing {
@@ -259,8 +289,15 @@ object Fakes : AutoCloseable {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                this@brevFake.log.info("BREV :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+                this@brevFake.log.info(
+                    "BREV :: Ukjent feil ved kall til '{}'",
+                    call.request.local.uri,
+                    cause
+                )
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
             }
         }
         routing {
@@ -279,8 +316,15 @@ object Fakes : AutoCloseable {
         }
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                this@azureFake.log.info("AZURE :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-                call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
+                this@azureFake.log.info(
+                    "AZURE :: Ukjent feil ved kall til '{}'",
+                    call.request.local.uri,
+                    cause
+                )
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
             }
         }
         routing {

@@ -44,31 +44,28 @@ object BehandlingsflytGateway {
     fun finnÅpenSakForIdentPåDato(
         personIdentPasient: String,
         toLocalDate: LocalDate,
-    ): NullableSakOgBehandlingDTO? = runBlocking {
+    ): SakOgBehandling? = runBlocking {
         try {
             defaultHttpClient.post("$uri/api/sak/finnSisteBehandlinger") {
                 bearerAuth(SystemTokenProvider.getToken(scope, null))
                 contentType(ContentType.Application.Json)
                 setBody(FinnBehandlingForIdentDTO(personIdentPasient, toLocalDate))
-            }.body()
+            }.body<NullableSakOgBehandlingDTO?>()?.sakOgBehandlingDTO
         } catch (e: Exception) {
             throw BehandlingsflytException("Feilet ved henting av sak/behandling for ident: ${e.message}")
         }
     }
 
     data class SakOgBehandling(
-        val personIdent: String,
         val saksnummer: String,
-        val status: String,
-        val sisteBehandlingStatus: String,
     )
 
-    data class FinnBehandlingForIdentDTO(
+    private data class FinnBehandlingForIdentDTO(
         val ident: String,
         val mottattTidspunkt: LocalDate,
     )
 
-    data class NullableSakOgBehandlingDTO(
+    private data class NullableSakOgBehandlingDTO(
         val sakOgBehandlingDTO: SakOgBehandling?,
     )
 }
