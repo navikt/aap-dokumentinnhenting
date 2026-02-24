@@ -3,6 +3,7 @@ package dokumentinnhenting.util.motor.syfo.syfosteg
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
@@ -45,6 +46,9 @@ class JournalførBestillingSteg(
             }
 
             dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, requireNotNull(journalpostResponse.journalpostId), dokumentId)
+        } catch (e: HttpRequestTimeoutException) {
+            log.warn("Timeout ved journalføring av dokument $dialogmeldingUuid", e)
+            return SyfoSteg.Resultat.STOPP
         } catch (e: ClientRequestException) {
             if (e.response.status == HttpStatusCode.RequestTimeout) {
                 log.warn("Timeout ved journalføring av dokument $dialogmeldingUuid", e)
