@@ -72,7 +72,7 @@ class BestillLegeerklæringSteg(
             kodeStruktur.dialogmeldingType,
             kodeStruktur.dialogmeldingKodeverk,
             kodeStruktur.dialogmeldingKode,
-            null,
+            record.fritekst,
             pdfBrev,
             KILDE
         )
