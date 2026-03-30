@@ -12,7 +12,7 @@ val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "2.0.17"
 val behandlingsflytVersjon = "0.0.575"
 val tilgangVersjon = "1.0.182"
-val jacksonVersjon = "2.21.1"
+val jacksonVersjon = "2.21.2"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -39,14 +39,14 @@ dependencies {
 
     implementation(project(":dbflyway"))
     implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.4")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.8")
-    implementation("org.flywaydb:flyway-database-postgresql:12.0.3")
+    implementation("org.flywaydb:flyway-database-postgresql:12.1.1")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
@@ -74,7 +74,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.3")
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.4")
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
     testImplementation("io.mockk:mockk:1.14.9")
