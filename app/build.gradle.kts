@@ -7,7 +7,7 @@ plugins {
     application
 }
 
-val ktorVersion = "3.4.1"
+val ktorVersion = "3.4.2"
 val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "2.0.24"
 val behandlingsflytVersjon = "0.0.579"
@@ -46,7 +46,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.8")
-    implementation("org.flywaydb:flyway-database-postgresql:12.1.1")
+    implementation("org.flywaydb:flyway-database-postgresql:12.2.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
