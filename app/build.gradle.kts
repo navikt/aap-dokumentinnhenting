@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.4.1"
+    id("io.ktor.plugin") version "3.4.2"
     application
 }
 
@@ -45,8 +45,8 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-    implementation("com.nimbusds:nimbus-jose-jwt:10.8")
-    implementation("org.flywaydb:flyway-database-postgresql:12.2.0")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.9")
+    implementation("org.flywaydb:flyway-database-postgresql:12.3.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
@@ -70,7 +70,7 @@ dependencies {
 
     // Test
     testImplementation(kotlin("test"))
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.8")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.9")
     testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.3")
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
