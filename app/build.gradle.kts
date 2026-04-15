@@ -9,7 +9,7 @@ plugins {
 
 val ktorVersion = "3.4.2"
 val kafkaVersion = "8.1.1-ce"
-val komponenterVersjon = "2.0.30"
+val komponenterVersjon = "2.0.31"
 val behandlingsflytVersjon = "0.0.586"
 val tilgangVersjon = "1.0.184"
 val jacksonVersjon = "2.21.2"
@@ -35,7 +35,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("no.nav.aap.brev:kontrakt:0.0.250")
+    implementation("no.nav.aap.brev:kontrakt:0.0.251")
 
     implementation(project(":dbflyway"))
     implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
