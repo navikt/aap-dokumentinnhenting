@@ -39,7 +39,7 @@ dependencies {
 
     implementation(project(":dbflyway"))
     implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.4")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.5")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
