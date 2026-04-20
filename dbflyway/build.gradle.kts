@@ -1,4 +1,4 @@
-val komponenterVersjon = "2.0.33"
+val komponenterVersjon = "2.0.35"
 
 plugins {
     id("aap.conventions")
