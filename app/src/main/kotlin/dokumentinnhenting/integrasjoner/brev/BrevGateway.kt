@@ -61,12 +61,12 @@ class BrevGateway {
         tidligereBestillingDato: LocalDateTime?,
     ): JournalførBehandlerBestillingRequest {
         val tittel = when (bestilling.dokumentasjonType) {
-            DokumentasjonType.L40 -> "Forespørsel om legeerklæring og arbeidsuførhet"
+            DokumentasjonType.L40 -> "Forespørsel om legeerklæring ved arbeidsuførhet"
             DokumentasjonType.L8 -> "Forespørsel om tilleggsopplysninger"
             DokumentasjonType.L120 -> "Forespørsel om spesialisterklæring"
             DokumentasjonType.MELDING_FRA_NAV -> "Melding fra NAV"
             DokumentasjonType.RETUR_LEGEERKLÆRING -> "Retur til lege"
-            DokumentasjonType.PURRING -> "Purring på forespørsel om legeerklæring arbeidsuførhet"
+            DokumentasjonType.PURRING -> "Purring på forespørsel om legeerklæring ved arbeidsuførhet"
         }
         val pdfBrevIAvsnitt = mapPdfBrev(bestilling, tidligereBestillingDato)
 
