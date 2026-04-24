@@ -9,9 +9,9 @@ plugins {
 
 val ktorVersion = "3.4.2"
 val kafkaVersion = "8.1.1-ce"
-val komponenterVersjon = "2.0.42"
+val komponenterVersjon = "2.0.44"
 val behandlingsflytVersjon = "0.0.590"
-val tilgangVersjon = "1.0.193"
+val tilgangVersjon = "1.0.195"
 val jacksonVersjon = "2.21.2"
 
 application {
