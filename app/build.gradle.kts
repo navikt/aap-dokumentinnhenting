@@ -3,11 +3,11 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.4.2"
+    id("io.ktor.plugin") version "3.4.3"
     application
 }
 
-val ktorVersion = "3.4.2"
+val ktorVersion = "3.4.3"
 val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "2.0.46"
 val behandlingsflytVersjon = "0.0.590"
