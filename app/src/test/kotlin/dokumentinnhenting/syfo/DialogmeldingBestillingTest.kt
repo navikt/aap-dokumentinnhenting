@@ -4,6 +4,7 @@ import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
+import dokumentinnhenting.integrasjoner.syfo.status.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
@@ -194,6 +195,7 @@ class DialogmeldingBestillingTest {
         return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)
+                .map(DialogmeldingFullRecord::tilDto)
         }
     }
 

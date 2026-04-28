@@ -97,7 +97,8 @@ fun Application.server(
                 motorApi(dataSource)
                 syfoApi(dataSource)
 
-                driftApi()
+                driftApi(dataSource)
+
                 if (Miljø.erDev()) {
                     testApi(dataSource)
                 }

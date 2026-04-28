@@ -1,6 +1,7 @@
 package dokumentinnhenting.syfo
 
 import dokumentinnhenting.integrasjoner.syfo.SYFO_STATUS_DIALOGMELDING_TOPIC
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.createDialogmeldingStreamTopology
@@ -11,6 +12,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
+import dokumentinnhenting.integrasjoner.syfo.status.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.CustomSerde
 import dokumentinnhenting.util.kafka.createGenericSerde
@@ -181,6 +183,7 @@ class KafkaStreamsTest {
         return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)
+                .map(DialogmeldingFullRecord::tilDto)
         }
     }
 
@@ -193,11 +196,12 @@ class KafkaStreamsTest {
 
     private fun hentRepositoryDataMottak(
         dataSource: DataSource,
-        saksnummer: String
+        saksnummer: String,
     ): List<DialogmeldingStatusTilBehandslingsflytDTO> {
         return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)
+                .map(DialogmeldingFullRecord::tilDto)
         }
     }
 }

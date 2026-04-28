@@ -10,6 +10,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumen
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenereringRequest
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevPreviewResponse
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.LegeerklæringPurringDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.MarkerBestillingSomMottattDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.genererBrev
@@ -18,6 +19,7 @@ import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDTO
+import dokumentinnhenting.integrasjoner.syfo.status.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.BestillingCache
 import io.ktor.http.HttpStatusCode
@@ -110,6 +112,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
                 repository.hentBySaksnummer(req.saksnummer)
+                    .map(DialogmeldingFullRecord::tilDto)
             }
             respond(response)
         }
