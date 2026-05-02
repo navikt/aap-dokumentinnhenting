@@ -12,7 +12,7 @@ val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "2.0.51"
 val behandlingsflytVersjon = "0.0.597"
 val tilgangVersjon = "1.0.202"
-val jacksonVersjon = "2.21.2"
+val jacksonVersjon = "2.21.3"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -46,7 +46,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.9")
-    implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
+    implementation("org.flywaydb:flyway-database-postgresql:12.5.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
