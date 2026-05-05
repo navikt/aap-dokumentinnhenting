@@ -66,7 +66,10 @@ fun main() {
         }
         connectionGroupSize = 8
         workerGroupSize = 8
-        callGroupSize = 16
+        // Vi følger *IKKE* ktor sin metodikk for å regne ut tuning parametre for callGroupSize. Vi
+        // har ikke async IO, hverken for utadgående HTTP-kall eller mot databasen, så vi trenger betydelig flere
+        // tråder enn en async kodebase.
+        callGroupSize = 64
     }, module = Application::server).start(wait = true)
 }
 
