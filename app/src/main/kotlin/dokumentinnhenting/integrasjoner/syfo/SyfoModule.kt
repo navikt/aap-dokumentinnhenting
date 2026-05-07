@@ -18,9 +18,7 @@ import no.nav.aap.motor.JobbInput
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
-import org.apache.kafka.streams.kstream.Branched
 import org.apache.kafka.streams.kstream.Consumed
-import org.apache.kafka.streams.kstream.KStream
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
@@ -51,38 +49,16 @@ fun createDialogmeldingStreamTopology(
 ): Topology {
   val dialogmeldingStatusSerde = createGenericSerde(DialogmeldingStatusDTO::class.java)
   val dialogmeldingMottakSerde = createGenericSerde(DialogmeldingMottakDTO::class.java)
-
   val builder = StreamsBuilder()
 
-  val combinedStream = builder.stream(
-    listOf(SYFO_STATUS_DIALOGMELDING_TOPIC, SYFO_DIALOGMELDING_MOTTAK_TOPIC),
-    Consumed.with(Serdes.String(), CustomSerde(dialogmeldingStatusSerde, dialogmeldingMottakSerde))
-  )
+  builder.stream(SYFO_STATUS_DIALOGMELDING_TOPIC, Consumed.with(Serdes.String(), dialogmeldingStatusSerde))
+    .filter { _, record -> bestillingEksisterer(dataSource, record.bestillingUuid) }
+    .foreach { _, record -> oppdaterStatus(dataSource, record) }
 
-
-  combinedStream.split()
-    .branch(
-      { _, value -> value is DialogmeldingStatusDTO },
-      Branched.withConsumer { ks: KStream<String, Any> ->
-        ks.mapValues { value -> value as DialogmeldingStatusDTO }
-          .filter { _, record -> bestillingEksisterer(dataSource, record.bestillingUuid) }
-          .foreach { _, record -> oppdaterStatus(dataSource, record) }
-      }.withName("StatusStream")
-    )
-    .branch(
-      { _, value -> value is DialogmeldingMottakDTO },
-      Branched.withConsumer { ks: KStream<String, Any> ->
-        ks.mapValues { value -> value as DialogmeldingMottakDTO }
-          .foreach { _, record ->
-            opprettJobb(dataSource, record)
-          }
-      }.withName("MottakStream")
-    )
-    .defaultBranch(
-      Branched.withConsumer { ks: KStream<String, Any> ->
-        ks.peek { _, value -> log.warn("Unknown message type: $value") }
-      }.withName("Unknown")
-    )
+  builder.stream(SYFO_DIALOGMELDING_MOTTAK_TOPIC, Consumed.with(Serdes.String(), dialogmeldingMottakSerde))
+    .foreach { _, record ->
+      opprettJobb(dataSource, record)
+    }
 
   return builder.build()
 }

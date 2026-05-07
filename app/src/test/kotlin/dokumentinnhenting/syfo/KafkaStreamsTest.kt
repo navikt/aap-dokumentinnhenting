@@ -1,5 +1,6 @@
 package dokumentinnhenting.syfo
 
+import dokumentinnhenting.integrasjoner.syfo.SYFO_DIALOGMELDING_MOTTAK_TOPIC
 import dokumentinnhenting.integrasjoner.syfo.SYFO_STATUS_DIALOGMELDING_TOPIC
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
@@ -14,7 +15,6 @@ import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehand
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.integrasjoner.syfo.status.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
-import dokumentinnhenting.util.kafka.CustomSerde
 import dokumentinnhenting.util.kafka.createGenericSerde
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -32,7 +32,8 @@ import javax.sql.DataSource
 import kotlin.test.assertEquals
 
 class KafkaStreamsTest {
-    private lateinit var inputTopic: TestInputTopic<String, Any>
+    private lateinit var statusInputTopic: TestInputTopic<String, DialogmeldingStatusDTO>
+    private lateinit var mottakInputTopic: TestInputTopic<String, DialogmeldingMottakDTO>
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
     private lateinit var testDriver: TopologyTestDriver
@@ -50,15 +51,16 @@ class KafkaStreamsTest {
 
         testDriver = TopologyTestDriver(topology, props)
 
-        val customSerde = CustomSerde(
-            createGenericSerde(DialogmeldingStatusDTO::class.java),
-            createGenericSerde(DialogmeldingMottakDTO::class.java)
-        )
-
-        inputTopic = testDriver.createInputTopic(
+        statusInputTopic = testDriver.createInputTopic(
             SYFO_STATUS_DIALOGMELDING_TOPIC,
             Serdes.String().serializer(),
-            customSerde.serializer()
+            createGenericSerde(DialogmeldingStatusDTO::class.java).serializer()
+        )
+
+        mottakInputTopic = testDriver.createInputTopic(
+            SYFO_DIALOGMELDING_MOTTAK_TOPIC,
+            Serdes.String().serializer(),
+            createGenericSerde(DialogmeldingMottakDTO::class.java).serializer()
         )
     }
 
@@ -98,7 +100,7 @@ class KafkaStreamsTest {
             uuid = uuid.toString()
         )
 
-        inputTopic.pipeInput("key", incomingRecord)
+        statusInputTopic.pipeInput("key", incomingRecord)
 
         val record = hentRepositoryDataStatus(dataSource, saksnummer)
         assertEquals(uuid, record[0].dialogmeldingUuid)
@@ -159,7 +161,7 @@ class KafkaStreamsTest {
             "fellesformatXML"
         )
 
-        inputTopic.pipeInput("key", incomingRecord)
+        mottakInputTopic.pipeInput("key", incomingRecord)
         val oppdatertHendelse = hentRepositoryDataMottak(dataSource, saksnummer)
         Assertions.assertEquals(uuid, oppdatertHendelse[0].dialogmeldingUuid)
     }
