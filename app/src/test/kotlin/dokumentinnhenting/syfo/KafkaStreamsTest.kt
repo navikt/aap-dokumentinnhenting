@@ -29,6 +29,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import javax.sql.DataSource
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class KafkaStreamsTest {
@@ -68,6 +69,14 @@ class KafkaStreamsTest {
     fun teardown() {
         testDriver.close()
         dataSource.close()
+    }
+
+    @Test
+    fun `topology konsumerer begge topics`() {
+        val description = createDialogmeldingStreamTopology(dataSource).describe().toString()
+
+        assertContains(description, SYFO_STATUS_DIALOGMELDING_TOPIC)
+        assertContains(description, SYFO_DIALOGMELDING_MOTTAK_TOPIC)
     }
 
     @Test
