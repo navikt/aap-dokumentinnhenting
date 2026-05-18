@@ -1,6 +1,7 @@
 package dokumentinnhenting.integrasjoner.brev
 
 import dokumentinnhenting.defaultHttpClient
+import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
 import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering

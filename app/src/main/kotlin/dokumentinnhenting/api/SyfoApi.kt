@@ -34,8 +34,11 @@ import no.nav.aap.tilgang.SakPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
 
-
-fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.syfoApi(
+    dataSource: DataSource,
+    brevGateway: BrevGateway,
+    syfoGateway: SyfoGateway
+) {
     val syfoApiRolle = "syfo-api"
     route("/syfo") {
         route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO>(
@@ -124,7 +127,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
                 applicationsOnly = false
             )
         ) { _, req ->
-            val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst, token())
+            val behandlere = syfoGateway.frisøkBehandlerOppslag(req.fritekst, token())
 
             respond(behandlere)
         }
@@ -136,7 +139,7 @@ fun NormalOpenAPIRoute.syfoApi(dataSource: DataSource) {
                 applicationsOnly = true
             )
         ) { _, req ->
-            val signatur = BrevGateway().hentSignaturForhåndsvisning(req.personIdent, req.bestillerNavIdent)
+            val signatur = brevGateway.hentSignaturForhåndsvisning(req.personIdent, req.bestillerNavIdent)
             val response = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val tidligereBestilling =

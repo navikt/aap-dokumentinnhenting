@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory
 
 class OppdaterLegeerklæringStatusUtfører (
     private val dialogmeldingRepository: DialogmeldingRepository,
-    private val jobbRepository: FlytJobbRepository
+    private val jobbRepository: FlytJobbRepository,
+    private val brevGateway: BrevGateway
 ) : JobbUtfører {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -61,7 +62,7 @@ class OppdaterLegeerklæringStatusUtfører (
         else if (record.status == MeldingStatusType.OK) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
             runBlocking {
-                BrevGateway().ekspederBestilling(
+                brevGateway.ekspederBestilling(
                     BrevGateway.EkspederBestillingRequest(
                         requireNotNull(sak.journalpostId), (requireNotNull(sak.dokumentId))
                     )
@@ -82,7 +83,8 @@ class OppdaterLegeerklæringStatusUtfører (
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return OppdaterLegeerklæringStatusUtfører(
                 DialogmeldingRepository(connection),
-                FlytJobbRepository(connection)
+                FlytJobbRepository(connection),
+                BrevGateway()
             )
         }
 

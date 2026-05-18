@@ -25,7 +25,10 @@ import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.verdityper.dokument.Kanal
 
 // Dette API'et er kun for testmiljø for å kunne teste hele verdikjeden
-fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
+fun NormalOpenAPIRoute.testApi(
+    dataSource: DataSource,
+    brevGateway: BrevGateway
+) {
     val testApiRolle = "test-api"
     route("/test") {
         route("/avvist").authorizedPost<Unit, String, TaAvVentRequest>(
@@ -65,7 +68,7 @@ fun NormalOpenAPIRoute.testApi(dataSource: DataSource) {
                 fullRecord.journalpostId!!, fullRecord.dokumentId!!
             )
 
-            BrevGateway().ekspederBestilling(bestillingRequest)
+            brevGateway.ekspederBestilling(bestillingRequest)
             respond("", HttpStatusCode.OK)
         }
 

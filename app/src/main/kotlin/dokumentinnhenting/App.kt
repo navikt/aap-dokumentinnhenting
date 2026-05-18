@@ -9,12 +9,15 @@ import dokumentinnhenting.api.dokumentApi
 import dokumentinnhenting.api.driftApi
 import dokumentinnhenting.api.syfoApi
 import dokumentinnhenting.api.testApi
+import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
+import dokumentinnhenting.integrasjoner.brev.BrevGateway
+import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
+import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
@@ -88,19 +91,23 @@ fun Application.server(
 
     kafkaStreams(prometheus, dataSource)
 
+    val brevGateway = BrevGateway()
+    val syfoGateway = SyfoGateway()
+    val dokarkivGateway = DokarkivGateway(OboTokenProvider)
+
     routing {
         actuator(prometheus, motor)
 
         authenticate(AZURE) {
             apiRouting {
-                dokumentApi()
                 motorApi(dataSource)
-                syfoApi(dataSource)
+                syfoApi(dataSource, brevGateway, syfoGateway)
+                dokumentApi(dokarkivGateway)
 
                 driftApi(dataSource)
 
                 if (Miljø.erDev()) {
-                    testApi(dataSource)
+                    testApi(dataSource, brevGateway)
                 }
             }
         }
@@ -129,6 +136,7 @@ fun Application.module(dataSource: DataSource): Motor {
         // Release resources and unsubscribe from events
         application.monitor.unsubscribe(ApplicationStarted) {}
         application.monitor.unsubscribe(ApplicationStopped) {}
+        defaultHttpClient.close()
     }
 
     return motor
