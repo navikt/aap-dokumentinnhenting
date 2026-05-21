@@ -96,7 +96,7 @@ private fun brevMeldingFraNav(navn: String, fnr: String, fritekst: String): Stri
 }
 
 private fun brevReturLegeerklæring(navn: String, fnr: String, fritekst: String): String {
-    return """ 
+    return """
         |Retur av Legeerklæring ved arbeidsuførhet
         |
         |Gjelder $navn, $fnr.
