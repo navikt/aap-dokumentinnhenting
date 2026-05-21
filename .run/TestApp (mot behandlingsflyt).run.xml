@@ -1,0 +1,25 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TestApp (mot behandlingsflyt)" type="KtorApplicationConfigurationType" factoryName="Ktor">
+    <envs>
+      <env name="NAIS_CLUSTER_NAME" value="LOCAL" />
+      <env name="NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_JDBC_URL" value="jdbc:postgresql://localhost:5436/postgres" />
+      <env name="NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_PASSWORD" value="" />
+      <env name="NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_USERNAME" value="postgres" />
+      <env name="INTEGRASJON_BEHANDLINGSFLYT_URL" value="http://localhost:8080" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="dokumentinnhenting.TestAppKt" />
+    <module name="dokumentinnhenting.app.test" />
+    <option name="alternativeJrePath" />
+    <option name="alternativeJrePathEnabled" value="false" />
+    <option name="includeProvidedScope" value="false" />
+    <option name="mainClass" value="dokumentinnhenting.TestAppKt" />
+    <option name="passParentEnvs" value="true" />
+    <option name="programParameters" value="" />
+    <option name="shortenCommandLine" />
+    <option name="vmParameters" />
+    <option name="workingDirectory" value="$PROJECT_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

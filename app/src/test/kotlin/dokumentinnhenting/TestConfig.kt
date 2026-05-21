@@ -13,7 +13,7 @@ internal object TestConfig {
                 jwksUri = "http://localhost:${fakes.azurePort()}/jwks",
                 issuer = "azure"
             ),
-            DbConfig = dbconf?:DbConfig(
+            dbConfig = dbconf?:DbConfig(
                 url = "jdbc:postgresql://localhost:5000/test",
                 username = "test",
                 password = "test"

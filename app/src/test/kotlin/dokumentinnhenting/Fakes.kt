@@ -31,6 +31,7 @@ object Fakes : AutoCloseable {
     private val behandlingsflyt =
         embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
     private val brev = embeddedServer(Netty, port = 0, module = { brevFake() })
+    private val dokarkiv = embeddedServer(Netty, port = 0, module = { dokarkivFake() })
 
 
     init {
@@ -39,6 +40,7 @@ object Fakes : AutoCloseable {
         syfo.start()
         behandlingsflyt.start()
         brev.start()
+        dokarkiv.start()
 
         Runtime.getRuntime().addShutdownHook(Thread { close() })
 
@@ -66,12 +68,18 @@ object Fakes : AutoCloseable {
         System.setProperty("kafka.credstore.password", "password")
 
         //Behandlingsflyt
-        System.setProperty("behandlingsflyt.base.url", "http://localhost:${behandlingsflytPort()}")
+        if (System.getenv("INTEGRASJON_BEHANDLINGSFLYT_URL").isNullOrEmpty()) {
+            System.setProperty("behandlingsflyt.base.url", "http://localhost:${behandlingsflytPort()}")
+        }
         System.setProperty("behandlingsflyt.scope", "scope")
 
         //Brev
         System.setProperty("integrasjon.brev.base.url", "http://localhost:${brevPort()}")
         System.setProperty("integrasjon.brev.scope", "http://localhost:${brevPort()}")
+
+        // Dokarkiv
+        System.setProperty("integrasjon.dokarkiv.url", "http://localhost:${brevPort()}")
+        System.setProperty("integrasjon.dokarkiv.scope", "http://localhost:${brevPort()}")
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
     }
@@ -335,6 +343,27 @@ object Fakes : AutoCloseable {
             get("/jwks") {
                 call.respond(AZURE_JWKS)
             }
+        }
+    }
+
+    private fun Application.dokarkivFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@dokarkivFake.log.info(
+                    "DOKARKIV :: Ukjent feil ved kall til '{}'",
+                    call.request.local.uri,
+                    cause
+                )
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
+            }
+        }
+        routing {
         }
     }
 

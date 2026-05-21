@@ -8,6 +8,7 @@ services:
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
   texas:
+    profiles: ["dev-gcp"]
     image: ghcr.io/nais/texas:latest
     ports:
       - "7162:7162"
