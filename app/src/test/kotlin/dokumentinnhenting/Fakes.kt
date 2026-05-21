@@ -21,6 +21,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
+import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
+import kotlin.random.Random
+import kotlin.random.nextUInt
 
 object Fakes : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
@@ -309,6 +312,15 @@ object Fakes : AutoCloseable {
             }
         }
         routing {
+            post("/api/dokumentinnhenting/journalfor-behandler-bestilling") {
+                call.respond(
+                    JournalførBehandlerBestillingResponse(
+                        Random.nextUInt().toString(),
+                        true,
+                        listOf(Random.nextUInt().toString())
+                    )
+                )
+            }
             post("/api/dokumentinnhenting/ekspeder-journalpost-behandler-bestilling") {
                 call.respond("")
             }

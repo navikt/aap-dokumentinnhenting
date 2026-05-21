@@ -1,6 +1,7 @@
 package dokumentinnhenting.syfo
 
 import dokumentinnhenting.AzureTokenGen
+import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
@@ -26,6 +27,7 @@ import javax.sql.DataSource
 
 class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
+    private val brevGateway = mockk<BrevGateway>(relaxed = true)
     private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
@@ -72,7 +74,7 @@ class DialogmeldingBestillingTest {
             dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, "journalpostid", "dokumentid")
             val azureTokenGen = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting")
             azureTokenGen.generate()
-            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, mockProducer)
+            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, brevGateway, mockProducer)
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
         }
 
@@ -128,7 +130,7 @@ class DialogmeldingBestillingTest {
             dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, "journalpostid", "dokumentid")
             val azureTokenGen = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting")
             azureTokenGen.generate()
-            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, mockProducer)
+            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, brevGateway, mockProducer)
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
         }
 

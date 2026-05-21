@@ -13,7 +13,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevPreviewResponse
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.LegeerklæringPurringDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.MarkerBestillingSomMottattDTO
-import dokumentinnhenting.integrasjoner.syfo.bestilling.genererBrev
+import dokumentinnhenting.integrasjoner.syfo.bestilling.genererDialogmelding
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
@@ -45,8 +45,9 @@ fun NormalOpenAPIRoute.syfoApi(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
-                applicationsOnly = true)
-            ) { _, req ->
+                applicationsOnly = true
+            )
+        ) { _, req ->
             if (BestillingCache.contains(req.saksnummer)) {
                 respondWithStatus(HttpStatusCode.TooManyRequests)
                 return@authorizedPost
@@ -62,27 +63,29 @@ fun NormalOpenAPIRoute.syfoApi(
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
                 service.dialogmeldingBestilling(req)
             }
-            respond (response)
+            respond(response)
         }
 
         route("/purring").authorizedPost<Unit, UUID, LegeerklæringPurringDTO>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
-                applicationsOnly = true)
+                applicationsOnly = true
+            )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
                 service.dialogmeldingPurring(req)
             }
-            respond (response)
+            respond(response)
         }
 
         route("/status/markerbestillingmottatt").authorizedPost<Unit, DialogmeldingStatusTilBehandslingsflytDTO, MarkerBestillingSomMottattDTO>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
-                applicationsOnly = true)
+                applicationsOnly = true
+            )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
@@ -145,22 +148,17 @@ fun NormalOpenAPIRoute.syfoApi(
                 val tidligereBestilling =
                     req.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
 
-                val brevtekst = genererBrev(
+                val dialogmelding = genererDialogmelding(
                     BrevGenerering(
                         personNavn = req.personNavn,
                         personIdent = req.personIdent,
                         dialogmeldingTekst = req.dialogmeldingTekst,
                         dokumentasjonType = req.dokumentasjonType,
                         tidligereBestillingDato = tidligereBestilling?.opprettet,
+                        signatur = signatur,
                     )
                 )
-                val signaturtekst = if (signatur != null) {
-                    """\n\nMed vennlig hilsen\n${signatur.navn}\n${signatur.enhet}"""
-                } else {
-                    ""
-                }
-
-                BrevPreviewResponse(brevtekst + signaturtekst)
+                BrevPreviewResponse(dialogmelding)
             }
             respond(response)
         }
