@@ -10,26 +10,14 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 fun main() {
-    val postgres = postgreSQLContainer()
+    val dbConfig = initDbConfig()
     val fakes = Fakes
 
     // Starter server
     embeddedServer(Netty, port = 8082) {
-        val dbConfig = DbConfig(
-            url = postgres.jdbcUrl,
-            username = postgres.username,
-            password = postgres.password
-        )
-        // Useful for connecting to the test database locally
-        // jdbc URL contains the host and port and database name.
-        println("jdbcUrl: ${postgres.jdbcUrl}. Password: ${postgres.password}. Username: ${postgres.username}.")
         server(
             Config(
-                DbConfig(
-                    url = postgres.jdbcUrl,
-                    username = postgres.username,
-                    password = postgres.password
-                )
+                dbConfig = dbConfig
             )
         )
         module(fakes)
@@ -37,6 +25,22 @@ fun main() {
         initDatasource(dbConfig, SimpleMeterRegistry())
 
     }.start(wait = true)
+}
+
+private fun initDbConfig(): DbConfig {
+    return if (System.getenv("NAIS_DATABASE_DOKUMENTINNHENTING_DOKUMENTINNHENTING_JDBC_URL").isNullOrBlank()) {
+        val postgres = postgreSQLContainer()
+
+        DbConfig(
+            url = postgres.jdbcUrl,
+            username = postgres.username,
+            password = postgres.password
+        )
+    } else {
+        DbConfig()
+    }.also {
+        println("----\nDATABASE URL: \n${it.url}?user=${it.username}&password=${it.password}\n----")
+    }
 }
 
 private fun Application.module(fakes: Fakes) {

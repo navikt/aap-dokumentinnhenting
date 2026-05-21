@@ -85,7 +85,7 @@ fun Application.server(
 
     install(StatusPages, StatusPagesConfigHelper.setup())
 
-    val dataSource = initDatasource(config.DbConfig, prometheus)
+    val dataSource = initDatasource(config.dbConfig, prometheus)
     Migrering.migrate(dataSource)
     val motor = module(dataSource)
 

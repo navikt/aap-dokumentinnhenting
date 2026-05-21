@@ -4,7 +4,7 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 
 data class Config (
-    val DbConfig: DbConfig = DbConfig(),
+    val dbConfig: DbConfig = DbConfig(),
     val azureConfig: AzureConfig = AzureConfig(),
 )
 
