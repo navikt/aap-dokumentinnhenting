@@ -7,13 +7,12 @@ import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenereringRequest
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevPreviewResponse
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.LegeerklæringPurringDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.MarkerBestillingSomMottattDTO
-import dokumentinnhenting.integrasjoner.syfo.bestilling.genererBrev
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
@@ -25,6 +24,7 @@ import dokumentinnhenting.util.BestillingCache
 import io.ktor.http.HttpStatusCode
 import java.util.UUID
 import javax.sql.DataSource
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
@@ -40,13 +40,15 @@ fun NormalOpenAPIRoute.syfoApi(
     syfoGateway: SyfoGateway
 ) {
     val syfoApiRolle = "syfo-api"
+    val brevGeneratorService = DialogmeldingBrevGeneratorService(brevGateway)
     route("/syfo") {
         route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
-                applicationsOnly = true)
-            ) { _, req ->
+                applicationsOnly = true
+            )
+        ) { _, req ->
             if (BestillingCache.contains(req.saksnummer)) {
                 respondWithStatus(HttpStatusCode.TooManyRequests)
                 return@authorizedPost
@@ -62,27 +64,29 @@ fun NormalOpenAPIRoute.syfoApi(
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
                 service.dialogmeldingBestilling(req)
             }
-            respond (response)
+            respond(response)
         }
 
         route("/purring").authorizedPost<Unit, UUID, LegeerklæringPurringDTO>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
-                applicationsOnly = true)
+                applicationsOnly = true
+            )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
                 service.dialogmeldingPurring(req)
             }
-            respond (response)
+            respond(response)
         }
 
         route("/status/markerbestillingmottatt").authorizedPost<Unit, DialogmeldingStatusTilBehandslingsflytDTO, MarkerBestillingSomMottattDTO>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
-                applicationsOnly = true)
+                applicationsOnly = true
+            )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
@@ -139,28 +143,22 @@ fun NormalOpenAPIRoute.syfoApi(
                 applicationsOnly = true
             )
         ) { _, req ->
-            val signatur = brevGateway.hentSignaturForhåndsvisning(req.personIdent, req.bestillerNavIdent)
             val response = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepository(connection)
                 val tidligereBestilling =
                     req.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
 
-                val brevtekst = genererBrev(
-                    BrevGenerering(
+                val dialogmelding = runBlocking {
+                    brevGeneratorService.genererMedSignatur(
                         personNavn = req.personNavn,
                         personIdent = req.personIdent,
                         dialogmeldingTekst = req.dialogmeldingTekst,
                         dokumentasjonType = req.dokumentasjonType,
                         tidligereBestillingDato = tidligereBestilling?.opprettet,
+                        bestillerNavIdent = req.bestillerNavIdent,
                     )
-                )
-                val signaturtekst = if (signatur != null) {
-                    """\n\nMed vennlig hilsen\n${signatur.navn}\n${signatur.enhet}"""
-                } else {
-                    ""
                 }
-
-                BrevPreviewResponse(brevtekst + signaturtekst)
+                BrevPreviewResponse(dialogmelding)
             }
             respond(response)
         }

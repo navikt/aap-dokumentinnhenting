@@ -1,13 +1,12 @@
 package dokumentinnhenting.integrasjoner.brev
 
 import dokumentinnhenting.defaultHttpClient
-import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
 import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytException
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.integrasjoner.syfo.bestilling.genererBrev
+import dokumentinnhenting.integrasjoner.syfo.bestilling.genererDialogmelding
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
@@ -100,20 +99,19 @@ class BrevGateway {
         }.body()
     }
 
-    //Todo: Flytte hele greien til sanity så vi faktisk får noe fornuftig stuktur? Brev skal også refaktorere bruken av denne
     private fun mapPdfBrev(
         bestilling: DialogmeldingFullRecord,
         tidligereBestillingDato: LocalDateTime?,
     ): List<String> {
-        val brev = genererBrev(
+        return genererDialogmelding(
             BrevGenerering(
-                bestilling.personNavn,
-                bestilling.personIdent,
-                bestilling.fritekst,
-                bestilling.dokumentasjonType,
-                tidligereBestillingDato
+                personNavn = bestilling.personNavn,
+                personIdent = bestilling.personIdent,
+                dialogmeldingTekst = bestilling.fritekst,
+                dokumentasjonType = bestilling.dokumentasjonType,
+                tidligereBestillingDato = tidligereBestillingDato,
+                signatur = null // Signatur er i PDF-mal
             )
-        )
-        return brev.split("\n").map { it.replace("""\n""", "") }
+        ).split("\n\n")
     }
 }

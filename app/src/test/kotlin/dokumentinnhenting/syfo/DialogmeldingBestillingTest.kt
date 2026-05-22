@@ -28,6 +28,7 @@ import org.junit.jupiter.api.BeforeAll
 
 class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
+    private val dialogmeldingBrevGeneratorService = mockk<DialogmeldingBrevGeneratorService>(relaxed = true)
     private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
@@ -82,7 +83,7 @@ class DialogmeldingBestillingTest {
             dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, "journalpostid", "dokumentid")
             val azureTokenGen = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting")
             azureTokenGen.generate()
-            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, mockProducer)
+            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, dialogmeldingBrevGeneratorService, mockProducer)
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
         }
 
@@ -138,7 +139,7 @@ class DialogmeldingBestillingTest {
             dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, "journalpostid", "dokumentid")
             val azureTokenGen = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting")
             azureTokenGen.generate()
-            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, mockProducer)
+            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, dialogmeldingBrevGeneratorService, mockProducer)
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
         }
 
