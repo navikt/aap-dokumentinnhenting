@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit
 
 fun main() {
     val dbConfig = initDbConfig()
-    val fakes = Fakes
+    Fakes.start()
 
     // Starter server
     embeddedServer(Netty, port = 8082) {
@@ -20,7 +20,7 @@ fun main() {
                 dbConfig = dbConfig
             )
         )
-        module(fakes)
+        module()
 
         initDatasource(dbConfig, SimpleMeterRegistry())
 
@@ -43,11 +43,11 @@ private fun initDbConfig(): DbConfig {
     }
 }
 
-private fun Application.module(fakes: Fakes) {
+private fun Application.module() {
     // Setter opp virtuell sandkasse lokalt
     monitor.subscribe(ApplicationStopped) { application ->
         application.environment.log.info("Server har stoppet")
-        fakes.close()
+        Fakes.close()
         // Release resources and unsubscribe from events
         application.monitor.unsubscribe(ApplicationStopped) {}
     }

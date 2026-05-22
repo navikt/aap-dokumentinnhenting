@@ -24,26 +24,37 @@ import java.util.*
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
 import kotlin.random.Random
 import kotlin.random.nextUInt
+import java.util.concurrent.atomic.AtomicBoolean
 
 object Fakes : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
+    private val servers = mutableListOf<EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>>()
 
-    private val azure = embeddedServer(Netty, port = 8081, module = { azureFake() })
-    private val saf = embeddedServer(Netty, port = 0, module = { safFake() })
-    private val syfo = embeddedServer(Netty, port = 0, module = { syfoFake() })
-    private val behandlingsflyt =
-        embeddedServer(Netty, port = 0, module = { behandlingsflytFake() })
-    private val brev = embeddedServer(Netty, port = 0, module = { brevFake() })
-    private val dokarkiv = embeddedServer(Netty, port = 0, module = { dokarkivFake() })
+    private val started = AtomicBoolean(false)
 
+    fun start() {
+        if (started.get()) {
+            return
+        }
+        started.set(true)
 
-    init {
-        azure.start()
-        saf.start()
-        syfo.start()
-        behandlingsflyt.start()
-        brev.start()
-        dokarkiv.start()
+        val azure = embeddedServer(Netty, port = 8081, module = { azureFake() }).apply { start() }
+        val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
+        val syfo = embeddedServer(Netty, port = 0, module = { syfoFake() }).apply { start() }
+        val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() }).apply { start() }
+        val brev = embeddedServer(Netty, port = 0, module = { brevFake() }).apply { start() }
+        val dokarkiv = embeddedServer(Netty, port = 0, module = { dokarkivFake() }).apply { start() }
+
+        servers.addAll(
+            listOf(
+                azure,
+                saf,
+                syfo,
+                behandlingsflyt,
+                brev,
+                dokarkiv,
+            )
+        )
 
         Runtime.getRuntime().addShutdownHook(Thread { close() })
 
@@ -52,19 +63,19 @@ object Fakes : AutoCloseable {
         // Azure
         System.setProperty(
             "azure.openid.config.token.endpoint",
-            "http://localhost:${azurePort()}/token"
+            "http://localhost:${azure.engine.port()}/token"
         )
         System.setProperty("azure.app.client.id", "dokumentinnhenting")
         System.setProperty("azure.app.client.secret", "")
-        System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azurePort()}/jwks")
+        System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.engine.port()}/jwks")
         System.setProperty("azure.openid.config.issuer", "dokumentinnhenting")
         // saf
-        System.setProperty("integrasjon.saf.url.rest", "http://localhost:${safPort()}/rest")
-        System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${safPort()}/graphql")
+        System.setProperty("integrasjon.saf.url.rest", "http://localhost:${saf.engine.port()}/rest")
+        System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.engine.port()}/graphql")
         System.setProperty("integrasjon.saf.scope", "saf")
 
         // Syfo
-        System.setProperty("integrasjon.syfo.base.url", "http://localhost:${syfoPort()}")
+        System.setProperty("integrasjon.syfo.base.url", "http://localhost:${syfo.engine.port()}")
         System.setProperty("integrasjon.syfo.scope", "scope")
         System.setProperty("kafka.truststore.path", "trust")
         System.setProperty("kafka.keystore.path", "store")
@@ -72,48 +83,24 @@ object Fakes : AutoCloseable {
 
         //Behandlingsflyt
         if (System.getenv("INTEGRASJON_BEHANDLINGSFLYT_URL").isNullOrEmpty()) {
-            System.setProperty("behandlingsflyt.base.url", "http://localhost:${behandlingsflytPort()}")
+            System.setProperty("behandlingsflyt.base.url", "http://localhost:${behandlingsflyt.engine.port()}")
         }
         System.setProperty("behandlingsflyt.scope", "scope")
 
         //Brev
-        System.setProperty("integrasjon.brev.base.url", "http://localhost:${brevPort()}")
-        System.setProperty("integrasjon.brev.scope", "http://localhost:${brevPort()}")
+        System.setProperty("integrasjon.brev.base.url", "http://localhost:${brev.engine.port()}")
+        System.setProperty("integrasjon.brev.scope", "http://localhost:${brev.engine.port()}")
 
         // Dokarkiv
-        System.setProperty("integrasjon.dokarkiv.url", "http://localhost:${brevPort()}")
-        System.setProperty("integrasjon.dokarkiv.scope", "http://localhost:${brevPort()}")
+        System.setProperty("integrasjon.dokarkiv.url", "http://localhost:${brev.engine.port()}")
+        System.setProperty("integrasjon.dokarkiv.scope", "http://localhost:${brev.engine.port()}")
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
     }
 
-    fun azurePort(): Int {
-        return azure.engine.port()
-    }
-
-    fun safPort(): Int {
-        return saf.engine.port()
-    }
-
-    fun syfoPort(): Int {
-        return syfo.engine.port()
-    }
-
-    fun behandlingsflytPort(): Int {
-        return behandlingsflyt.engine.port()
-    }
-
-    fun brevPort(): Int {
-        return brev.engine.port()
-    }
-
     override fun close() {
         logger.info("Closing Servers.")
-        azure.stop(0L, 0L)
-        saf.stop(0L, 0L)
-        syfo.stop(0, 0L)
-        brev.stop(0, 0L)
-        behandlingsflyt.stop(0, 0L)
+        servers.forEach { it.stop(0L, 0L) }
     }
 
     private fun Application.behandlingsflytFake() {
