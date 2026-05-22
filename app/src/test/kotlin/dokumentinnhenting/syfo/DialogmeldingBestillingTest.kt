@@ -2,6 +2,7 @@ package dokumentinnhenting.syfo
 
 import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.Fakes
+import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
