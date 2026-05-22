@@ -5,9 +5,16 @@ import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.brev.kontrakt.Vedlegg
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import org.junit.jupiter.api.BeforeAll
 
 internal class BehandlingsflytGatewayTest {
-    val fakes = Fakes
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun beforeAll() {
+            Fakes.start()
+        }
+    }
 
     @Test
     fun `får bestilt varsel med request mot behandlingsflyt`() {

@@ -1,6 +1,7 @@
 package dokumentinnhenting.syfo
 
 import dokumentinnhenting.AzureTokenGen
+import dokumentinnhenting.Fakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 import javax.sql.DataSource
+import org.junit.jupiter.api.BeforeAll
 
 class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
@@ -30,6 +32,14 @@ class DialogmeldingBestillingTest {
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
     private lateinit var dataSource: TestDataSource
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun beforeAll() {
+            Fakes.start()
+        }
+    }
 
     @BeforeEach
     fun setup() {
