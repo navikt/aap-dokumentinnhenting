@@ -21,7 +21,7 @@ const val KILDE = "AAP"
 
 class BestillLegeerklæringSteg(
     private val dialogmeldingRepository: DialogmeldingRepository,
-    private val brevGateway: BrevGateway,
+    private val brevGeneratorService: DialogmeldingBrevGeneratorService,
     private val producer: KafkaProducer<String, String> = KafkaProducer(ProducerConfig().properties()),
 
     ) : SyfoSteg.Utfører {
@@ -35,7 +35,10 @@ class BestillLegeerklæringSteg(
 
     companion object : SyfoSteg {
         override fun konstruer(connection: DBConnection): SyfoSteg.Utfører {
-            return BestillLegeerklæringSteg(DialogmeldingRepository(connection), BrevGateway())
+            return BestillLegeerklæringSteg(
+                DialogmeldingRepository(connection),
+                DialogmeldingBrevGeneratorService(BrevGateway()),
+            )
         }
     }
 
@@ -81,19 +84,16 @@ class BestillLegeerklæringSteg(
         }
 
         val kodeStruktur = mapDialogmeldingKodeStruktur(record.dokumentasjonType)
-        val signatur = runBlocking {
-            brevGateway.hentSignaturForhåndsvisning(record.personIdent, record.bestillerNavIdent)
-        }
-        val dialogmelding = genererDialogmelding(
-            BrevGenerering(
+        val dialogmelding = runBlocking {
+            brevGeneratorService.genererMedSignatur(
                 personNavn = record.personNavn,
                 personIdent = record.personIdent,
                 dialogmeldingTekst = record.fritekst,
                 dokumentasjonType = record.dokumentasjonType,
                 tidligereBestillingDato = tidligereTilhørendeBestillingsdato,
-                signatur = signatur
+                bestillerNavIdent = record.bestillerNavIdent,
             )
-        )
+        }
         return DialogmeldingToBehandlerBestillingDTO(
             behandlerRef = record.behandlerRef,
             personIdent = record.personIdent,
