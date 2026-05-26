@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
+import dokumentinnhenting.api.fraDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -7,6 +8,8 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.slf4j.LoggerFactory
 import java.util.*
+import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 
 private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestillingService::class.java)
 
@@ -23,26 +26,28 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    fun dialogmeldingPurring(dto: LegeerklæringPurringDTO): UUID {
+    fun dialogmeldingPurring(dto: LegeerklæringPurringDto): UUID {
         val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(requireNotNull(dto.dialogmeldingUuid))
             ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
 
-        return dialogmeldingBestilling(BehandlingsflytToDokumentInnhentingBestillingDTO(
-            bestillerNavIdent = bestilling.bestillerNavIdent,
-            behandlerRef = bestilling.behandlerRef,
-            behandlerNavn = bestilling.behandlerNavn,
-            behandlerHprNr = bestilling.behandlerHprNr,
-            personIdent = bestilling.personIdent,
-            personNavn = bestilling.personNavn,
-            dialogmeldingTekst = bestilling.fritekst,
-            saksnummer = bestilling.saksnummer,
-            dokumentasjonType = DokumentasjonType.PURRING,
-            behandlingsReferanse = bestilling.behandlingsReferanse,
-            tidligereBestillingReferanse = bestilling.dialogmeldingUuid
-        ))
+        return dialogmeldingBestilling(
+            BehandlingsflytToDokumentInnhentingBestillingDto(
+                bestillerNavIdent = bestilling.bestillerNavIdent,
+                behandlerRef = bestilling.behandlerRef,
+                behandlerNavn = bestilling.behandlerNavn,
+                behandlerHprNr = bestilling.behandlerHprNr,
+                personIdent = bestilling.personIdent,
+                personNavn = bestilling.personNavn,
+                dialogmeldingTekst = bestilling.fritekst,
+                saksnummer = bestilling.saksnummer,
+                dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING,
+                behandlingsReferanse = bestilling.behandlingsReferanse,
+                tidligereBestillingReferanse = bestilling.dialogmeldingUuid
+            )
+        )
     }
 
-    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDTO): UUID {
+    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDto): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = DialogmeldingRecord(
             bestillerNavIdent = dto.bestillerNavIdent,
@@ -52,7 +57,7 @@ class BehandlerDialogmeldingBestillingService(
             personIdent = dto.personIdent,
             personNavn = dto.personNavn,
             saksnummer = dto.saksnummer,
-            dokumentasjonType = dto.dokumentasjonType,
+            dokumentasjonType = dto.dokumentasjonType.fraDto(),
             behandlerNavn = dto.behandlerNavn,
             fritekst = dto.dialogmeldingTekst,
             behandlingsReferanse = dto.behandlingsReferanse,

@@ -1,5 +1,6 @@
 package dokumentinnhenting.syfo
 
+import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.integrasjoner.syfo.SYFO_DIALOGMELDING_MOTTAK_TOPIC
 import dokumentinnhenting.integrasjoner.syfo.SYFO_STATUS_DIALOGMELDING_TOPIC
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
@@ -10,10 +11,8 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.HenvendelseFraLegeHenvendelse
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
-import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
-import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
+import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
-import dokumentinnhenting.integrasjoner.syfo.status.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.createGenericSerde
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -29,11 +28,12 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import javax.sql.DataSource
+import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class KafkaStreamsTest {
-    private lateinit var statusInputTopic: TestInputTopic<String, DialogmeldingStatusDTO>
+    private lateinit var statusInputTopic: TestInputTopic<String, DialogmeldingStatusDto>
     private lateinit var mottakInputTopic: TestInputTopic<String, DialogmeldingMottakDTO>
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
@@ -55,7 +55,7 @@ class KafkaStreamsTest {
         statusInputTopic = testDriver.createInputTopic(
             SYFO_STATUS_DIALOGMELDING_TOPIC,
             Serdes.String().serializer(),
-            createGenericSerde(DialogmeldingStatusDTO::class.java).serializer()
+            createGenericSerde(DialogmeldingStatusDto::class.java).serializer()
         )
 
         mottakInputTopic = testDriver.createInputTopic(
@@ -101,7 +101,7 @@ class KafkaStreamsTest {
 
         setupRepositoryDataStatus(dataSource, existingRecord)
 
-        val incomingRecord = DialogmeldingStatusDTO(
+        val incomingRecord = DialogmeldingStatusDto(
             bestillingUuid = bestillingUuid,
             status = MeldingStatusType.OK,
             tekst = "Teststatus",
@@ -190,7 +190,7 @@ class KafkaStreamsTest {
     private fun hentRepositoryDataStatus(
         dataSource: DataSource,
         saksnummer: String
-    ): List<DialogmeldingStatusTilBehandslingsflytDTO> {
+    ): List<DialogmeldingStatusTilBehandslingsflytDto> {
         return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)
@@ -208,7 +208,7 @@ class KafkaStreamsTest {
     private fun hentRepositoryDataMottak(
         dataSource: DataSource,
         saksnummer: String,
-    ): List<DialogmeldingStatusTilBehandslingsflytDTO> {
+    ): List<DialogmeldingStatusTilBehandslingsflytDto> {
         return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)

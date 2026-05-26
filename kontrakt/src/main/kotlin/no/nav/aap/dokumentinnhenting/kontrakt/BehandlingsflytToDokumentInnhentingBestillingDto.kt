@@ -1,8 +1,8 @@
-package dokumentinnhenting.integrasjoner.syfo.bestilling
+package no.nav.aap.dokumentinnhenting.kontrakt
 
-import java.util.*
+import java.util.UUID
 
-data class BehandlingsflytToDokumentInnhentingBestillingDTO(
+data class BehandlingsflytToDokumentInnhentingBestillingDto(
     val bestillerNavIdent: String,
     val behandlerRef: String,
     val behandlerNavn: String,
@@ -15,12 +15,3 @@ data class BehandlingsflytToDokumentInnhentingBestillingDTO(
     val behandlingsReferanse: UUID,
     val tidligereBestillingReferanse: UUID? = null
 )
-
-enum class DokumentasjonType {
-    L40, L8, L120, MELDING_FRA_NAV, RETUR_LEGEERKLÆRING, PURRING;
-
-    fun skalVarsleBruker(): Boolean = when (this) {
-        L40, L8, L120 -> true
-        else -> false
-    }
-}

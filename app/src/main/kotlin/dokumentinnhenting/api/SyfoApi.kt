@@ -6,25 +6,23 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlingsflytToDokumentInnhentingBestillingDTO
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenereringRequest
-import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevPreviewResponse
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
-import dokumentinnhenting.integrasjoner.syfo.bestilling.LegeerklæringPurringDTO
-import dokumentinnhenting.integrasjoner.syfo.bestilling.MarkerBestillingSomMottattDTO
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
-import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
-import dokumentinnhenting.integrasjoner.syfo.status.HentDialogmeldingStatusDTO
-import dokumentinnhenting.integrasjoner.syfo.status.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.BestillingCache
 import io.ktor.http.HttpStatusCode
 import java.util.UUID
 import javax.sql.DataSource
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingForhåndsvisningDto
+import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
+import no.nav.aap.dokumentinnhenting.kontrakt.ForhåndsvisDialogmeldingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
+import no.nav.aap.dokumentinnhenting.kontrakt.MarkerBestillingSomMottattDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
@@ -42,7 +40,7 @@ fun NormalOpenAPIRoute.syfoApi(
     val syfoApiRolle = "syfo-api"
     val brevGeneratorService = DialogmeldingBrevGeneratorService(brevGateway)
     route("/syfo") {
-        route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDTO>(
+        route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDto>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
@@ -67,7 +65,7 @@ fun NormalOpenAPIRoute.syfoApi(
             respond(response)
         }
 
-        route("/purring").authorizedPost<Unit, UUID, LegeerklæringPurringDTO>(
+        route("/purring").authorizedPost<Unit, UUID, LegeerklæringPurringDto>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
@@ -81,7 +79,7 @@ fun NormalOpenAPIRoute.syfoApi(
             respond(response)
         }
 
-        route("/status/markerbestillingmottatt").authorizedPost<Unit, DialogmeldingStatusTilBehandslingsflytDTO, MarkerBestillingSomMottattDTO>(
+        route("/status/markerbestillingmottatt").authorizedPost<Unit, DialogmeldingStatusTilBehandslingsflytDto, MarkerBestillingSomMottattDto>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
@@ -92,24 +90,12 @@ fun NormalOpenAPIRoute.syfoApi(
                 val repository = DialogmeldingRepository(connection)
                 repository.oppdaterDialogmeldingStatusMedMottatt(req.dialogmeldingUuid)
                 val record = requireNotNull(repository.hentByDialogId(req.dialogmeldingUuid))
-
-                DialogmeldingStatusTilBehandslingsflytDTO(
-                    dialogmeldingUuid = req.dialogmeldingUuid,
-                    status = record.status,
-                    statusTekst = record.statusTekst,
-                    behandlerRef = record.behandlerRef,
-                    behandlerNavn = record.behandlerNavn,
-                    personId = record.personIdent,
-                    saksnummer = record.saksnummer,
-                    opprettet = record.opprettet,
-                    behandlingsReferanse = record.behandlingsReferanse,
-                    fritekst = record.fritekst
-                )
+                record.tilDto()
             }
             respond(response)
         }
 
-        route("/status/{saksnummer}").authorizedGet<HentDialogmeldingStatusDTO, List<DialogmeldingStatusTilBehandslingsflytDTO>>(
+        route("/status/{saksnummer}").authorizedGet< SaksnummerParameter, List<DialogmeldingStatusTilBehandslingsflytDto>>(
             AuthorizationParamPathConfig(
                 applicationRole = syfoApiRolle,
                 applicationsOnly = true,
@@ -136,7 +122,7 @@ fun NormalOpenAPIRoute.syfoApi(
             respond(behandlere)
         }
 
-        route("/brevpreview").authorizedPost<Unit, BrevPreviewResponse, BrevGenereringRequest>(
+        route("/brevpreview").authorizedPost<Unit, DialogmeldingForhåndsvisningDto, ForhåndsvisDialogmeldingDto>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,
@@ -153,12 +139,12 @@ fun NormalOpenAPIRoute.syfoApi(
                         personNavn = req.personNavn,
                         personIdent = req.personIdent,
                         dialogmeldingTekst = req.dialogmeldingTekst,
-                        dokumentasjonType = req.dokumentasjonType,
+                        dokumentasjonType = req.dokumentasjonType.fraDto(),
                         tidligereBestillingDato = tidligereBestilling?.opprettet,
                         bestillerNavIdent = req.bestillerNavIdent,
                     )
                 }
-                BrevPreviewResponse(dialogmelding)
+                DialogmeldingForhåndsvisningDto(dialogmelding)
             }
             respond(response)
         }

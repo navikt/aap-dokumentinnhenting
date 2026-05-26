@@ -2,10 +2,9 @@ package dokumentinnhenting.syfo
 
 import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.Fakes
+import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
-import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusTilBehandslingsflytDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
-import dokumentinnhenting.integrasjoner.syfo.status.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
@@ -24,6 +23,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 import javax.sql.DataSource
+import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
+import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 import org.junit.jupiter.api.BeforeAll
 
 class DialogmeldingBestillingTest {
@@ -55,14 +57,14 @@ class DialogmeldingBestillingTest {
     @Test
     fun kanKjøreSteg() {
         val saksnummer = "saksnummer"
-        val dto = BehandlingsflytToDokumentInnhentingBestillingDTO(
+        val dto = BehandlingsflytToDokumentInnhentingBestillingDto(
             bestillerNavIdent = "bestillerNavIdent",
             behandlerRef = "behandlerRef",
             personIdent = "12345678910",
             personNavn = "personNavn",
             saksnummer = saksnummer,
             dialogmeldingTekst = "tekst",
-            dokumentasjonType = DokumentasjonType.L8,
+            dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L8,
             behandlerNavn = "behandlerNavn",
             behandlingsReferanse = UUID.randomUUID(),
             behandlerHprNr = "12344321"
@@ -104,21 +106,23 @@ class DialogmeldingBestillingTest {
             dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(FlytJobbRepository(connection), DialogmeldingRepository(connection))
 
-            assertThrows<RuntimeException> { behandlerDialogmeldingBestillingService.dialogmeldingPurring(LegeerklæringPurringDTO(UUID.randomUUID())) }
+            assertThrows<RuntimeException> { behandlerDialogmeldingBestillingService.dialogmeldingPurring(
+                LegeerklæringPurringDto(UUID.randomUUID())
+            ) }
         }
     }
 
     @Test
     fun KanOppdatereBestillingStatuserManuelt() {
         val saksnummer = "saksnummer"
-        val dto = BehandlingsflytToDokumentInnhentingBestillingDTO(
+        val dto = BehandlingsflytToDokumentInnhentingBestillingDto(
             bestillerNavIdent = "bestillerNavIdent",
             behandlerRef = "behandlerRef",
             personIdent = "12345678910",
             personNavn = "personNavn",
             saksnummer = saksnummer,
             dialogmeldingTekst = "tekst",
-            dokumentasjonType = DokumentasjonType.L8,
+            dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L8,
             behandlerNavn = "behandlerNavn",
             behandlingsReferanse = UUID.randomUUID(),
             behandlerHprNr = "12344321"
@@ -159,14 +163,14 @@ class DialogmeldingBestillingTest {
     fun FeilerOmLegeerklæringPurringErUnder14Dager() {
         lateinit var dialogmeldingLegerklæringUuid: UUID
         val saksnummer = "saksnummer"
-        val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDTO(
+        val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDto(
             bestillerNavIdent = "bestillerNavIdent",
             behandlerRef = "behandlerRef",
             personIdent = "12345678910",
             personNavn = "personNavn",
             saksnummer = saksnummer,
             dialogmeldingTekst = "tekst",
-            dokumentasjonType = DokumentasjonType.L8,
+            dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L8,
             behandlerNavn = "behandlerNavn",
             behandlingsReferanse = UUID.randomUUID(),
             behandlerHprNr = "1233321"
@@ -196,13 +200,13 @@ class DialogmeldingBestillingTest {
 
             assertThrows<RuntimeException> {
                 behandlerDialogmeldingBestillingService.dialogmeldingPurring(
-                    LegeerklæringPurringDTO(dialogmeldingLegerklæringUuid)
+                    LegeerklæringPurringDto(dialogmeldingLegerklæringUuid)
                 )
             }
         }
     }
 
-    private fun hentRepositoryData(dataSource: DataSource, saksnummer: String): List<DialogmeldingStatusTilBehandslingsflytDTO> {
+    private fun hentRepositoryData(dataSource: DataSource, saksnummer: String): List<DialogmeldingStatusTilBehandslingsflytDto> {
         return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             dialogmeldingRepository.hentBySaksnummer(saksnummer)

@@ -2,7 +2,7 @@ package dokumentinnhenting.repositories
 
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
-import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
+import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import java.util.UUID
@@ -38,7 +38,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         return melding.dialogmeldingUuid
     }
 
-    fun oppdaterDialogmeldingStatus(melding: DialogmeldingStatusDTO) {
+    fun oppdaterDialogmeldingStatus(melding: DialogmeldingStatusDto) {
         val query = """
             UPDATE DIALOGMELDING
             SET STATUS = ?, STATUS_TEKST = ?

@@ -135,10 +135,6 @@ private fun brevPurring(navn: String, fnr: String, tidligereBestillingDato: Loca
     """.trimMargin()
 }
 
-data class BrevPreviewResponse(
-    val konstruertBrev: String
-)
-
 data class BrevGenerering(
     val personNavn: String,
     val personIdent: String,
