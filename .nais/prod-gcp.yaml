@@ -1,0 +1,105 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: dokumentinnhenting
+  namespace: aap
+  labels:
+    team: aap
+    sub: dokumentinnhenting
+
+spec:
+  image: {{image}}
+  {{#if isdev}}
+  ingresses:
+    - {{ingress}}
+  {{/if}}
+
+  replicas:
+    cpuThresholdPercentage: 90
+
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+      claims:
+        extra:
+          - "NAVident"
+          - "azp_name"
+
+  kafka:
+    pool: {{kafka.pool}}
+    streams: true
+
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_16
+        tier: {{sql.tier}}
+        diskAutoresize: {{sql.diskAutoresize}}
+        highAvailability: {{sql.highAvailability}}
+        pointInTimeRecovery: {{sql.pointInTimeRecovery}}
+        databases:
+          - name: dokumentinnhenting
+
+  resources:
+    limits:
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 1024Mi
+  liveness:
+    path: /actuator/live
+    initialDelay: 3
+    periodSeconds: 3
+    failureThreshold: 21
+  readiness:
+    path: /actuator/ready
+    initialDelay: 3
+    periodSeconds: 3
+    failureThreshold: 21
+  prometheus:
+    enabled: true
+    path: /actuator/metrics
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: "java"
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
+
+  env:
+    {{#each env}}
+    - name: {{this.name}}
+      value: {{this.value}}
+    {{/each}}
+
+  accessPolicy:
+    inbound:
+      rules:
+        - application: behandlingsflyt
+          permissions:
+            roles:
+              - "syfo-api"
+        - application: paw-patrol
+        - application: saksbehandling
+        {{#if isdev}}
+        - application: saksbehandling-lokal # For lokal utvikling. IKKE kopier denne til prod.yaml
+        - application: azure-token-generator # For testing i dev. IKKE kopier denne til prod.yaml
+          namespace: nais
+          cluster: dev-gcp
+          permissions:
+            roles:
+              - "test-api"
+        {{/if}}
+    outbound:
+      rules:
+        - application: behandlingsflyt
+        - application: tilgang
+        - application: brev
+        - application: isdialogmelding
+          namespace: teamsykefravr
+      external:
+        {{#each external}}
+        - host: {{this.host}}
+        {{/each}}
