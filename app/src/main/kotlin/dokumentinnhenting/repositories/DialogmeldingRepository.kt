@@ -61,7 +61,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             WHERE DIALOGMELDING_UUID = ?
         """.trimIndent()
 
-        connection.executeReturnUpdated(query) {
+        connection.execute(query) {
             setParams {
                 setString(1, MeldingStatusType.MOTTATT.toString())
                 setString(2, MeldingStatusType.MOTTATT.toString())
@@ -107,7 +107,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             WHERE OPPRETTET_TID < NOW() - INTERVAL '14 days' AND DIALOGMELDING_UUID = ?
         """.trimIndent()
 
-        return connection.queryFirstOrNull(query){
+        return connection.queryFirstOrNull(query) {
             setParams {
                 setUUID(1, dialogmeldingUuid)
             }
@@ -142,6 +142,19 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(1, dialogmeldingUuid)
             }
             setRowMapper(::mapDialogmeldingFullRecord)
+        }
+    }
+
+    fun eksisterer(dialogmeldingUuid: UUID): Boolean {
+        val query = "SELECT EXISTS(SELECT 1 FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ?)"
+
+        return connection.queryFirst(query) {
+            setParams {
+                setUUID(1, dialogmeldingUuid)
+            }
+            setRowMapper {
+                it.getBoolean("exists")
+            }
         }
     }
 
