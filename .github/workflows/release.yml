@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: paulhatch/semantic-version@v6.0.2
+      - uses: paulhatch/semantic-version@9f72830310d5ed81233b641ee59253644cd8a8fc # v6.0.2
         id: tag
         with:
           change_path: "kontrakt/"
