@@ -83,6 +83,7 @@ spec:
               - "syfo-api"
         - application: paw-patrol
         - application: saksbehandling
+        - application: api-intern
         {{#if isdev}}
         - application: saksbehandling-lokal # For lokal utvikling. IKKE kopier denne til prod.yaml
         - application: azure-token-generator # For testing i dev. IKKE kopier denne til prod.yaml
