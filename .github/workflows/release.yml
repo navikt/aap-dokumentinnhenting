@@ -39,8 +39,7 @@ jobs:
     secrets: inherit
     with:
       cluster: dev-gcp
-      vars: .nais/dev.yaml
-      manifest: .nais/nais.yaml
+      manifest: .nais/dev-gcp.yaml
 
   prod:
     needs: dev
@@ -53,5 +52,4 @@ jobs:
     concurrency: deploy-prod
     with:
       cluster: prod-gcp
-      vars: .nais/prod.yaml
-      manifest: .nais/nais.yaml
+      manifest: .nais/prod-gcp.yaml
