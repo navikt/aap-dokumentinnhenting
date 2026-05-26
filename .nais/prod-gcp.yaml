@@ -9,14 +9,8 @@ metadata:
 
 spec:
   image: {{image}}
-  {{#if isdev}}
-  ingresses:
-    - {{ingress}}
-  {{/if}}
-
   replicas:
     cpuThresholdPercentage: 90
-
   azure:
     application:
       enabled: true
@@ -25,21 +19,18 @@ spec:
         extra:
           - "NAVident"
           - "azp_name"
-
   kafka:
-    pool: {{kafka.pool}}
+    pool: nav-prod
     streams: true
-
   gcp:
     sqlInstances:
       - type: POSTGRES_16
-        tier: {{sql.tier}}
-        diskAutoresize: {{sql.diskAutoresize}}
-        highAvailability: {{sql.highAvailability}}
-        pointInTimeRecovery: {{sql.pointInTimeRecovery}}
+        tier: db-custom-1-3840
+        diskAutoresize: true
+        highAvailability: true
+        pointInTimeRecovery: true
         databases:
           - name: dokumentinnhenting
-
   resources:
     limits:
       memory: 1024Mi
@@ -67,13 +58,33 @@ spec:
       destinations:
         - id: elastic
         - id: loki
-
   env:
-    {{#each env}}
-    - name: {{this.name}}
-      value: {{this.value}}
-    {{/each}}
-
+    - name: BEHANDLINGSFLYT_BASE_URL
+      value: http://behandlingsflyt
+    - name: BEHANDLINGSFLYT_SCOPE
+      value: api://prod-gcp.aap.behandlingsflyt/.default
+    - name: INTEGRASJON_SYFO_BASE_URL
+      value: http://isdialogmelding.teamsykefravr
+    - name: INTEGRASJON_SYFO_SCOPE
+      value: api://prod-gcp.teamsykefravr.isdialogmelding/.default
+    - name: INTEGRASJON_SAF_URL_GRAPHQL
+      value: https://saf.prod-fss-pub.nais.io/graphql
+    - name: INTEGRASJON_SAF_URL_REST
+      value: https://saf.prod-fss-pub.nais.io/rest
+    - name: INTEGRASJON_SAF_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.saf/.default
+    - name: INTEGRASJON_DOKARKIV_URL
+      value: https://dokarkiv.prod-fss-pub.nais.io
+    - name: INTEGRASJON_DOKARKIV_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: INTEGRASJON_BREV_BASE_URL
+      value: http://brev
+    - name: INTEGRASJON_BREV_SCOPE
+      value: api://prod-gcp.aap.brev/.default
+    - name: INTEGRASJON_TILGANG_URL
+      value: http://tilgang
+    - name: INTEGRASJON_TILGANG_SCOPE
+      value: api://prod-gcp.aap.tilgang/.default
   accessPolicy:
     inbound:
       rules:
@@ -83,15 +94,6 @@ spec:
               - "syfo-api"
         - application: paw-patrol
         - application: saksbehandling
-        {{#if isdev}}
-        - application: saksbehandling-lokal # For lokal utvikling. IKKE kopier denne til prod.yaml
-        - application: azure-token-generator # For testing i dev. IKKE kopier denne til prod.yaml
-          namespace: nais
-          cluster: dev-gcp
-          permissions:
-            roles:
-              - "test-api"
-        {{/if}}
     outbound:
       rules:
         - application: behandlingsflyt
@@ -100,6 +102,5 @@ spec:
         - application: isdialogmelding
           namespace: teamsykefravr
       external:
-        {{#each external}}
-        - host: {{this.host}}
-        {{/each}}
+        - host: saf.prod-fss-pub.nais.io
+        - host: dokarkiv.prod-fss-pub.nais.io
