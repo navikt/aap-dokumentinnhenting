@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import com.papsign.ktor.openapigen.model.info.InfoModel
+import dokumentinnhenting.Azp
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.jackson.jackson
@@ -79,7 +80,7 @@ class DialogmeldingApiTest {
             bearerAuth(bearerToken())
         }
 
-        assertEquals(HttpStatusCode.NoContent, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         assertFalse(response.body<DialogmeldingEksistererDto>().eksisterer)
     }
 
@@ -93,7 +94,7 @@ class DialogmeldingApiTest {
     }
 
     private fun bearerToken() =
-        AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate()
+        AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(isApp = true, azp = Azp.ApiIntern.toString())
 
     private fun lagRecord(uuid: UUID) = DialogmeldingRecord(
         bestillerNavIdent = "Z123456",
