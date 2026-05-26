@@ -95,6 +95,8 @@ object Fakes : AutoCloseable {
         System.setProperty("integrasjon.dokarkiv.url", "http://localhost:${brev.engine.port()}")
         System.setProperty("integrasjon.dokarkiv.scope", "http://localhost:${brev.engine.port()}")
 
+        System.setProperty("INTEGRASJON_API_INTERN_AZP", UUID.randomUUID().toString())
+
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
     }
 

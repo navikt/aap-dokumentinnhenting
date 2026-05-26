@@ -5,6 +5,7 @@ import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dokumentinnhenting.api.actuator
+import dokumentinnhenting.api.dialogmeldingApi
 import dokumentinnhenting.api.dokumentApi
 import dokumentinnhenting.api.driftApi
 import dokumentinnhenting.api.syfoApi
@@ -103,6 +104,7 @@ fun Application.server(
                 motorApi(dataSource)
                 syfoApi(dataSource, brevGateway, syfoGateway)
                 dokumentApi(dokarkivGateway)
+                dialogmeldingApi(dataSource)
 
                 driftApi(dataSource)
 

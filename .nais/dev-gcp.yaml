@@ -88,7 +88,8 @@ spec:
       value: http://tilgang
     - name: INTEGRASJON_TILGANG_SCOPE
       value: api://dev-gcp.aap.tilgang/.default
-
+    - name: INTEGRASJON_API_INTERN_AZP
+      value: a809fc0a-eabb-4107-8231-61210adc2b70
   accessPolicy:
     inbound:
       rules:
@@ -98,6 +99,7 @@ spec:
               - "syfo-api"
         - application: paw-patrol
         - application: saksbehandling
+        - application: api-intern
         - application: saksbehandling-lokal # For lokal utvikling. IKKE kopier denne til prod-gcp.yaml
         - application: azure-token-generator # For testing i dev. IKKE kopier denne til prod-gcp.yaml
           namespace: nais

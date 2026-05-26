@@ -85,6 +85,8 @@ spec:
       value: http://tilgang
     - name: INTEGRASJON_TILGANG_SCOPE
       value: api://prod-gcp.aap.tilgang/.default
+    - name: INTEGRASJON_API_INTERN_AZP
+      value: 3d3bb28c-d020-46b2-a34a-85201e302878
   accessPolicy:
     inbound:
       rules:
@@ -94,6 +96,7 @@ spec:
               - "syfo-api"
         - application: paw-patrol
         - application: saksbehandling
+        - application: api-intern
     outbound:
       rules:
         - application: behandlingsflyt

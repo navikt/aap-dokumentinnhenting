@@ -24,24 +24,32 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
         return signedJWT
     }
 
-    private fun claims(): JWTClaimsSet {
-        return JWTClaimsSet
+    private fun claims(isApp: Boolean, azp: String? = null): JWTClaimsSet {
+        val builder = JWTClaimsSet
             .Builder()
             .issuer(issuer)
             .audience(audience)
             .expirationTime(LocalDateTime.now().plusHours(4).toDate())
-            .claim("NAVident", "Lokalsaksbehandler")
-            .claim("scope", "AAP_SCOPES")
-            .claim("roles", listOf("syfo-api"))
-            .build()
+
+        if (isApp) {
+            builder
+                .claim("istyp", "app")
+                .claim("azp", azp)
+                .claim("roles", listOf("syfo-api"))
+        } else {
+            builder
+                .claim("NAVident", "Lokalsaksbehandler")
+        }
+
+        return builder.build()
     }
 
     private fun LocalDateTime.toDate(): Date {
         return Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
     }
 
-    fun generate(): String {
-        return signed(claims()).serialize()
+    fun generate(isApp: Boolean = false, azp: String? = null): String {
+        return signed(claims(isApp, azp)).serialize()
     }
 }
 
