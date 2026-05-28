@@ -3,7 +3,7 @@ package dokumentinnhenting.repositories
 import dokumentinnhenting.Fakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
+import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -156,7 +156,7 @@ class DialogmeldingRepositoryTest {
             DialogmeldingRepository(connection).opprettDialogmelding(record)
         }
 
-        val statusDto = DialogmeldingStatusDTO(
+        val statusDto = DialogmeldingStatusDto(
             uuid = record.dialogmeldingUuid.toString(),
             createdAt = OffsetDateTime.now(),
             status = MeldingStatusType.SENDT,

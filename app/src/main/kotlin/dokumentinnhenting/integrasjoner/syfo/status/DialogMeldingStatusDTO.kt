@@ -10,7 +10,7 @@ import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serializer
 import org.apache.kafka.common.serialization.Serdes
 
-data class DialogmeldingStatusDTO(
+data class DialogmeldingStatusDto(
     val uuid: String,
     val createdAt: OffsetDateTime,
     val status: MeldingStatusType,
@@ -25,28 +25,28 @@ enum class MeldingStatusType {
     BESTILT, SENDT, OK, AVVIST, MOTTATT
 }
 
-private class DialogmeldingStatusDTOSerializer : Serializer<DialogmeldingStatusDTO> {
+private class DialogmeldingStatusDTOSerializer : Serializer<DialogmeldingStatusDto> {
     private val objectMapper = jacksonObjectMapper().findAndRegisterModules()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .configure(SerializationFeature.WRITE_DATES_WITH_ZONE_ID, true)
         .configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false)
 
-    override fun serialize(topic: String?, data: DialogmeldingStatusDTO?): ByteArray? {
+    override fun serialize(topic: String?, data: DialogmeldingStatusDto?): ByteArray? {
         return data?.let { objectMapper.writeValueAsBytes(it) }
     }
 }
 
-private class DialogmeldingStatusDTODeserializer : Deserializer<DialogmeldingStatusDTO> {
+private class DialogmeldingStatusDTODeserializer : Deserializer<DialogmeldingStatusDto> {
     private val objectMapper = jacksonObjectMapper().findAndRegisterModules()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .configure(SerializationFeature.WRITE_DATES_WITH_ZONE_ID, true)
         .configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false)
 
-    override fun deserialize(topic: String?, data: ByteArray?): DialogmeldingStatusDTO? {
-        return data?.let { objectMapper.readValue(it, object : TypeReference<DialogmeldingStatusDTO>() {}) }
+    override fun deserialize(topic: String?, data: ByteArray?): DialogmeldingStatusDto? {
+        return data?.let { objectMapper.readValue(it, object : TypeReference<DialogmeldingStatusDto>() {}) }
     }
 }
 
-fun dialogmeldingStatusDTOSerde(): Serde<DialogmeldingStatusDTO> {
+fun dialogmeldingStatusDTOSerde(): Serde<DialogmeldingStatusDto> {
     return Serdes.serdeFrom(DialogmeldingStatusDTOSerializer(), DialogmeldingStatusDTODeserializer())
 }

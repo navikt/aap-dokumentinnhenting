@@ -2,7 +2,7 @@ package dokumentinnhenting.util.motor.syfo
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
-import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
+import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import java.time.LocalDateTime
@@ -31,7 +31,7 @@ class OppdaterLegeerklæringStatusUtfører (
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun utfør(input: JobbInput) {
-        val record = DefaultJsonMapper.fromJson<DialogmeldingStatusDTO>(input.payload())
+        val record = DefaultJsonMapper.fromJson<DialogmeldingStatusDto>(input.payload())
         val bestillingId = dialogmeldingRepository.låsBestilling(UUID.fromString(record.bestillingUuid))
         val eksisterendeRecord = dialogmeldingRepository.hentByDialogId(bestillingId)
         dialogmeldingRepository.oppdaterDialogmeldingStatus(record)

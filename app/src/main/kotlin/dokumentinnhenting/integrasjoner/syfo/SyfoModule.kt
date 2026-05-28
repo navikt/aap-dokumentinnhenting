@@ -2,7 +2,7 @@ package dokumentinnhenting.integrasjoner.syfo
 
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FiltrerDialogmeldingUtfører
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
-import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDTO
+import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.*
 import io.ktor.server.application.*
@@ -47,7 +47,7 @@ fun Application.kafkaStreams(registry: MeterRegistry, dataSource: DataSource): S
 fun createDialogmeldingStreamTopology(
   dataSource: DataSource
 ): Topology {
-  val dialogmeldingStatusSerde = createGenericSerde(DialogmeldingStatusDTO::class.java)
+  val dialogmeldingStatusSerde = createGenericSerde(DialogmeldingStatusDto::class.java)
   val dialogmeldingMottakSerde = createGenericSerde(DialogmeldingMottakDTO::class.java)
   val builder = StreamsBuilder()
 
@@ -66,7 +66,7 @@ fun createDialogmeldingStreamTopology(
 
 
 
-fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDTO) {
+fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDto) {
   dataSource.transaction{ connection ->
     val jobbRepository = FlytJobbRepository(connection)
     val dialogmeldingRepository = DialogmeldingRepository(connection)

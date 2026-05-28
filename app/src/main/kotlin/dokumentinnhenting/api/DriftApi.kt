@@ -74,8 +74,6 @@ private fun krevDtoErUtenFødselsnummer(dto: Any) {
     }
 }
 
-data class SaksnummerParameter(@param:PathParam("saksnummer") val saksnummer: String)
-
 data class DialogmeldingDriftinfoDTO(
     val bestillerNavIdent: String,
     val dialogmeldingUuid: UUID,

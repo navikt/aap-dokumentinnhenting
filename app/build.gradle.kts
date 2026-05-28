@@ -38,6 +38,7 @@ dependencies {
     implementation("no.nav.aap.brev:kontrakt:0.0.260")
 
     implementation(project(":dbflyway"))
+    implementation(project(":kontrakt"))
     implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.5")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")

@@ -1,8 +1,8 @@
-package dokumentinnhenting.integrasjoner.syfo.bestilling
+package no.nav.aap.dokumentinnhenting.kontrakt
 
-import java.util.*
+import java.util.UUID
 
-data class BrevGenereringRequest(
+data class ForhåndsvisDialogmeldingDto(
     val bestillerNavIdent: String,
     val personNavn: String,
     val personIdent: String,
