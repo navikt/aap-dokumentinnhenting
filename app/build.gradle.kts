@@ -3,11 +3,11 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.4.3"
+    id("io.ktor.plugin") version "3.5.0"
     application
 }
 
-val ktorVersion = "3.4.3"
+val ktorVersion = "3.5.0"
 val kafkaVersion = "8.1.1-ce"
 val komponenterVersjon = "2.0.56"
 val behandlingsflytVersjon = "0.0.601"
@@ -47,7 +47,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.9")
-    implementation("org.flywaydb:flyway-database-postgresql:12.6.0")
+    implementation("org.flywaydb:flyway-database-postgresql:12.6.2")
     implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Felleskomponenter
@@ -72,7 +72,7 @@ dependencies {
     // Test
     testImplementation(kotlin("test"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.9")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:6.1.0")
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
