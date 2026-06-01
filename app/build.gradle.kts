@@ -49,6 +49,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:10.9")
     implementation("org.flywaydb:flyway-database-postgresql:12.6.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
     // Felleskomponenter
     implementation("no.nav.aap.kelvin:json:$komponenterVersjon")
