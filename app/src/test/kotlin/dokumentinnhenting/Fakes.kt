@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.saf.*
-import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -12,6 +11,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.receiveText
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
@@ -25,6 +25,7 @@ import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
 import kotlin.random.Random
 import kotlin.random.nextUInt
 import java.util.concurrent.atomic.AtomicBoolean
+import no.nav.aap.dokumentinnhenting.kontrakt.BehandlerDto
 
 object Fakes : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
@@ -252,29 +253,41 @@ object Fakes : AutoCloseable {
                 get("/behandleroppslag/search") {
                     call.respond(
                         listOf(
-                            BehandlerOppslagResponse(
+                            BehandlerDto(
                                 behandlerRef = UUID.randomUUID().toString(),
                                 fornavn = "Peppa",
                                 mellomnavn = "The",
                                 etternavn = "Pig",
                                 kontor = "Fløyen Kontor",
-                                hprId = "hprId"
+                                hprId = "hprId",
+                                adresse = "adresse",
+                                postnummer = "postnummer",
+                                poststed = "poststed",
+                                telefon = "telefon",
                             ),
-                            BehandlerOppslagResponse(
+                            BehandlerDto(
                                 behandlerRef = UUID.randomUUID().toString(),
                                 fornavn = "Ola",
                                 mellomnavn = "Brunost",
                                 etternavn = "Fårepølse",
                                 kontor = "Fløyen Kontor",
-                                hprId = "hprId"
+                                hprId = "hprId",
+                                adresse = "adresse",
+                                postnummer = "postnummer",
+                                poststed = "poststed",
+                                telefon = "telefon",
                             ),
-                            BehandlerOppslagResponse(
+                            BehandlerDto(
                                 behandlerRef = UUID.randomUUID().toString(),
                                 fornavn = "Kari",
                                 mellomnavn = "",
                                 etternavn = "Tau",
                                 kontor = "Fløyen Kontor",
-                                hprId = "hrpId"
+                                hprId = "hrpId",
+                                adresse = "adresse",
+                                postnummer = "postnummer",
+                                poststed = "poststed",
+                                telefon = "telefon",
                             ),
                         )
                     )
@@ -338,7 +351,8 @@ object Fakes : AutoCloseable {
         }
         routing {
             post("/token") {
-                val token = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate()
+                val body = call.receiveText()
+                val token = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(body.contains("grant_type=client_credentials"))
                 call.respond(TestToken(access_token = token))
             }
             get("/jwks") {
