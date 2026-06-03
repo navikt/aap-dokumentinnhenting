@@ -64,7 +64,7 @@ class BrevGateway {
             DokumentasjonType.L40 -> "Forespørsel om legeerklæring ved arbeidsuførhet"
             DokumentasjonType.L8 -> "Forespørsel om tilleggsopplysninger"
             DokumentasjonType.L120 -> "Forespørsel om spesialisterklæring"
-            DokumentasjonType.MELDING_FRA_NAV -> "Melding fra NAV"
+            DokumentasjonType.MELDING_FRA_NAV -> "Melding fra Nav"
             DokumentasjonType.RETUR_LEGEERKLÆRING -> "Retur til lege"
             DokumentasjonType.PURRING -> "Purring på forespørsel om legeerklæring ved arbeidsuførhet"
         }
