@@ -24,7 +24,7 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
         return signedJWT
     }
 
-    private fun claims(isApp: Boolean, azp: String? = null): JWTClaimsSet {
+    private fun claims(isApp: Boolean, azp: String?, navIdent: String?): JWTClaimsSet {
         val builder = JWTClaimsSet
             .Builder()
             .issuer(issuer)
@@ -33,12 +33,13 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
 
         if (isApp) {
             builder
-                .claim("istyp", "app")
+                .claim("idtyp", "app")
                 .claim("azp", azp)
                 .claim("roles", listOf("syfo-api"))
         } else {
             builder
-                .claim("NAVident", "Lokalsaksbehandler")
+                .claim("NAVident", navIdent ?: "Lokalsaksbehandler")
+                .subject("123")
         }
 
         return builder.build()
@@ -48,8 +49,8 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
         return Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
     }
 
-    fun generate(isApp: Boolean = false, azp: String? = null): String {
-        return signed(claims(isApp, azp)).serialize()
+    fun generate(isApp: Boolean = false, azp: String? = null, navIdent: String? = null): String {
+        return signed(claims(isApp, azp, navIdent)).serialize()
     }
 }
 
