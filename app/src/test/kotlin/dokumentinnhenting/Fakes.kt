@@ -127,7 +127,7 @@ object Fakes : AutoCloseable {
 
         // Tilgang
         System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.engine.port()}")
-        System.setProperty("integrasjon.tilgang.scope","http://localhost:${tilgang.engine.port()}")
+        System.setProperty("integrasjon.tilgang.scope", "http://localhost:${tilgang.engine.port()}")
 
         // Texas
         // Texas
@@ -291,65 +291,40 @@ object Fakes : AutoCloseable {
             get("/api/v1/behandler/personident") {
                 call.respond(
                     listOf(
-                        BehandlerOppslagResponse(
-                            type = "FASTLEGE",
-                            behandlerRef = UUID.randomUUID().toString(),
-                            kategori = "LEGE",
-                            fnr = null,
-                            hprId = "1234567",
-                            fornavn = "Peppa",
-                            mellomnavn = null,
-                            etternavn = "Pig",
-                            orgnummer = null,
-                            kontor = "Fløyen Legekontor",
-                            adresse = "Fløyenveien 1",
-                            postnummer = "5006",
-                            poststed = "Bergen",
-                            telefon = "12345678",
-                        )
-                    )
-                )
+                        behandler("FASTLEGE"),
+                        behandler("SYKMELDER")
+                    )                )
             }
             post("/api/v1/behandler/search") {
                 call.respond(
                     listOf(
-                        BehandlerOppslagResponse(
-                            type = "LEGE",
-                            behandlerRef = UUID.randomUUID().toString(),
-                            kategori = "LEGE",
-                            fnr = null,
-                            hprId = "9876543",
-                            fornavn = "Ola",
-                            mellomnavn = null,
-                            etternavn = "Nordmann",
-                            orgnummer = null,
-                            kontor = "Sentrum Legekontor",
-                            adresse = "Storgata 1",
-                            postnummer = "0101",
-                            poststed = "Oslo",
-                            telefon = "87654321",
-                        ),
-                        BehandlerOppslagResponse(
-                            type = "LEGE",
-                            behandlerRef = UUID.randomUUID().toString(),
-                            kategori = "LEGE",
-                            fnr = null,
-                            hprId = "1112131",
-                            fornavn = "Kari",
-                            mellomnavn = null,
-                            etternavn = "Tau",
-                            orgnummer = null,
-                            kontor = "Fløyen Legekontor",
-                            adresse = "Fløyenveien 1",
-                            postnummer = "5006",
-                            poststed = "Bergen",
-                            telefon = "12345678",
-                        ),
+                        behandler("FASTLEGE"),
+                        behandler("SYKMELDER")
                     )
                 )
             }
         }
     }
+
+    private fun behandler(type: String): BehandlerOppslagResponse {
+        return BehandlerOppslagResponse(
+            type = type,
+            behandlerRef = UUID.randomUUID().toString(),
+            kategori = "LE",
+            fnr = null,
+            hprId = Random.nextInt(1000000, 9999999).toString(),
+            fornavn = "fornavn",
+            mellomnavn = null,
+            etternavn = "etternavn",
+            orgnummer = null,
+            kontor = null,
+            adresse = null,
+            postnummer = null,
+            poststed = null,
+            telefon = null,
+        )
+    }
+
 
     private fun Application.brevFake() {
         install(ContentNegotiation) {
@@ -407,7 +382,10 @@ object Fakes : AutoCloseable {
         routing {
             post("/token") {
                 val body = call.receiveText()
-                val token = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(body.contains("grant_type=client_credentials"))
+                val token = AzureTokenGen(
+                    "dokumentinnhenting",
+                    "dokumentinnhenting"
+                ).generate(body.contains("grant_type=client_credentials"))
                 call.respond(TestToken(access_token = token))
             }
             get("/jwks") {

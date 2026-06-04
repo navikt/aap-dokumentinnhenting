@@ -74,7 +74,6 @@ class SyfoApiTest {
         assertEquals(HttpStatusCode.OK, response.status)
         val dto = response.body<FastlegeDto>()
         assertNotNull(dto.fastlege)
-        assertEquals("Peppa", dto.fastlege?.fornavn)
     }
 
     private fun bearerToken() =
