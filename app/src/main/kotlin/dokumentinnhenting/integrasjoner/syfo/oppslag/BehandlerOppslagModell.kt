@@ -47,8 +47,8 @@ data class FritekstRequest(
     }
 }
 
-data class HentFastlegeDtoPersonreferanse(val personIdent: String) : Personreferanse {
-    override fun hentPersonreferanse(): String {
-        return personIdent
+data class HentFastlegeDtoPersonreferanse(val saksnummer: String, val personIdent: String) : Saksreferanse {
+    override fun hentSaksreferanse(): String {
+        return saksnummer
     }
 }

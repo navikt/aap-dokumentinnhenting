@@ -61,20 +61,21 @@ class SyfoApiTest {
     }
 
     @Test
-    fun `POST behandleroppslag fastlege returnerer 200 OK med FastlegeDto gitt bruk av HentFastlegeDto i kontrakt`() = testApplication {
-        initApp()
-        val client = httpClient()
+    fun `POST behandleroppslag fastlege returnerer 200 OK med FastlegeDto gitt bruk av HentFastlegeDto i kontrakt`() =
+        testApplication {
+            initApp()
+            val client = httpClient()
 
-        val response = client.post("/syfo/behandleroppslag/fastlege") {
-            bearerAuth(bearerToken())
-            contentType(ContentType.Application.Json)
-            setBody(HentFastlegeDto("12345678910"))
+            val response = client.post("/syfo/behandleroppslag/fastlege") {
+                bearerAuth(bearerToken())
+                contentType(ContentType.Application.Json)
+                setBody(HentFastlegeDto(saksnummer = "SAK-123", personIdent = "12345678910"))
+            }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            val dto = response.body<FastlegeDto>()
+            assertNotNull(dto.fastlege)
         }
-
-        assertEquals(HttpStatusCode.OK, response.status)
-        val dto = response.body<FastlegeDto>()
-        assertNotNull(dto.fastlege)
-    }
 
     private fun bearerToken() =
         AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(isApp = false)
