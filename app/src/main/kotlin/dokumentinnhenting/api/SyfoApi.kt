@@ -128,7 +128,7 @@ fun NormalOpenAPIRoute.syfoApi(
 
         route("/behandleroppslag/search").authorizedPost<Unit, List<BehandlerDto>, FritekstRequest>(
             AuthorizationBodyPathConfig(
-                operasjon = Operasjon.SAKSBEHANDLE,
+                operasjon = Operasjon.SE,
                 applicationRole = syfoApiRolle,
                 applicationsOnly = false
             )
