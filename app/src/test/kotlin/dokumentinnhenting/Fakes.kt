@@ -130,7 +130,6 @@ object Fakes : AutoCloseable {
         System.setProperty("integrasjon.tilgang.scope", "http://localhost:${tilgang.engine.port()}")
 
         // Texas
-        // Texas
         System.setProperty("NAIS_TOKEN_ENDPOINT", "http://localhost:${texas.engine.port()}/token")
         System.setProperty("NAIS_TOKEN_EXCHANGE_ENDPOINT", "http://localhost:${texas.engine.port()}/token/exchange")
         System.setProperty("NAIS_TOKEN_INTROSPECTION_ENDPOINT", "http://localhost:${texas.engine.port()}/introspect")
