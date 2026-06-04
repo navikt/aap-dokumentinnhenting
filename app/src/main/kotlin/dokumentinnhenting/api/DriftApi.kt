@@ -1,11 +1,9 @@
 package dokumentinnhenting.api
 
-import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
@@ -14,6 +12,7 @@ import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
+import no.nav.aap.dokumentinnhenting.kontrakt.BehandlerDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -26,12 +25,12 @@ import no.nav.aap.tilgang.authorizedPost
 
 fun NormalOpenAPIRoute.driftApi(dataSource: DataSource) {
     route("/drift/api") {
-        route("/syfo/behandleroppslag/search").authorizedPost<Unit, List<BehandlerOppslagResponse>, FritekstRequest>(
+        route("/syfo/behandleroppslag/search").authorizedPost<Unit, List<BehandlerDto>, FritekstRequest>(
             AuthorizationBodyPathConfig(operasjon = Operasjon.DRIFTE, applicationsOnly = false)
         ) { _, req ->
             val behandlere = SyfoGateway().frisøkBehandlerOppslag(req.fritekst, token())
 
-            respond(behandlere)
+            respond(behandlere.map { it.tilDto() })
         }
 
         route("/sak/{saksnummer}/dialogmelding").authorizedPost<SaksnummerParameter, List<DialogmeldingDriftinfoDTO>, Unit>(
