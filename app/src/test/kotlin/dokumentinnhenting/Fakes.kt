@@ -92,42 +92,42 @@ object Fakes : AutoCloseable {
             .setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure
         System.setProperty(
-            "azure.openid.config.token.endpoint",
+            "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT",
             "http://localhost:${azure.engine.port()}/token"
         )
-        System.setProperty("azure.app.client.id", "dokumentinnhenting")
-        System.setProperty("azure.app.client.secret", "")
-        System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.engine.port()}/jwks")
-        System.setProperty("azure.openid.config.issuer", "dokumentinnhenting")
+        System.setProperty("AZURE_APP_CLIENT_ID", "dokumentinnhenting")
+        System.setProperty("AZURE_APP_CLIENT_SECRET", "")
+        System.setProperty("AZURE_OPENID_CONFIG_JWKS_URI", "http://localhost:${azure.engine.port()}/jwks")
+        System.setProperty("AZURE_OPENID_CONFIG_ISSUER", "dokumentinnhenting")
         // saf
-        System.setProperty("integrasjon.saf.url.rest", "http://localhost:${saf.engine.port()}/rest")
-        System.setProperty("integrasjon.saf.url.graphql", "http://localhost:${saf.engine.port()}/graphql")
-        System.setProperty("integrasjon.saf.scope", "saf")
+        System.setProperty("INTEGRASJON_SAF_URL_REST", "http://localhost:${saf.engine.port()}/rest")
+        System.setProperty("INTEGRASJON_SAF_URL_GRAPHQL", "http://localhost:${saf.engine.port()}/graphql")
+        System.setProperty("INTEGRASJON_SAF_SCOPE", "saf")
 
         // Syfo
-        System.setProperty("integrasjon.syfo.base.url", "http://localhost:${syfo.engine.port()}")
-        System.setProperty("integrasjon.syfo.scope", "scope")
-        System.setProperty("kafka.truststore.path", "trust")
-        System.setProperty("kafka.keystore.path", "store")
-        System.setProperty("kafka.credstore.password", "password")
+        System.setProperty("INTEGRASJON_SYFO_BASE_URL", "http://localhost:${syfo.engine.port()}")
+        System.setProperty("INTEGRASJON_SYFO_SCOPE", "scope")
+        System.setProperty("KAFKA_TRUSTSTORE_PATH", "trust")
+        System.setProperty("KAFKA_KEYSTORE_PATH", "store")
+        System.setProperty("KAFKA_CREDSTORE_PASSWORD", "password")
 
         //Behandlingsflyt
         if (System.getenv("INTEGRASJON_BEHANDLINGSFLYT_URL").isNullOrEmpty()) {
-            System.setProperty("behandlingsflyt.base.url", "http://localhost:${behandlingsflyt.engine.port()}")
+            System.setProperty("BEHANDLINGSFLYT_BASE_URL", "http://localhost:${behandlingsflyt.engine.port()}")
         }
-        System.setProperty("behandlingsflyt.scope", "scope")
+        System.setProperty("BEHANDLINGSFLYT_SCOPE", "scope")
 
         //Brev
-        System.setProperty("integrasjon.brev.base.url", "http://localhost:${brev.engine.port()}")
-        System.setProperty("integrasjon.brev.scope", "http://localhost:${brev.engine.port()}")
+        System.setProperty("INTEGRASJON_BREV_BASE_URL", "http://localhost:${brev.engine.port()}")
+        System.setProperty("INTEGRASJON_BREV_SCOPE", "http://localhost:${brev.engine.port()}")
 
         // Dokarkiv
-        System.setProperty("integrasjon.dokarkiv.url", "http://localhost:${brev.engine.port()}")
-        System.setProperty("integrasjon.dokarkiv.scope", "http://localhost:${brev.engine.port()}")
+        System.setProperty("INTEGRASJON_DOKARKIV_URL", "http://localhost:${brev.engine.port()}")
+        System.setProperty("INTEGRASJON_DOKARKIV_SCOPE", "http://localhost:${brev.engine.port()}")
 
         // Tilgang
-        System.setProperty("integrasjon.tilgang.url", "http://localhost:${tilgang.engine.port()}")
-        System.setProperty("integrasjon.tilgang.scope", "http://localhost:${tilgang.engine.port()}")
+        System.setProperty("INTEGRASJON_TILGANG_URL", "http://localhost:${tilgang.engine.port()}")
+        System.setProperty("INTEGRASJON_TILGANG_SCOPE", "http://localhost:${tilgang.engine.port()}")
 
         // Texas
         System.setProperty("NAIS_TOKEN_ENDPOINT", "http://localhost:${texas.engine.port()}/token")
