@@ -9,7 +9,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBe
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
-import dokumentinnhenting.integrasjoner.syfo.oppslag.HentFastlegeDtoPersonreferanse
+import dokumentinnhenting.integrasjoner.syfo.oppslag.HentFastlegeDtoSaksreferanse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.BestillingCache
@@ -112,7 +112,7 @@ fun NormalOpenAPIRoute.syfoApi(
             respond(response)
         }
 
-        route("/behandleroppslag/fastlege").authorizedPost<Unit, FastlegeDto, HentFastlegeDtoPersonreferanse>(
+        route("/behandleroppslag/fastlege").authorizedPost<Unit, FastlegeDto, HentFastlegeDtoSaksreferanse>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = syfoApiRolle,

@@ -2,7 +2,6 @@ package dokumentinnhenting.integrasjoner.syfo.oppslag
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlerDto
-import no.nav.aap.tilgang.plugin.kontrakt.Personreferanse
 import no.nav.aap.tilgang.plugin.kontrakt.Saksreferanse
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -47,7 +46,7 @@ data class FritekstRequest(
     }
 }
 
-data class HentFastlegeDtoPersonreferanse(val saksnummer: String, val personIdent: String) : Saksreferanse {
+data class HentFastlegeDtoSaksreferanse(val saksnummer: String, val personIdent: String) : Saksreferanse {
     override fun hentSaksreferanse(): String {
         return saksnummer
     }
