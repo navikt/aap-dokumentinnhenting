@@ -30,6 +30,7 @@ import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.Operasjon
+import no.nav.aap.tilgang.Rolle
 import no.nav.aap.tilgang.SakPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
@@ -115,6 +116,7 @@ fun NormalOpenAPIRoute.syfoApi(
         route("/behandleroppslag/fastlege").authorizedPost<Unit, FastlegeDto, HentFastlegeDtoSaksreferanse>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
+                påkrevdRolle = listOf(Rolle.SAKSBEHANDLER_OPPFOLGING, Rolle.SAKSBEHANDLER_NASJONAL),
                 applicationRole = syfoApiRolle,
                 applicationsOnly = false
             )
