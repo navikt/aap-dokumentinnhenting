@@ -47,7 +47,6 @@ data class FritekstRequest(
     }
 }
 
-// TODO test mot HentFastlegeDto
 data class HentFastlegeDtoPersonreferanse(val personIdent: String) : Personreferanse {
     override fun hentPersonreferanse(): String {
         return personIdent
