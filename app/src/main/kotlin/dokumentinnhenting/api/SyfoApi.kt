@@ -97,7 +97,7 @@ fun NormalOpenAPIRoute.syfoApi(
             respond(response)
         }
 
-        route("/status/{saksnummer}").authorizedGet< SaksnummerParameter, List<DialogmeldingStatusTilBehandslingsflytDto>>(
+        route("/status/{saksnummer}").authorizedGet<SaksnummerParameter, List<DialogmeldingStatusTilBehandslingsflytDto>>(
             AuthorizationParamPathConfig(
                 applicationRole = syfoApiRolle,
                 applicationsOnly = true,

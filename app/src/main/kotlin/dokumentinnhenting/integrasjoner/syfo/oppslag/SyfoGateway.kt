@@ -26,33 +26,26 @@ class SyfoGateway {
         .build()
 
     suspend fun frisøkBehandlerOppslag(frisøk: String, token: OidcToken): List<BehandlerOppslagResponse> {
-        return try {
-            defaultHttpClient.post("$syfoUri/api/v1/behandler/search") {
-                accept(ContentType.Application.Json)
-                bearerAuth(OboTokenProvider.getToken(scope, token))
-                contentType(ContentType.Application.Json)
-                setBody(SearchRequest(frisøk))
-            }.body()
-        } catch (e: Exception) {
-            throw RuntimeException("Feil ved søk på behandler i syfo: ${e.message}")
-        }
+        return defaultHttpClient.post("$syfoUri/api/v1/behandler/search") {
+            accept(ContentType.Application.Json)
+            bearerAuth(OboTokenProvider.getToken(scope, token))
+            contentType(ContentType.Application.Json)
+            setBody(SearchRequest(frisøk))
+        }.body()
     }
 
     suspend fun behandlere(personIdent: String, token: OidcToken): List<BehandlerOppslagResponse> =
         behandlereCache.getIfPresent(personIdent)
             ?: hentBehandlere(personIdent, token).also { behandlereCache.put(personIdent, it) }
 
-    private suspend fun hentBehandlere(personIdent: String, token: OidcToken): List<BehandlerOppslagResponse> =
-        try {
-            defaultHttpClient.get("$syfoUri/api/v1/behandler/personident") {
-                accept(ContentType.Application.Json)
-                bearerAuth(OboTokenProvider.getToken(scope, token))
-                contentType(ContentType.Application.Json)
-                headers["nav-personident"] = personIdent
-            }.body()
-        } catch (e: Exception) {
-            throw RuntimeException("Feil ved oppslag av behandlere i syfo: ${e.message}")
-        }
+    private suspend fun hentBehandlere(personIdent: String, token: OidcToken): List<BehandlerOppslagResponse> {
+        return defaultHttpClient.get("$syfoUri/api/v1/behandler/personident") {
+            accept(ContentType.Application.Json)
+            bearerAuth(OboTokenProvider.getToken(scope, token))
+            contentType(ContentType.Application.Json)
+            headers["nav-personident"] = personIdent
+        }.body()
+    }
 }
 
 data class SearchRequest(
