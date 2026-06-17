@@ -1,5 +1,6 @@
 package dokumentinnhenting.syfo
 
+import dokumentinnhenting.WithFakes
 import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.integrasjoner.syfo.SYFO_DIALOGMELDING_MOTTAK_TOPIC
 import dokumentinnhenting.integrasjoner.syfo.SYFO_STATUS_DIALOGMELDING_TOPIC
@@ -15,23 +16,29 @@ import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.createGenericSerde
+import io.mockk.InternalPlatformDsl.toStr
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.util.Properties
+import java.util.UUID
+import javax.sql.DataSource
+import kotlin.random.Random
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TopologyTestDriver
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.util.*
-import javax.sql.DataSource
-import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.TestInstance
 
+@WithFakes
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KafkaStreamsTest {
     private lateinit var statusInputTopic: TestInputTopic<String, DialogmeldingStatusDto>
     private lateinit var mottakInputTopic: TestInputTopic<String, DialogmeldingMottakDTO>
@@ -40,7 +47,7 @@ class KafkaStreamsTest {
     private lateinit var testDriver: TopologyTestDriver
     private lateinit var dataSource: TestDataSource
 
-    @BeforeEach
+    @BeforeAll
     fun setup() {
         dataSource = TestDataSource()
         val topology = createDialogmeldingStreamTopology(dataSource)
@@ -65,7 +72,7 @@ class KafkaStreamsTest {
         )
     }
 
-    @AfterEach
+    @AfterAll
     fun teardown() {
         testDriver.close()
         dataSource.close()
@@ -84,7 +91,7 @@ class KafkaStreamsTest {
         val uuid = UUID.randomUUID()
         val bestillingUuid = uuid.toString()
 
-        val saksnummer = "saksnummer"
+        val saksnummer = Random.nextLong().toString()
         val existingRecord = DialogmeldingRecord(
             bestillerNavIdent = "bestillerNavIdent",
             dialogmeldingUuid = uuid,
@@ -119,7 +126,7 @@ class KafkaStreamsTest {
     fun `process dialogmelding mottak`() {
         val uuid = UUID.randomUUID()
 
-        val saksnummer = "saksnummer"
+        val saksnummer = Random.nextLong().toString()
         val existingRecord = DialogmeldingRecord(
             bestillerNavIdent = "bestillerNavIdent",
             dialogmeldingUuid = uuid,

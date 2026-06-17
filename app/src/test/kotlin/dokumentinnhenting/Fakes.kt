@@ -60,12 +60,11 @@ object Fakes : AutoCloseable {
     private val started = AtomicBoolean(false)
 
     fun start() {
-        if (started.get()) {
+        if (!started.compareAndSet(false, true)) {
             return
         }
-        started.set(true)
 
-        val azure = embeddedServer(Netty, port = 8081, module = { azureFake() }).apply { start() }
+        val azure = embeddedServer(Netty, port = 0, module = { azureFake() }).apply { start() }
         val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
         val syfo = embeddedServer(Netty, port = 0, module = { syfoFake() }).apply { start() }
         val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() }).apply { start() }
@@ -140,6 +139,10 @@ object Fakes : AutoCloseable {
     }
 
     override fun close() {
+        if (!started.compareAndSet(true, false)) {
+            return
+        }
+
         logger.info("Closing Servers.")
         servers.forEach { it.stop(0L, 0L) }
     }
@@ -292,7 +295,8 @@ object Fakes : AutoCloseable {
                     listOf(
                         behandler("FASTLEGE"),
                         behandler("SYKMELDER")
-                    )                )
+                    )
+                )
             }
             post("/api/v1/behandler/search") {
                 call.respond(
