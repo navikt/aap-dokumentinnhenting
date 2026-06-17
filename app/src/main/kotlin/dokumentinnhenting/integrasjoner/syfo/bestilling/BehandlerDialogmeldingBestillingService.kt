@@ -42,7 +42,7 @@ class BehandlerDialogmeldingBestillingService(
                 saksnummer = bestilling.saksnummer,
                 dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING,
                 behandlingsReferanse = bestilling.behandlingsReferanse,
-                tidligereBestillingReferanse = bestilling.dialogmeldingUuid
+                tidligereBestillingReferanse = bestilling.dialogmeldingUuid,
             )
         )
     }
@@ -61,7 +61,8 @@ class BehandlerDialogmeldingBestillingService(
             behandlerNavn = dto.behandlerNavn,
             fritekst = dto.dialogmeldingTekst,
             behandlingsReferanse = dto.behandlingsReferanse,
-            tidligereBestillingReferanse = dto.tidligereBestillingReferanse
+            tidligereBestillingReferanse = dto.tidligereBestillingReferanse,
+            conversationRef = UUID.randomUUID(),
         )
 
         val id = skrivDialogmeldingTilRepository(dialogMeldingRecord)

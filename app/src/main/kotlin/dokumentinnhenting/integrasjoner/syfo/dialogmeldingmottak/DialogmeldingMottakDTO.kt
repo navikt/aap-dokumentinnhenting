@@ -1,11 +1,5 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.apache.kafka.common.serialization.Deserializer
-import org.apache.kafka.common.serialization.Serde
-import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.common.serialization.Serializer
 import java.time.LocalDateTime
 
 data class DialogmeldingMottakDTO(
@@ -104,23 +98,3 @@ data class TypeForesp(
     val s: String,
     val v: String
 )
-
-private class DialogmeldingMottakDTOSerializer : Serializer<DialogmeldingMottakDTO> {
-    private val objectMapper = jacksonObjectMapper().findAndRegisterModules()
-
-    override fun serialize(topic: String?, data: DialogmeldingMottakDTO?): ByteArray? {
-        return data?.let { objectMapper.writeValueAsBytes(it) }
-    }
-}
-
-private class DialogmeldingMottakDTODeserializer : Deserializer<DialogmeldingMottakDTO> {
-    private val objectMapper = jacksonObjectMapper().findAndRegisterModules()
-
-    override fun deserialize(topic: String?, data: ByteArray?): DialogmeldingMottakDTO? {
-        return data?.let { objectMapper.readValue(it, object : TypeReference<DialogmeldingMottakDTO>() {}) }
-    }
-}
-
-fun dialogmeldingMottakDTOSerde(): Serde<DialogmeldingMottakDTO> {
-    return Serdes.serdeFrom(DialogmeldingMottakDTOSerializer(), DialogmeldingMottakDTODeserializer())
-}

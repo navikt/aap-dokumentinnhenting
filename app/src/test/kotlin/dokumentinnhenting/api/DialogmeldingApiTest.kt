@@ -108,6 +108,7 @@ class DialogmeldingApiTest {
         behandlerNavn = "Dr. Behandler",
         fritekst = "En fritekst",
         behandlingsReferanse = UUID.randomUUID(),
+        conversationRef = UUID.randomUUID(),
     )
 
     private fun ApplicationTestBuilder.initApp() {

@@ -5,7 +5,7 @@ import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class DialogmeldingRecord (
+data class DialogmeldingRecord(
     val bestillerNavIdent: String,
     val dialogmeldingUuid: UUID,
     val behandlerRef: String,
@@ -17,10 +17,11 @@ data class DialogmeldingRecord (
     val behandlerNavn: String,
     val fritekst: String,
     val behandlingsReferanse: UUID,
-    val tidligereBestillingReferanse: UUID? = null
+    val tidligereBestillingReferanse: UUID? = null,
+    val conversationRef: UUID,
 )
 
-data class DialogmeldingFullRecord (
+data class DialogmeldingFullRecord(
     val bestillerNavIdent: String,
     val dialogmeldingUuid: UUID,
     val behandlerRef: String,
@@ -37,7 +38,8 @@ data class DialogmeldingFullRecord (
     val behandlingsReferanse: UUID,
     val opprettet: LocalDateTime,
     val tidligereBestillingReferanse: UUID?,
+    val conversationRef: UUID,
     val journalpostId: String?,
     val dokumentId: String?,
-    val id: Long
+    val id: Long,
 )

@@ -96,7 +96,8 @@ class KafkaStreamsTest {
             dokumentasjonType = DokumentasjonType.L8,
             behandlerNavn = "behandlernavn",
             fritekst = "fritekst",
-            behandlingsReferanse = UUID.randomUUID()
+            behandlingsReferanse = UUID.randomUUID(),
+            conversationRef = UUID.randomUUID(),
         )
 
         setupRepositoryDataStatus(dataSource, existingRecord)
@@ -131,7 +132,8 @@ class KafkaStreamsTest {
             dokumentasjonType = DokumentasjonType.L8,
             behandlerNavn = "behandlernavn",
             fritekst = "fritekst",
-            behandlingsReferanse = UUID.randomUUID()
+            behandlingsReferanse = UUID.randomUUID(),
+            conversationRef = UUID.randomUUID(),
         )
         setupRepositoryDataMottak(dataSource, existingRecord)
 

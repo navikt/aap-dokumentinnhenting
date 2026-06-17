@@ -13,11 +13,11 @@ class DialogmeldingRepository(private val connection: DBConnection) {
     fun opprettDialogmelding(melding: DialogmeldingRecord): UUID {
         val query = """
             INSERT INTO DIALOGMELDING (
-                dialogmelding_uuid, behandler_ref, person_id, person_navn, saksnummer, 
-                dokumentasjontype, behandler_navn, fritekst, 
-                behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr, bestiller_nav_ident
-                )
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                dialogmelding_uuid, behandler_ref, person_id, person_navn, saksnummer, dokumentasjontype, 
+                behandler_navn, fritekst, behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr, 
+                bestiller_nav_ident, conversation_ref
+            )
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeReturnKey(query) {
             setParams {
@@ -33,6 +33,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(10, melding.tidligereBestillingReferanse)
                 setString(11, melding.behandlerHprNr)
                 setString(12, melding.bestillerNavIdent)
+                setUUID(13, melding.conversationRef)
             }
         }
         return melding.dialogmeldingUuid
@@ -207,6 +208,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             personNavn = row.getString("PERSON_NAVN"),
             statusTekst = row.getStringOrNull("STATUS_TEKST"),
             behandlingsReferanse = row.getUUID("BEHANDLINGSREFERANSE"),
+            conversationRef = row.getUUID("CONVERSATION_REF"),
             opprettet = row.getLocalDateTime("OPPRETTET_TID"),
             tidligereBestillingReferanse = row.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
             journalpostId = row.getStringOrNull("JOURNALPOST_ID"),

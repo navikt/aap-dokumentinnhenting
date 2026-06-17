@@ -42,7 +42,7 @@ class BestillLegeerklæringSteg(
         }
     }
 
-    fun sendBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
+    private fun sendBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
         val funnetBestilling = requireNotNull(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid))
         val tidligereTilhørendeBestillingsdato = funnetBestilling.tidligereBestillingReferanse?.let {
             dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet
@@ -99,7 +99,7 @@ class BestillLegeerklæringSteg(
             personIdent = record.personIdent,
             dialogmeldingUuid = dialogmeldingUuid,
             dialogmeldingRefParent = null,
-            dialogmeldingRefConversation = UUID.randomUUID().toString(),
+            dialogmeldingRefConversation = record.conversationRef,
             dialogmeldingType = kodeStruktur.dialogmeldingType,
             dialogmeldingKodeverk = kodeStruktur.dialogmeldingKodeverk,
             dialogmeldingKode = kodeStruktur.dialogmeldingKode,
