@@ -15,7 +15,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             INSERT INTO DIALOGMELDING (
                 dialogmelding_uuid, behandler_ref, person_id, person_navn, saksnummer, dokumentasjontype, 
                 behandler_navn, fritekst, behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr, 
-                bestiller_nav_ident, conversation_ref
+                bestiller_nav_ident, samtale_ref
             )
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()

@@ -20,8 +20,8 @@ import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 class SyfoGateway {
-    private val syfoUri = requiredConfigForKey("integrasjon.syfo.base.url")
-    private val scope = requiredConfigForKey("integrasjon.syfo.scope")
+    private val syfoUri = requiredConfigForKey("INTEGRASJON_SYFO_BASE_URL")
+    private val scope = requiredConfigForKey("INTEGRASJON_SYFO_SCOPE")
 
     private val behandlereCache: Cache<String, List<BehandlerOppslagResponse>> = Caffeine.newBuilder()
         .maximumSize(5_000)

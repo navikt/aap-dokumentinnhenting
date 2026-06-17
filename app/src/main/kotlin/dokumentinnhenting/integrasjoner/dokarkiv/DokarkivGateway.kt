@@ -14,8 +14,8 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 class DokarkivGateway(private val tokenProvider: TokenProviderV2) {
-    private val baseUri = requiredConfigForKey("integrasjon.dokarkiv.url")
-    private val scope = requiredConfigForKey("integrasjon.dokarkiv.scope")
+    private val baseUri = requiredConfigForKey("INTEGRASJON_DOKARKIV_URL")
+    private val scope = requiredConfigForKey("INTEGRASJON_DOKARKIV_SCOPE")
 
     suspend fun knyttJournalpostTilAnnenSak(
         kildeJournalpostId: String,

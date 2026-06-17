@@ -20,8 +20,8 @@ import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 object SafGateway {
-    private val graphqlUrl = requiredConfigForKey("integrasjon.saf.url.graphql")
-    private val scope = requiredConfigForKey("integrasjon.saf.scope")
+    private val graphqlUrl = requiredConfigForKey("INTEGRASJON_SAF_URL_GRAPHQL")
+    private val scope = requiredConfigForKey("INTEGRASJON_SAF_SCOPE")
 
     suspend fun hentDokumenterForSak(saksnummer: Saksnummer, token: OidcToken): List<Journalpost> {
         val request = SafRequest(

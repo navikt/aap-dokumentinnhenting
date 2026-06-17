@@ -1,25 +1,16 @@
 package dokumentinnhenting.integrasjoner.syfo.oppslag
 
 import dokumentinnhenting.AzureTokenGen
-import dokumentinnhenting.Fakes
+import dokumentinnhenting.WithFakes
+import kotlin.random.Random
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import kotlin.random.Random
 
+@WithFakes
 class SyfoGatewayTest {
 
     val syfoGateway = SyfoGateway()
-
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun beforeAll() {
-            Fakes.start()
-        }
-    }
-
 
     @Test
     suspend fun `henter og cacher behandlere`() {

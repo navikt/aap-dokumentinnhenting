@@ -1,33 +1,40 @@
 package dokumentinnhenting.syfo
 
 import dokumentinnhenting.AzureTokenGen
-import dokumentinnhenting.Fakes
+import dokumentinnhenting.WithFakes
 import dokumentinnhenting.api.tilDto
-import dokumentinnhenting.integrasjoner.syfo.bestilling.*
+import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
 import dokumentinnhenting.util.motor.syfo.syfosteg.SyfoSteg
+import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.mockk
 import io.mockk.verify
+import java.util.UUID
+import javax.sql.DataSource
+import kotlin.random.Random
+import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
+import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.motor.FlytJobbRepository
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import java.util.*
-import javax.sql.DataSource
-import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
-import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
-import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertThrows
 
+@WithFakes
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DialogmeldingBestillingTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
     private val dialogmeldingBrevGeneratorService = mockk<DialogmeldingBrevGeneratorService>(relaxed = true)
@@ -36,27 +43,19 @@ class DialogmeldingBestillingTest {
 
     private lateinit var dataSource: TestDataSource
 
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun beforeAll() {
-            Fakes.start()
-        }
-    }
-
-    @BeforeEach
+    @BeforeAll
     fun setup() {
         dataSource = TestDataSource()
     }
 
-    @AfterEach
+    @AfterAll
     fun tearDown() {
         dataSource.close()
     }
 
     @Test
     fun kanKjøreSteg() {
-        val saksnummer = "saksnummer"
+        val saksnummer = Random.nextLong().toString()
         val dto = BehandlingsflytToDokumentInnhentingBestillingDto(
             bestillerNavIdent = "bestillerNavIdent",
             behandlerRef = "behandlerRef",
@@ -114,7 +113,7 @@ class DialogmeldingBestillingTest {
 
     @Test
     fun KanOppdatereBestillingStatuserManuelt() {
-        val saksnummer = "saksnummer"
+        val saksnummer = Random.nextLong().toString()
         val dto = BehandlingsflytToDokumentInnhentingBestillingDto(
             bestillerNavIdent = "bestillerNavIdent",
             behandlerRef = "behandlerRef",
@@ -162,7 +161,7 @@ class DialogmeldingBestillingTest {
     @Test
     fun FeilerOmLegeerklæringPurringErUnder14Dager() {
         lateinit var dialogmeldingLegerklæringUuid: UUID
-        val saksnummer = "saksnummer"
+        val saksnummer = Random.nextLong().toString()
         val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDto(
             bestillerNavIdent = "bestillerNavIdent",
             behandlerRef = "behandlerRef",

@@ -14,8 +14,8 @@ import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
 
 object BehandlingsflytGateway {
-    private val uri = requiredConfigForKey("behandlingsflyt.base.url")
-    private val scope = requiredConfigForKey("behandlingsflyt.scope")
+    private val uri = requiredConfigForKey("BEHANDLINGSFLYT_BASE_URL")
+    private val scope = requiredConfigForKey("BEHANDLINGSFLYT_SCOPE")
 
     fun taSakAvVent(taAvVentRequest: Innsending) = runBlocking {
         try {
