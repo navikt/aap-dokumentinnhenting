@@ -23,8 +23,8 @@ import no.nav.aap.brev.kontrakt.Signatur
 import no.nav.aap.komponenter.config.requiredConfigForKey
 
 class BrevGateway {
-    private val baseUri = requiredConfigForKey("integrasjon.brev.base.url")
-    private val scope = requiredConfigForKey("integrasjon.brev.scope")
+    private val baseUri = requiredConfigForKey("INTEGRASJON_BREV_BASE_URL")
+    private val scope = requiredConfigForKey("INTEGRASJON_BREV_SCOPE")
 
     suspend fun journalførBestilling(
         bestilling: DialogmeldingFullRecord,

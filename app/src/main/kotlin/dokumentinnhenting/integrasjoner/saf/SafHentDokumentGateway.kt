@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory
 object SafHentDokumentGateway {
     private val logger: Logger = LoggerFactory.getLogger(SafHentDokumentGateway::class.java)
 
-    private val safBaseUrl = requiredConfigForKey("integrasjon.saf.url.rest")
-    private val scope = requiredConfigForKey("integrasjon.saf.scope")
+    private val safBaseUrl = requiredConfigForKey("INTEGRASJON_SAF_URL_REST")
+    private val scope = requiredConfigForKey("INTEGRASJON_SAF_SCOPE")
 
     suspend fun hentDokument(
         journalpostId: String,

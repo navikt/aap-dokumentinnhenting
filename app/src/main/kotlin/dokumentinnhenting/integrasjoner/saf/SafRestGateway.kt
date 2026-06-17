@@ -10,8 +10,8 @@ import io.ktor.http.ContentType
 import no.nav.aap.komponenter.config.requiredConfigForKey
 
 object SafRestGateway {
-    private val safBaseUrl = requiredConfigForKey("integrasjon.saf.url.rest")
-    private val scope = requiredConfigForKey("integrasjon.saf.scope")
+    private val safBaseUrl = requiredConfigForKey("INTEGRASJON_SAF_URL_REST")
+    private val scope = requiredConfigForKey("INTEGRASJON_SAF_SCOPE")
 
     suspend fun hentDokumentMedJournalpostId(journalpostId: String, dokumentId: String): ByteArray {
         return try {

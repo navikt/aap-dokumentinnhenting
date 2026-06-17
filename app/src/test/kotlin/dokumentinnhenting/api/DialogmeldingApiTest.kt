@@ -1,54 +1,50 @@
 package dokumentinnhenting.api
 
+import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
+import dokumentinnhenting.Azp
 import dokumentinnhenting.AzureTokenGen
-import dokumentinnhenting.Fakes
+import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.repositories.DialogmeldingRepository
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.server.auth.*
-import io.ktor.server.routing.*
-import io.ktor.server.testing.*
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.auth.authenticate
+import io.ktor.server.routing.routing
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import com.papsign.ktor.openapigen.model.info.InfoModel
-import dokumentinnhenting.Azp
-import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.jackson.jackson
-import java.util.UUID
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
+@WithFakes
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DialogmeldingApiTest {
 
     private lateinit var dataSource: TestDataSource
 
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun beforeAll() {
-            Fakes.start()
-        }
-    }
-
-    @BeforeEach
+    @BeforeAll
     fun setup() {
         dataSource = TestDataSource()
     }
 
-    @AfterEach
+    @AfterAll
     fun tearDown() {
         dataSource.close()
     }
