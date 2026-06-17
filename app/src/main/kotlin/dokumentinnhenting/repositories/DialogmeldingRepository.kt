@@ -15,9 +15,9 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             INSERT INTO DIALOGMELDING (
                 dialogmelding_uuid, behandler_ref, person_id, person_navn, saksnummer, 
                 dokumentasjontype, behandler_navn, fritekst, 
-                behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr, bestiller_nav_ident
+                behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr, bestiller_nav_ident, samtale_ref
                 )
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         connection.executeReturnKey(query) {
             setParams {
@@ -33,6 +33,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(10, melding.tidligereBestillingReferanse)
                 setString(11, melding.behandlerHprNr)
                 setString(12, melding.bestillerNavIdent)
+                setUUID(13, melding.dialogmeldingUuid) // Midlertidig
             }
         }
         return melding.dialogmeldingUuid
