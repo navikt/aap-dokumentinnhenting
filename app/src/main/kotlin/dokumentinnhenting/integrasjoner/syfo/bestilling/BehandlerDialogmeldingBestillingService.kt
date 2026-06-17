@@ -15,7 +15,7 @@ private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestillingServic
 
 class BehandlerDialogmeldingBestillingService(
     private val jobbRepository: FlytJobbRepository,
-    private val dialogmeldingRepository: DialogmeldingRepository
+    private val dialogmeldingRepository: DialogmeldingRepository,
 ) {
     companion object {
         fun konstruer(connection: DBConnection): BehandlerDialogmeldingBestillingService {
@@ -47,7 +47,7 @@ class BehandlerDialogmeldingBestillingService(
         )
     }
 
-    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDto): UUID {
+    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID? = null): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = DialogmeldingRecord(
             bestillerNavIdent = dto.bestillerNavIdent,
@@ -62,7 +62,7 @@ class BehandlerDialogmeldingBestillingService(
             fritekst = dto.dialogmeldingTekst,
             behandlingsReferanse = dto.behandlingsReferanse,
             tidligereBestillingReferanse = dto.tidligereBestillingReferanse,
-            conversationRef = UUID.randomUUID(),
+            samtaleRef = samtaleRef ?: dialogmeldingUuid,
         )
 
         val id = skrivDialogmeldingTilRepository(dialogMeldingRecord)

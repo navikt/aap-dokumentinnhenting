@@ -16,7 +16,6 @@ import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.kafka.createGenericSerde
-import io.mockk.InternalPlatformDsl.toStr
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.Properties
@@ -104,7 +103,7 @@ class KafkaStreamsTest {
             behandlerNavn = "behandlernavn",
             fritekst = "fritekst",
             behandlingsReferanse = UUID.randomUUID(),
-            conversationRef = UUID.randomUUID(),
+            samtaleRef = UUID.randomUUID(),
         )
 
         setupRepositoryDataStatus(dataSource, existingRecord)
@@ -140,7 +139,7 @@ class KafkaStreamsTest {
             behandlerNavn = "behandlernavn",
             fritekst = "fritekst",
             behandlingsReferanse = UUID.randomUUID(),
-            conversationRef = UUID.randomUUID(),
+            samtaleRef = UUID.randomUUID(),
         )
         setupRepositoryDataMottak(dataSource, existingRecord)
 

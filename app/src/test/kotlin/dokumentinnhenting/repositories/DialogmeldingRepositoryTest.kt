@@ -52,7 +52,7 @@ class DialogmeldingRepositoryTest {
         fritekst = "En fritekst",
         behandlingsReferanse = UUID.randomUUID(),
         tidligereBestillingReferanse = tidligereBestillingReferanse,
-        conversationRef = UUID.randomUUID(),
+        samtaleRef = UUID.randomUUID(),
     )
 
     @Test

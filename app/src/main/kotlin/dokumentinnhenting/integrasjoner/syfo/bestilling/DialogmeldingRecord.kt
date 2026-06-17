@@ -18,7 +18,7 @@ data class DialogmeldingRecord(
     val fritekst: String,
     val behandlingsReferanse: UUID,
     val tidligereBestillingReferanse: UUID? = null,
-    val conversationRef: UUID,
+    val samtaleRef: UUID,
 )
 
 data class DialogmeldingFullRecord(
@@ -38,7 +38,7 @@ data class DialogmeldingFullRecord(
     val behandlingsReferanse: UUID,
     val opprettet: LocalDateTime,
     val tidligereBestillingReferanse: UUID?,
-    val conversationRef: UUID,
+    val samtaleRef: UUID,
     val journalpostId: String?,
     val dokumentId: String?,
     val id: Long,

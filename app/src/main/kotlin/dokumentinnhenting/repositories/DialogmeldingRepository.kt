@@ -33,7 +33,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
                 setUUID(10, melding.tidligereBestillingReferanse)
                 setString(11, melding.behandlerHprNr)
                 setString(12, melding.bestillerNavIdent)
-                setUUID(13, melding.conversationRef)
+                setUUID(13, melding.samtaleRef)
             }
         }
         return melding.dialogmeldingUuid
@@ -208,7 +208,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             personNavn = row.getString("PERSON_NAVN"),
             statusTekst = row.getStringOrNull("STATUS_TEKST"),
             behandlingsReferanse = row.getUUID("BEHANDLINGSREFERANSE"),
-            conversationRef = row.getUUID("CONVERSATION_REF"),
+            samtaleRef = row.getUUID("SAMTALE_REF"),
             opprettet = row.getLocalDateTime("OPPRETTET_TID"),
             tidligereBestillingReferanse = row.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
             journalpostId = row.getStringOrNull("JOURNALPOST_ID"),
