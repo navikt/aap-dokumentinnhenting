@@ -7,7 +7,7 @@ data class DialogmeldingToBehandlerBestillingDTO(
     val personIdent: String,
     val dialogmeldingUuid: UUID,
     val dialogmeldingRefParent: String?,
-    val dialogmeldingRefConversation: UUID,
+    val dialogmeldingRefConversation: String,
     val dialogmeldingType: DialogmeldingType,
     val dialogmeldingKodeverk: DialogmeldingKodeverk,
     val dialogmeldingKode: Int,

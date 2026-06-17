@@ -99,7 +99,7 @@ class BestillLegeerklæringSteg(
             personIdent = record.personIdent,
             dialogmeldingUuid = dialogmeldingUuid,
             dialogmeldingRefParent = null,
-            dialogmeldingRefConversation = record.conversationRef,
+            dialogmeldingRefConversation = record.conversationRef.toString(),
             dialogmeldingType = kodeStruktur.dialogmeldingType,
             dialogmeldingKodeverk = kodeStruktur.dialogmeldingKodeverk,
             dialogmeldingKode = kodeStruktur.dialogmeldingKode,
