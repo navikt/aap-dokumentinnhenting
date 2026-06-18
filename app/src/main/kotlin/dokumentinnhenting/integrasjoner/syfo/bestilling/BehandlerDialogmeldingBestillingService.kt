@@ -15,7 +15,7 @@ private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestillingServic
 
 class BehandlerDialogmeldingBestillingService(
     private val jobbRepository: FlytJobbRepository,
-    private val dialogmeldingRepository: DialogmeldingRepository
+    private val dialogmeldingRepository: DialogmeldingRepository,
 ) {
     companion object {
         fun konstruer(connection: DBConnection): BehandlerDialogmeldingBestillingService {
@@ -42,12 +42,12 @@ class BehandlerDialogmeldingBestillingService(
                 saksnummer = bestilling.saksnummer,
                 dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING,
                 behandlingsReferanse = bestilling.behandlingsReferanse,
-                tidligereBestillingReferanse = bestilling.dialogmeldingUuid
+                tidligereBestillingReferanse = bestilling.dialogmeldingUuid,
             )
         )
     }
 
-    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDto): UUID {
+    fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID? = null): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = DialogmeldingRecord(
             bestillerNavIdent = dto.bestillerNavIdent,
@@ -61,7 +61,8 @@ class BehandlerDialogmeldingBestillingService(
             behandlerNavn = dto.behandlerNavn,
             fritekst = dto.dialogmeldingTekst,
             behandlingsReferanse = dto.behandlingsReferanse,
-            tidligereBestillingReferanse = dto.tidligereBestillingReferanse
+            tidligereBestillingReferanse = dto.tidligereBestillingReferanse,
+            samtaleRef = samtaleRef ?: dialogmeldingUuid,
         )
 
         val id = skrivDialogmeldingTilRepository(dialogMeldingRecord)
