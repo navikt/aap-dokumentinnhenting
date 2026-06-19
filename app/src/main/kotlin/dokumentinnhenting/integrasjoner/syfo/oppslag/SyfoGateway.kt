@@ -37,14 +37,14 @@ class SyfoGateway {
         }.body()
     }
 
-    private fun behandlereCacheKey(personIdent: String, token: OidcToken): String {
-        return "$personIdent${token.navIdent()}"
-    }
-
     suspend fun behandlere(personIdent: String, token: OidcToken): List<BehandlerOppslagResponse> {
         val cacheKey = behandlereCacheKey(personIdent, token)
         return behandlereCache.getIfPresent(cacheKey)
             ?: hentBehandlere(personIdent, token).also { behandlereCache.put(cacheKey, it) }
+    }
+
+    private fun behandlereCacheKey(personIdent: String, token: OidcToken): String {
+        return "$personIdent${token.navIdent()}"
     }
 
     private suspend fun hentBehandlere(personIdent: String, token: OidcToken): List<BehandlerOppslagResponse> {
