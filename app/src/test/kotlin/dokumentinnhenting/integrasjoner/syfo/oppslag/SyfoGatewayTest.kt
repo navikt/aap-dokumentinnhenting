@@ -16,18 +16,39 @@ class SyfoGatewayTest {
     suspend fun `henter og cacher behandlere`() {
         val brukerIdent1 = randomBrukerIdent()
         val brukerIdent2 = randomBrukerIdent()
-        val behandler1 = hentBehandlere(brukerIdent1)
-        val behandler2 = hentBehandlere(brukerIdent2)
+        val navIdent1 = "NavIdent1"
+        val navIdent2 = "NavIdent2"
+        val behandler1 = hentBehandlere(brukerIdent = brukerIdent1, navIdent = navIdent1)
+        val behandler2 = hentBehandlere(brukerIdent = brukerIdent2, navIdent = navIdent1)
 
         assertThat(behandler1).isNotEqualTo(behandler2)
 
         // Tester caching så lenge fake-server gir random response
-        assertThat(behandler1).isEqualTo(hentBehandlere(brukerIdent1))
-        assertThat(behandler2).isEqualTo(hentBehandlere(brukerIdent2))
+        assertThat(behandler1).isEqualTo(hentBehandlere(brukerIdent = brukerIdent1, navIdent = navIdent1))
+        assertThat(behandler2).isEqualTo(hentBehandlere(brukerIdent = brukerIdent2, navIdent = navIdent1))
+
+        // Tester caching så lenge fake-server gir random response
+        assertThat(hentBehandlere(brukerIdent = brukerIdent1, navIdent = navIdent2)).isEqualTo(
+            hentBehandlere(
+                brukerIdent = brukerIdent1,
+                navIdent = navIdent2
+            )
+        )
+        assertThat(hentBehandlere(brukerIdent = brukerIdent2, navIdent = navIdent2)).isEqualTo(
+            hentBehandlere(
+                brukerIdent = brukerIdent2,
+                navIdent = navIdent2
+            )
+        )
+
+        // Tester at cache ikke deles på tvers av Nav-identer så lenge fake-server gir random response
+        assertThat(behandler1).isNotEqualTo(hentBehandlere(brukerIdent = brukerIdent1, navIdent = navIdent2))
+        assertThat(behandler2).isNotEqualTo(hentBehandlere(brukerIdent = brukerIdent2, navIdent = navIdent2))
     }
 
-    private suspend fun hentBehandlere(brukerIdent: String): List<BehandlerOppslagResponse> {
-        val token = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(isApp = false)
+    private suspend fun hentBehandlere(brukerIdent: String, navIdent: String): List<BehandlerOppslagResponse> {
+        val token =
+            AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(navIdent = navIdent, isApp = false)
         return syfoGateway.behandlere(brukerIdent, OidcToken(token))
     }
 
