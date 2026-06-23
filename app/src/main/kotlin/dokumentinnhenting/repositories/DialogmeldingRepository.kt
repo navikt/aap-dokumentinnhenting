@@ -146,6 +146,36 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
+    fun hentForParent(parentRef: UUID, personIdent: String): DialogmeldingFullRecord? {
+        val query = """
+            SELECT * FROM DIALOGMELDING
+            WHERE DIALOGMELDING_UUID = ? AND PERSON_ID = ?
+        """.trimIndent()
+
+        return connection.queryFirstOrNull(query) {
+            setParams {
+                setUUID(1, parentRef)
+                setString(2, personIdent)
+            }
+            setRowMapper(::mapDialogmeldingFullRecord)
+        }
+    }
+
+    fun hentForSamtale(samtaleRef: UUID, personIdent: String): List<DialogmeldingFullRecord> {
+        val query = """
+            SELECT * FROM DIALOGMELDING
+            WHERE SAMTALE_REF = ? AND PERSON_ID = ?
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setUUID(1, samtaleRef)
+                setString(2, personIdent)
+            }
+            setRowMapper(::mapDialogmeldingFullRecord)
+        }
+    }
+
     fun eksisterer(dialogmeldingUuid: UUID): Boolean {
         val query = "SELECT EXISTS(SELECT 1 FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ?)"
 
