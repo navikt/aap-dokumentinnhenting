@@ -60,12 +60,12 @@ object BehandlingsflytGateway {
         val saksnummer: String,
     )
 
-    private data class FinnBehandlingForIdentDTO(
+    data class FinnBehandlingForIdentDTO(
         val ident: String,
         val mottattTidspunkt: LocalDate,
     )
 
-    private data class NullableSakOgBehandlingDTO(
+    data class NullableSakOgBehandlingDTO(
         val sakOgBehandlingDTO: SakOgBehandling?,
     )
 }
