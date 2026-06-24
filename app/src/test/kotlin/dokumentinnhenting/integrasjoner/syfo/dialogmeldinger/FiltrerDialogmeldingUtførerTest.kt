@@ -6,6 +6,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
+import dokumentinnhenting.repositories.DialogmeldingRepository
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -26,7 +27,8 @@ import kotlin.random.Random
 class FiltrerDialogmeldingUtførerTest {
 
     private val flytJobbRepository = mockk<FlytJobbRepository>()
-    private val utfører = FiltrerDialogmeldingUtfører(flytJobbRepository)
+    private val dialogmeldingRepository = mockk<DialogmeldingRepository>()
+    private val utfører = FiltrerDialogmeldingUtfører(flytJobbRepository, dialogmeldingRepository)
 
     @AfterEach
     fun tearDown() {
