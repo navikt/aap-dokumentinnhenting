@@ -13,6 +13,7 @@ import io.ktor.server.response.respond
 import java.net.http.HttpTimeoutException
 import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.InternfeilException
+import no.nav.aap.komponenter.httpklient.exception.TimeoutException
 import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.json.DeserializationException
 import org.slf4j.LoggerFactory
@@ -38,11 +39,16 @@ object StatusPagesConfigHelper {
                  * Midlertidig for å fange opp og sikre forløpende håndtering av kjente feil
                  **/
                 is ClientRequestException -> {
-                    logger.error(
-                        "Uhåndtert ClientRequestException (${cause.response.status}) ved kall til '$uri': ",
-                        cause
-                    )
-                    call.respondWithError(InternfeilException("Feil ved kall til ekstern tjeneste"))
+                    if (cause.response.status == HttpStatusCode.RequestTimeout) {
+                        logger.warn("Timeout ved kall til '$uri'", cause)
+                        call.respondWithError(TimeoutException("Forespørselen tok for lang tid. Prøv igjen om litt."))
+                    } else {
+                        logger.error(
+                            "Uhåndtert ClientRequestException (${cause.response.status}) ved kall til '$uri': ",
+                            cause
+                        )
+                        call.respondWithError(InternfeilException("Feil ved kall til ekstern tjeneste"))
+                    }
                 }
 
                 is BehandlingsflytException -> {

@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.nimbusds.jwt.JWTParser
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.FinnBehandlingForIdentDTO
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.NullableSakOgBehandlingDTO
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.SakOgBehandling
 import dokumentinnhenting.integrasjoner.saf.AvsenderMottaker
 import dokumentinnhenting.integrasjoner.saf.DokumentInfo
 import dokumentinnhenting.integrasjoner.saf.DokumentoversiktFagsak
@@ -32,16 +34,17 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
 import no.nav.aap.brev.kontrakt.Signatur
-import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.tilgang.BehandlingTilgangRequest
 import no.nav.aap.tilgang.JournalpostTilgangRequest
 import no.nav.aap.tilgang.Operasjon
@@ -147,6 +150,9 @@ object Fakes : AutoCloseable {
         servers.forEach { it.stop(0L, 0L) }
     }
 
+    val behandlingsflytSakResponses: MutableMap<Pair<String, LocalDate>, String> =
+        mutableMapOf()
+
     private fun Application.behandlingsflytFake() {
         install(ContentNegotiation) {
             jackson {
@@ -170,16 +176,10 @@ object Fakes : AutoCloseable {
 
         routing {
             post("/api/sak/finnSisteBehandlinger") {
-                val answer = BehandlingsflytGateway.SakOgBehandling(
-                    saksnummer = "saksnummer"
-                )
-                call.respond(
-                    """
-                        {
-                        "sakOgBehandlingDTO": ${DefaultJsonMapper.toJson(answer)}
-                        }
-                    """.trimIndent()
-                )
+                val body = call.receive<FinnBehandlingForIdentDTO>()
+                val key = body.ident to body.mottattTidspunkt
+                val sak = behandlingsflytSakResponses[key]?.let { NullableSakOgBehandlingDTO(SakOgBehandling(it)) }
+                call.respondNullable(sak)
             }
             post("/api/brev/bestillingvarsel") {
                 call.respond(HttpStatusCode.Accepted, "{}")
