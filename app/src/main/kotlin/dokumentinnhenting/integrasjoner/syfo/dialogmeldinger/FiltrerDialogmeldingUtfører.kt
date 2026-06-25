@@ -79,11 +79,9 @@ class FiltrerDialogmeldingUtfører(
     }
 
     fun String.toUUIDOrNull(): UUID? {
-        return try {
+        return runCatching {
             UUID.fromString(this)
-        } catch (_: IllegalArgumentException) {
-            null
-        }
+        }.getOrNull()
     }
 
     companion object : Jobb {
