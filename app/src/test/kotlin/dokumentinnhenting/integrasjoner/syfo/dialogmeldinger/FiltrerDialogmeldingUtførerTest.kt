@@ -2,37 +2,44 @@ package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
 import dokumentinnhenting.Fakes.behandlingsflytSakResponses
 import dokumentinnhenting.WithFakes
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.repositories.DialogmeldingRepository
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-import io.mockk.verify
 import java.time.LocalDateTime
+import java.util.UUID
 import java.util.UUID.randomUUID
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import kotlin.random.Random
+import kotlin.random.Random.Default.nextInt
+import kotlin.random.Random.Default.nextLong
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FiltrerDialogmeldingUtførerTest {
 
-    private val flytJobbRepository = mockk<FlytJobbRepository>()
-    private val dialogmeldingRepository = mockk<DialogmeldingRepository>()
-    private val utfører = FiltrerDialogmeldingUtfører(flytJobbRepository, dialogmeldingRepository)
+    private lateinit var dataSource: TestDataSource
 
-    @AfterEach
+    @BeforeAll
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterAll
     fun tearDown() {
-        behandlingsflytSakResponses.clear()
+        dataSource.close()
     }
 
     @Test
@@ -40,11 +47,10 @@ class FiltrerDialogmeldingUtførerTest {
         val dto = lagDialogmeldingMottakDTO()
         behandlingsflytSakResponses[dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate()] =
             randomUUID().toString()
-        every { flytJobbRepository.leggTil(any()) } just runs
 
-        utfører.utfør(lagJobbInput(dto))
+        utfør(dto)
 
-        verify(exactly = 1) { flytJobbRepository.leggTil(match { it.payload().contains(dto.personIdentPasient) }) }
+        assertEquals(1, hentJobber(dto.personIdentPasient).size)
     }
 
     @Test
@@ -52,9 +58,9 @@ class FiltrerDialogmeldingUtførerTest {
         val dto = lagDialogmeldingMottakDTO()
         behandlingsflytSakResponses.remove(dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate())
 
-        utfører.utfør(lagJobbInput(dto))
+        utfør(dto)
 
-        verify(exactly = 0) { flytJobbRepository.leggTil(match { it.payload().contains(dto.personIdentPasient) }) }
+        assertTrue(hentJobber(dto.personIdentPasient).isEmpty())
     }
 
     @Test
@@ -63,9 +69,9 @@ class FiltrerDialogmeldingUtførerTest {
         behandlingsflytSakResponses[dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate()] =
             randomUUID().toString()
 
-        utfører.utfør(lagJobbInput(dto))
+        utfør(dto)
 
-        verify(exactly = 0) { flytJobbRepository.leggTil(match { it.payload().contains(dto.personIdentPasient) }) }
+        assertTrue(hentJobber(dto.personIdentPasient).isEmpty())
     }
 
     @Test
@@ -74,10 +80,152 @@ class FiltrerDialogmeldingUtførerTest {
         behandlingsflytSakResponses[dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate()] =
             randomUUID().toString()
 
-        utfører.utfør(lagJobbInput(dto))
+        utfør(dto)
 
-        verify(exactly = 0) { flytJobbRepository.leggTil(match { it.payload().contains(dto.personIdentPasient) }) }
+        assertTrue(hentJobber(dto.personIdentPasient).isEmpty())
     }
+
+    @Test
+    fun `skal legge til jobb basert på conversationRef når sendt dialogmelding finnes`() {
+        val saksnummer = randomSaksnummer()
+        val samtaleRef = randomUUID()
+        val personIdent = nextLong(10000000000, 99999999999).toString()
+
+        opprettDialogmelding(samtaleRef = samtaleRef, personIdent = personIdent, saksnummer = saksnummer)
+
+        val dto = lagDialogmeldingMottakDTO(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+
+        utfør(dto)
+
+        assertEquals(1, hentJobber(saksnummer).size)
+    }
+
+    @Test
+    fun `skal ikke legge til jobb via conversationRef når journalpostId er 0`() {
+        val samtaleRef = randomUUID()
+        val personIdent = nextLong(10000000000, 99999999999).toString()
+
+        opprettDialogmelding(samtaleRef = samtaleRef, personIdent = personIdent)
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = samtaleRef.toString(),
+            personIdentPasient = personIdent,
+            journalpostId = "0",
+        )
+
+        utfør(dto)
+
+        assertTrue(hentJobber(personIdent).isEmpty())
+    }
+
+    @Test
+    fun `skal legge til jobb basert på parentRef når conversationRef ikke gir treff`() {
+        val saksnummer = randomSaksnummer()
+        val dialogmeldingUuid = randomUUID()
+        val personIdent = nextLong(10000000000, 99999999999).toString()
+
+        opprettDialogmelding(uuid = dialogmeldingUuid, personIdent = personIdent, saksnummer = saksnummer)
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = randomUUID().toString(),
+            parentRef = dialogmeldingUuid.toString(),
+            personIdentPasient = personIdent,
+        )
+
+        utfør(dto)
+
+        assertEquals(1, hentJobber(saksnummer).size)
+    }
+
+    @Test
+    fun `skal ikke legge til jobb via parentRef når journalpostId er 0`() {
+        val dialogmeldingUuid = randomUUID()
+        val personIdent = nextLong(10000000000, 99999999999).toString()
+
+        opprettDialogmelding(uuid = dialogmeldingUuid, personIdent = personIdent)
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = randomUUID().toString(),
+            parentRef = dialogmeldingUuid.toString(),
+            personIdentPasient = personIdent,
+            journalpostId = "0",
+        )
+
+        utfør(dto)
+
+        assertTrue(hentJobber(personIdent).isEmpty())
+    }
+
+    @Test
+    fun `skal legge til jobb via conversationRef selv om foresporselSvar er null`() {
+        val saksnummer = randomSaksnummer()
+        val samtaleRef = randomUUID()
+        val personIdent = nextLong(10000000000, 99999999999).toString()
+
+        opprettDialogmelding(samtaleRef = samtaleRef, personIdent = personIdent, saksnummer = saksnummer)
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = samtaleRef.toString(),
+            personIdentPasient = personIdent,
+            foresporselSvar = null,
+        )
+
+        utfør(dto)
+
+        assertEquals(1, hentJobber(saksnummer).size)
+    }
+
+    @Test
+    fun `skal prøve parentRef når conversationRef ikke er en gyldig UUID`() {
+        val saksnummer = randomSaksnummer()
+        val dialogmeldingUuid = randomUUID()
+        val personIdent = nextLong(10000000000, 99999999999).toString()
+
+        opprettDialogmelding(uuid = dialogmeldingUuid, personIdent = personIdent, saksnummer = saksnummer)
+
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = "ikke-en-uuid",
+            parentRef = dialogmeldingUuid.toString(),
+            personIdentPasient = personIdent,
+        )
+
+        utfør(dto)
+
+        assertEquals(1, hentJobber(saksnummer).size)
+    }
+
+    @Test
+    fun `skal falle tilbake til behandlingsflyt-oppslag når hverken conversationRef eller parentRef gir treff`() {
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = randomUUID().toString(),
+            parentRef = randomUUID().toString(),
+        )
+        behandlingsflytSakResponses[dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate()] =
+            randomUUID().toString()
+
+        utfør(dto)
+
+        assertEquals(1, hentJobber(dto.personIdentPasient).size)
+    }
+
+    private fun utfør(dto: DialogmeldingMottakDTO) {
+        dataSource.transaction { connection ->
+            FiltrerDialogmeldingUtfører(FlytJobbRepository(connection), DialogmeldingRepository(connection))
+                .utfør(lagJobbInput(dto))
+        }
+    }
+
+    private fun hentJobber(innhold: String): List<String> =
+        dataSource.transaction { connection ->
+            connection.queryList("SELECT PAYLOAD FROM JOBB WHERE TYPE = ? AND PAYLOAD LIKE ?") {
+                setParams {
+                    setString(1, "dialogmelding.handler")
+                    setString(2, "%$innhold%")
+                }
+                setRowMapper { it.getString("PAYLOAD") }
+            }
+        }
 
     private fun lagJobbInput(dto: DialogmeldingMottakDTO): JobbInput =
         JobbInput(FiltrerDialogmeldingUtfører).medPayload(DefaultJsonMapper.toJson(dto))
@@ -85,15 +233,18 @@ class FiltrerDialogmeldingUtførerTest {
     private fun lagDialogmeldingMottakDTO(
         journalpostId: String = randomUUID().toString(),
         foresporselSvar: ForesporselFraSaksbehandlerForesporselSvar? = lagForesporselSvar(),
+        conversationRef: String? = null,
+        parentRef: String? = null,
+        personIdentPasient: String = nextLong(10000000000, 99999999999).toString(),
     ) = DialogmeldingMottakDTO(
         msgId = randomUUID().toString(),
         msgType = randomUUID().toString(),
         navLogId = randomUUID().toString(),
         mottattTidspunkt = LocalDateTime.now(),
-        conversationRef = null,
-        parentRef = null,
-        personIdentPasient = Random.nextLong(10000000000, 99999999999).toString(),
-        personIdentBehandler = Random.nextLong(10000000000, 99999999999).toString(),
+        conversationRef = conversationRef,
+        parentRef = parentRef,
+        personIdentPasient = personIdentPasient,
+        personIdentBehandler = nextLong(10000000000, 99999999999).toString(),
         legekontorOrgNr = null,
         legekontorHerId = null,
         legekontorOrgName = randomUUID().toString(),
@@ -124,4 +275,45 @@ class FiltrerDialogmeldingUtførerTest {
         dokIdNotat = null,
         datoNotat = null,
     )
+
+    private fun opprettDialogmelding(
+        uuid: UUID = randomUUID(),
+        samtaleRef: UUID = randomUUID(),
+        personIdent: String = nextLong(10000000000, 99999999999).toString(),
+        saksnummer: String = randomSaksnummer()
+    ): DialogmeldingRecord {
+        val record = lagDialogmeldingRecord(
+            uuid = uuid,
+            samtaleRef = samtaleRef,
+            personIdent = personIdent,
+            saksnummer = saksnummer
+        )
+
+        dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).opprettDialogmelding(record)
+        }
+        return record
+    }
+
+    private fun lagDialogmeldingRecord(
+        uuid: UUID = randomUUID(),
+        samtaleRef: UUID = randomUUID(),
+        personIdent: String = nextLong(10000000000, 99999999999).toString(),
+        saksnummer: String = randomSaksnummer(),
+    ) = DialogmeldingRecord(
+        bestillerNavIdent = "Z123456",
+        dialogmeldingUuid = uuid,
+        behandlerRef = randomUUID().toString(),
+        behandlerHprNr = nextInt(100000, 999999).toString(),
+        personIdent = personIdent,
+        personNavn = "Test Testesen",
+        saksnummer = saksnummer,
+        dokumentasjonType = DokumentasjonType.L40,
+        behandlerNavn = "Behandler Navn",
+        fritekst = "fritekst",
+        behandlingsReferanse = randomUUID(),
+        samtaleRef = samtaleRef,
+    )
+
+    private fun randomSaksnummer(): String = "SAK${nextInt(1111, 9999)}"
 }
