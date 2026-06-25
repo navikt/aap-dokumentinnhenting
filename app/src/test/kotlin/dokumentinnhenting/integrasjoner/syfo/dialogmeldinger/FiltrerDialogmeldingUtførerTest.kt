@@ -8,6 +8,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
+import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import java.time.LocalDateTime
 import java.util.UUID
@@ -24,7 +25,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import kotlin.random.Random.Default.nextInt
-import kotlin.random.Random.Default.nextLong
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -89,7 +89,7 @@ class FiltrerDialogmeldingUtførerTest {
     fun `skal legge til jobb basert på conversationRef når sendt dialogmelding finnes`() {
         val saksnummer = randomSaksnummer()
         val samtaleRef = randomUUID()
-        val personIdent = nextLong(10000000000, 99999999999).toString()
+        val personIdent = randomPersonIdent()
 
         opprettDialogmelding(samtaleRef = samtaleRef, personIdent = personIdent, saksnummer = saksnummer)
 
@@ -103,7 +103,7 @@ class FiltrerDialogmeldingUtførerTest {
     @Test
     fun `skal ikke legge til jobb via conversationRef når journalpostId er 0`() {
         val samtaleRef = randomUUID()
-        val personIdent = nextLong(10000000000, 99999999999).toString()
+        val personIdent = randomPersonIdent()
 
         opprettDialogmelding(samtaleRef = samtaleRef, personIdent = personIdent)
 
@@ -122,7 +122,7 @@ class FiltrerDialogmeldingUtførerTest {
     fun `skal legge til jobb basert på parentRef når conversationRef ikke gir treff`() {
         val saksnummer = randomSaksnummer()
         val dialogmeldingUuid = randomUUID()
-        val personIdent = nextLong(10000000000, 99999999999).toString()
+        val personIdent = randomPersonIdent()
 
         opprettDialogmelding(uuid = dialogmeldingUuid, personIdent = personIdent, saksnummer = saksnummer)
 
@@ -140,7 +140,7 @@ class FiltrerDialogmeldingUtførerTest {
     @Test
     fun `skal ikke legge til jobb via parentRef når journalpostId er 0`() {
         val dialogmeldingUuid = randomUUID()
-        val personIdent = nextLong(10000000000, 99999999999).toString()
+        val personIdent = randomPersonIdent()
 
         opprettDialogmelding(uuid = dialogmeldingUuid, personIdent = personIdent)
 
@@ -157,10 +157,51 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
+    fun `skal ikke legge til jobb via conversationRef når samtaleRef tilhører annen bruker`() {
+        val saksnummer = randomSaksnummer()
+        val samtaleRef = randomUUID()
+        val personA = randomPersonIdent()
+        val personB = randomPersonIdent()
+
+        opprettDialogmelding(samtaleRef = samtaleRef, personIdent = personA, saksnummer = saksnummer)
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = samtaleRef.toString(),
+            personIdentPasient = personB,
+            foresporselSvar = null,
+        )
+
+        utfør(dto)
+
+        assertTrue(hentJobber(saksnummer).isEmpty())
+    }
+
+    @Test
+    fun `skal ikke legge til jobb via parentRef når parentRef tilhører annen bruker`() {
+        val saksnummer = randomSaksnummer()
+        val dialogmeldingUuid = randomUUID()
+        val personA = randomPersonIdent()
+        val personB = randomPersonIdent()
+
+        opprettDialogmelding(uuid = dialogmeldingUuid, personIdent = personA, saksnummer = saksnummer)
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = randomUUID().toString(),
+            parentRef = dialogmeldingUuid.toString(),
+            personIdentPasient = personB,
+            foresporselSvar = null,
+        )
+
+        utfør(dto)
+
+        assertTrue(hentJobber(saksnummer).isEmpty())
+    }
+
+    @Test
     fun `skal legge til jobb via conversationRef selv om foresporselSvar er null`() {
         val saksnummer = randomSaksnummer()
         val samtaleRef = randomUUID()
-        val personIdent = nextLong(10000000000, 99999999999).toString()
+        val personIdent = randomPersonIdent()
 
         opprettDialogmelding(samtaleRef = samtaleRef, personIdent = personIdent, saksnummer = saksnummer)
 
@@ -179,7 +220,7 @@ class FiltrerDialogmeldingUtførerTest {
     fun `skal prøve parentRef når conversationRef ikke er en gyldig UUID`() {
         val saksnummer = randomSaksnummer()
         val dialogmeldingUuid = randomUUID()
-        val personIdent = nextLong(10000000000, 99999999999).toString()
+        val personIdent = randomPersonIdent()
 
         opprettDialogmelding(uuid = dialogmeldingUuid, personIdent = personIdent, saksnummer = saksnummer)
 
@@ -235,7 +276,7 @@ class FiltrerDialogmeldingUtførerTest {
         foresporselSvar: ForesporselFraSaksbehandlerForesporselSvar? = lagForesporselSvar(),
         conversationRef: String? = null,
         parentRef: String? = null,
-        personIdentPasient: String = nextLong(10000000000, 99999999999).toString(),
+        personIdentPasient: String = randomPersonIdent(),
     ) = DialogmeldingMottakDTO(
         msgId = randomUUID().toString(),
         msgType = randomUUID().toString(),
@@ -244,7 +285,7 @@ class FiltrerDialogmeldingUtførerTest {
         conversationRef = conversationRef,
         parentRef = parentRef,
         personIdentPasient = personIdentPasient,
-        personIdentBehandler = nextLong(10000000000, 99999999999).toString(),
+        personIdentBehandler = randomPersonIdent(),
         legekontorOrgNr = null,
         legekontorHerId = null,
         legekontorOrgName = randomUUID().toString(),
@@ -279,7 +320,7 @@ class FiltrerDialogmeldingUtførerTest {
     private fun opprettDialogmelding(
         uuid: UUID = randomUUID(),
         samtaleRef: UUID = randomUUID(),
-        personIdent: String = nextLong(10000000000, 99999999999).toString(),
+        personIdent: String = randomPersonIdent(),
         saksnummer: String = randomSaksnummer()
     ): DialogmeldingRecord {
         val record = lagDialogmeldingRecord(
@@ -298,7 +339,7 @@ class FiltrerDialogmeldingUtførerTest {
     private fun lagDialogmeldingRecord(
         uuid: UUID = randomUUID(),
         samtaleRef: UUID = randomUUID(),
-        personIdent: String = nextLong(10000000000, 99999999999).toString(),
+        personIdent: String = randomPersonIdent(),
         saksnummer: String = randomSaksnummer(),
     ) = DialogmeldingRecord(
         bestillerNavIdent = "Z123456",
