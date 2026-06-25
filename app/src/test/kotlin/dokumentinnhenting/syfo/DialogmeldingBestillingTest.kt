@@ -6,13 +6,11 @@ import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
 import dokumentinnhenting.util.motor.syfo.syfosteg.SyfoSteg
-import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.mockk
 import io.mockk.verify
 import java.util.UUID
@@ -89,7 +87,7 @@ class DialogmeldingBestillingTest {
         }
 
         verify(exactly = 1) {
-            mockProducer.send(withArg { record: ProducerRecord<String, DialogmeldingToBehandlerBestillingDTO> ->
+            mockProducer.send(withArg { record: ProducerRecord<String, String> ->
                 assert(record.topic() == SYFO_BESTILLING_DIALOGMELDING_TOPIC)
                 assert(record.key() == dialogmeldingUuid.toString())
             })
