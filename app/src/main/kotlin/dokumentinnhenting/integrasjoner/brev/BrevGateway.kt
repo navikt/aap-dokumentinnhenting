@@ -7,20 +7,15 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.BrevGenerering
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.genererDialogmelding
-import io.ktor.client.call.body
-import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import java.time.LocalDateTime
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import no.nav.aap.brev.kontrakt.HentSignaturDokumentinnhentingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
 import no.nav.aap.brev.kontrakt.Signatur
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import java.time.LocalDateTime
 
 class BrevGateway {
     private val baseUri = requiredConfigForKey("INTEGRASJON_BREV_BASE_URL")
@@ -107,9 +102,12 @@ class BrevGateway {
             BrevGenerering(
                 personNavn = bestilling.personNavn,
                 personIdent = bestilling.personIdent,
+                behandlerNavn = bestilling.behandlerNavn,
+                behandlerHprNr = bestilling.behandlerHprNr,
                 dialogmeldingTekst = bestilling.fritekst,
                 dokumentasjonType = bestilling.dokumentasjonType,
                 tidligereBestillingDato = tidligereBestillingDato,
+                saksnummer = bestilling.saksnummer,
                 signatur = null // Signatur er i PDF-mal
             )
         ).split("\n\n")

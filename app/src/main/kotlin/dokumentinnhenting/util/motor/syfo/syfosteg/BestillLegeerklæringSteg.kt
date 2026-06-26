@@ -88,9 +88,12 @@ class BestillLegeerklæringSteg(
             brevGeneratorService.genererMedSignatur(
                 personNavn = record.personNavn,
                 personIdent = record.personIdent,
+                behandlerNavn = record.behandlerNavn,
+                behandlerHprNr = record.behandlerHprNr,
                 dialogmeldingTekst = record.fritekst,
                 dokumentasjonType = record.dokumentasjonType,
                 tidligereBestillingDato = tidligereTilhørendeBestillingsdato,
+                saksnummer = record.saksnummer,
                 bestillerNavIdent = record.bestillerNavIdent,
             )
         }

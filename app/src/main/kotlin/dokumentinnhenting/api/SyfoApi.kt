@@ -154,10 +154,13 @@ fun NormalOpenAPIRoute.syfoApi(
                     brevGeneratorService.genererMedSignatur(
                         personNavn = req.personNavn,
                         personIdent = req.personIdent,
+                        behandlerNavn = tidligereBestilling?.behandlerNavn,
+                        behandlerHprNr = tidligereBestilling?.behandlerHprNr,
                         dialogmeldingTekst = req.dialogmeldingTekst,
                         dokumentasjonType = req.dokumentasjonType.fraDto(),
                         tidligereBestillingDato = tidligereBestilling?.opprettet,
                         bestillerNavIdent = req.bestillerNavIdent,
+                        saksnummer = tidligereBestilling?.saksnummer,
                     )
                 }
                 DialogmeldingForhåndsvisningDto(dialogmelding)
