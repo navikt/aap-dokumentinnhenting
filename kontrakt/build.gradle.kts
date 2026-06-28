@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     id("aap.conventions")
     `maven-publish`
@@ -7,14 +5,6 @@ plugins {
 }
 
 group = "no.nav.aap.dokumentinnhenting"
-
-kotlin {
-    jvmToolchain(21)
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
-    }
-}
 
 java {
     withSourcesJar()
@@ -39,7 +29,4 @@ publishing {
             }
         }
     }
-}
-
-dependencies {
 }
