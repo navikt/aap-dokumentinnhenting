@@ -2,7 +2,7 @@ package no.nav.aap.dokumentinnhenting.kontrakt
 
 import java.util.UUID
 
-data class BehandlingsflytToDokumentInnhentingBestillingDto(
+public data class BehandlingsflytToDokumentInnhentingBestillingDto(
     val bestillerNavIdent: String,
     val behandlerRef: String,
     val behandlerNavn: String,

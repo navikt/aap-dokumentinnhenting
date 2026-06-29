@@ -3,7 +3,7 @@ package no.nav.aap.dokumentinnhenting.kontrakt
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class DialogmeldingStatusTilBehandslingsflytDto(
+public data class DialogmeldingStatusTilBehandslingsflytDto(
     val dialogmeldingUuid: UUID,
     val status: MeldingStatusType?,
     val statusTekst: String?,
@@ -15,7 +15,7 @@ data class DialogmeldingStatusTilBehandslingsflytDto(
     val behandlingsReferanse: UUID,
     val fritekst: String,
 ) {
-    enum class MeldingStatusType() {
+    public enum class MeldingStatusType() {
         BESTILT, SENDT, OK, AVVIST, MOTTATT
     }
 }

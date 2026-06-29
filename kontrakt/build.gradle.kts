@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 
 plugins {
     id("aap.conventions")
@@ -8,16 +8,12 @@ plugins {
 
 group = "no.nav.aap.dokumentinnhenting"
 
-kotlin {
-    jvmToolchain(21)
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
-    }
-}
-
 java {
     withSourcesJar()
+}
+
+kotlin {
+    explicitApi = ExplicitApiMode.Strict
 }
 
 publishing {
@@ -39,7 +35,4 @@ publishing {
             }
         }
     }
-}
-
-dependencies {
 }
