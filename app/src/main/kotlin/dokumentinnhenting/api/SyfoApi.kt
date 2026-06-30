@@ -4,6 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
+import dokumentinnhenting.Azp
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
@@ -117,7 +118,7 @@ fun NormalOpenAPIRoute.syfoApi(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 påkrevdRolle = listOf(Rolle.SAKSBEHANDLER_OPPFOLGING, Rolle.SAKSBEHANDLER_NASJONAL),
-                applicationRole = syfoApiRolle,
+                authorizedAzps = listOf(Azp.Behandlingsflyt),
                 applicationsOnly = false
             )
         ) { _, req ->

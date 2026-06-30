@@ -87,6 +87,8 @@ spec:
       value: api://prod-gcp.aap.tilgang/.default
     - name: INTEGRASJON_API_INTERN_AZP
       value: 3d3bb28c-d020-46b2-a34a-85201e302878
+    - name: INTEGRASJON_BEHANDLINGSFLYT_AZP
+      value: ead3bfb6-d403-43b3-bb45-dc184ce314b7
   accessPolicy:
     inbound:
       rules:

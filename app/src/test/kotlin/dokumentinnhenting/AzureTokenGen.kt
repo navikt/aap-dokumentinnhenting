@@ -39,6 +39,7 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
         } else {
             builder
                 .claim("NAVident", navIdent ?: "Lokalsaksbehandler")
+                .claim("azp", azp)
                 .subject("123")
         }
 
