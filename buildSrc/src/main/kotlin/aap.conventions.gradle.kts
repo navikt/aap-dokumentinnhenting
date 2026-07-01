@@ -2,14 +2,24 @@
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
+    `jvm-test-suite`
 }
 
 group = "no.nav.aap.dokumentinnhenting"
 version = project.findProperty("version")?.toString() ?: "0.0.0"
 
+// https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html
+testing {
+    suites {
+        @Suppress("UnstableApiUsage")
+        getByName<JvmTestSuite>("test") {
+            useJUnitJupiter()
+        }
+    }
+}
+
 tasks {
     test {
-        useJUnitPlatform()
         maxParallelForks = 1
         testLogging {
             events("passed", "skipped", "failed")

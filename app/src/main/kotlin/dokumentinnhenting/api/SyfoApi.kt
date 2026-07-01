@@ -56,7 +56,7 @@ fun NormalOpenAPIRoute.syfoApi(
                 return@authorizedPost
             }
 
-            if (req.behandlerHprNr.length < 7 || req.behandlerHprNr.length > 9) {
+            if (req.behandlerHprNr.length !in 7..9) {
                 respondWithStatus(HttpStatusCode.BadRequest)
                 return@authorizedPost
             }

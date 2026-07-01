@@ -9,7 +9,7 @@ import dokumentinnhenting.integrasjoner.saf.Variantformat
 import io.mockk.every
 import io.mockk.mockk
 import java.util.UUID
-import kotlin.test.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class DokumentFunctionsTest {
@@ -22,8 +22,8 @@ internal class DokumentFunctionsTest {
             opprettJournalpost(opprettDokument(Variantformat.ORIGINAL)),
         )
 
-        assertEquals(3, journalposter.size)
-        assertEquals(1, journalposter.mapKunVariantformatArkiv().size)
+        assertThat(journalposter).hasSize(3)
+        assertThat(journalposter.mapKunVariantformatArkiv()).hasSize(1)
     }
 
     @Test
@@ -34,8 +34,8 @@ internal class DokumentFunctionsTest {
             opprettJournalpost(opprettDokument(Variantformat.ORIGINAL)),
         )
 
-        assertEquals(3, journalposter.size)
-        assertEquals(2, journalposter.mapKunVariantformatArkiv().size)
+        assertThat(journalposter).hasSize(3)
+        assertThat(journalposter.mapKunVariantformatArkiv()).hasSize(2)
     }
 
     private fun opprettJournalpost(vararg dokumenter: DokumentInfo) = Journalpost(
