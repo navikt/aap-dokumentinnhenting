@@ -2,7 +2,7 @@ package no.nav.aap.dokumentinnhenting.kontrakt
 
 import java.util.UUID
 
-data class ForhåndsvisDialogmeldingDto(
+public data class ForhåndsvisDialogmeldingDto(
     val bestillerNavIdent: String,
     val personNavn: String,
     val personIdent: String,

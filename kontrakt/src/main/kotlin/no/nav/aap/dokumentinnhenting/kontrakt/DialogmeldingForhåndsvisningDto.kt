@@ -1,5 +1,5 @@
 package no.nav.aap.dokumentinnhenting.kontrakt
 
-data class DialogmeldingForhåndsvisningDto(
+public data class DialogmeldingForhåndsvisningDto(
     val konstruertBrev: String
 )

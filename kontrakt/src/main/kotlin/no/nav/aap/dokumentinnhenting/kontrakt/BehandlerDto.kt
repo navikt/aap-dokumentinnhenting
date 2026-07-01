@@ -1,6 +1,6 @@
 package no.nav.aap.dokumentinnhenting.kontrakt
 
-data class BehandlerDto(
+public data class BehandlerDto(
     val behandlerRef: String,
     val hprId: String?,
     val fornavn: String,

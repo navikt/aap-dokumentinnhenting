@@ -17,4 +17,5 @@ data class DbConfig(
 
 object Azp {
     val ApiIntern: UUID = UUID.fromString(requiredConfigForKey("INTEGRASJON_API_INTERN_AZP"))
+    val Behandlingsflyt: UUID = UUID.fromString(requiredConfigForKey("INTEGRASJON_BEHANDLINGSFLYT_AZP"))
 }

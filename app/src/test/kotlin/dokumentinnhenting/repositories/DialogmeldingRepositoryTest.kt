@@ -5,6 +5,8 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
+import dokumentinnhenting.randomPersonIdent
+import dokumentinnhenting.randomNavIdent
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -39,12 +41,14 @@ class DialogmeldingRepositoryTest {
         uuid: UUID = UUID.randomUUID(),
         saksnummer: String = "SAK-001",
         tidligereBestillingReferanse: UUID? = null,
+        personIdent: String = randomNavIdent(),
+        samtaleRef: UUID = UUID.randomUUID(),
     ) = DialogmeldingRecord(
-        bestillerNavIdent = "Z123456",
+        bestillerNavIdent = randomNavIdent(),
         dialogmeldingUuid = uuid,
         behandlerRef = "behandlerRef-123",
         behandlerHprNr = "12344321",
-        personIdent = "12345678910",
+        personIdent = personIdent,
         personNavn = "Ola Nordmann",
         saksnummer = saksnummer,
         dokumentasjonType = DokumentasjonType.L8,
@@ -52,7 +56,7 @@ class DialogmeldingRepositoryTest {
         fritekst = "En fritekst",
         behandlingsReferanse = UUID.randomUUID(),
         tidligereBestillingReferanse = tidligereBestillingReferanse,
-        samtaleRef = UUID.randomUUID(),
+        samtaleRef = samtaleRef,
     )
 
     @Test
@@ -316,17 +320,98 @@ class DialogmeldingRepositoryTest {
     }
 
     @Test
-    fun `opprettDialogmelding lagrer null for tidligereBestillingReferanse når ikke satt`() {
-        val record = lagRecord(tidligereBestillingReferanse = null)
+    fun `hentForParent returnerer melding når parentRef og personIdent matcher`() {
+        val record = lagRecord()
+
+        dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).opprettDialogmelding(lagRecord())
+            DialogmeldingRepository(connection).opprettDialogmelding(record)
+            DialogmeldingRepository(connection).opprettDialogmelding(lagRecord())
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForParent(record.dialogmeldingUuid, record.personIdent)
+        }
+
+        assertEquals(record.dialogmeldingUuid, resultat?.dialogmeldingUuid)
+    }
+
+    @Test
+    fun `hentForParent returnerer null for ukjent parentRef`() {
+        dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).opprettDialogmelding(lagRecord())
+        }
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForParent(UUID.randomUUID(), randomPersonIdent())
+        }
+
+        assertNull(resultat)
+    }
+
+    @Test
+    fun `hentForParent returnerer null når parentRef tilhører annen person`() {
+        val personA = randomPersonIdent()
+        val personB = randomPersonIdent()
+        val record = lagRecord(personIdent = personA)
 
         dataSource.transaction { connection ->
             DialogmeldingRepository(connection).opprettDialogmelding(record)
         }
 
-        val lagret = dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).hentByDialogId(record.dialogmeldingUuid)
-        }!!
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForParent(record.dialogmeldingUuid, personB)
+        }
 
-        assertNull(lagret.tidligereBestillingReferanse)
+        assertNull(resultat)
+    }
+
+    @Test
+    fun `hentForSamtale returnerer alle meldinger for samtaleRef og personIdent`() {
+        val personIdent = randomPersonIdent()
+        val samtaleRef = UUID.randomUUID()
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+
+        dataSource.transaction { connection ->
+            val repo = DialogmeldingRepository(connection)
+            repo.opprettDialogmelding(lagRecord(uuid = uuid1, personIdent = personIdent, samtaleRef = samtaleRef))
+            repo.opprettDialogmelding(lagRecord(uuid = uuid2, personIdent = personIdent, samtaleRef = samtaleRef))
+            repo.opprettDialogmelding(lagRecord(personIdent = personIdent, samtaleRef = UUID.randomUUID()))
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForSamtale(samtaleRef, personIdent)
+        }
+
+        assertEquals(2, resultat.size)
+        assertTrue(resultat.any { it.dialogmeldingUuid == uuid1 })
+        assertTrue(resultat.any { it.dialogmeldingUuid == uuid2 })
+    }
+
+    @Test
+    fun `hentForSamtale returnerer tom liste for ukjent samtaleRef`() {
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForSamtale(UUID.randomUUID(), randomPersonIdent())
+        }
+
+        assertTrue(resultat.isEmpty())
+    }
+
+    @Test
+    fun `hentForSamtale returnerer tom liste når samtaleRef tilhører annen person`() {
+        val personA = randomPersonIdent()
+        val personB = randomPersonIdent()
+        val samtaleRef = UUID.randomUUID()
+
+        dataSource.transaction { connection ->
+            DialogmeldingRepository(connection)
+                .opprettDialogmelding(lagRecord(personIdent = personA, samtaleRef = samtaleRef))
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForSamtale(samtaleRef, personB)
+        }
+
+        assertTrue(resultat.isEmpty())
     }
 }

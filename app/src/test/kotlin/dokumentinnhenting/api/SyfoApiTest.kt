@@ -72,7 +72,10 @@ class SyfoApiTest {
         }
 
     private fun bearerToken() =
-        AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(isApp = false)
+        AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(
+            isApp = false,
+            azp = System.getProperty("INTEGRASJON_BEHANDLINGSFLYT_AZP")
+        )
 
     private fun ApplicationTestBuilder.initApp() {
         application {

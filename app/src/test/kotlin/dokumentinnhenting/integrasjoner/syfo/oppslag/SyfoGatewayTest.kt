@@ -2,7 +2,8 @@ package dokumentinnhenting.integrasjoner.syfo.oppslag
 
 import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.WithFakes
-import kotlin.random.Random
+import dokumentinnhenting.randomPersonIdent
+import dokumentinnhenting.randomNavIdent
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -14,10 +15,10 @@ class SyfoGatewayTest {
 
     @Test
     suspend fun `henter og cacher behandlere`() {
-        val brukerIdent1 = randomBrukerIdent()
-        val brukerIdent2 = randomBrukerIdent()
-        val navIdent1 = "NavIdent1"
-        val navIdent2 = "NavIdent2"
+        val brukerIdent1 = randomPersonIdent()
+        val brukerIdent2 = randomPersonIdent()
+        val navIdent1 = randomNavIdent()
+        val navIdent2 = randomNavIdent()
         val behandler1 = hentBehandlere(brukerIdent = brukerIdent1, navIdent = navIdent1)
         val behandler2 = hentBehandlere(brukerIdent = brukerIdent2, navIdent = navIdent1)
 
@@ -50,9 +51,5 @@ class SyfoGatewayTest {
         val token =
             AzureTokenGen("dokumentinnhenting", "dokumentinnhenting").generate(navIdent = navIdent, isApp = false)
         return syfoGateway.behandlere(brukerIdent, OidcToken(token))
-    }
-
-    private fun randomBrukerIdent(): String {
-        return Random.nextLong(10000000000L, 99999999999L).toString()
     }
 }

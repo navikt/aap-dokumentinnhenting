@@ -3,16 +3,16 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     kotlin("jvm")
-    id("io.ktor.plugin") version "3.4.3"
+    id("io.ktor.plugin") version "3.5.1"
     application
 }
 
-val ktorVersion = "3.4.3"
+val ktorVersion = "3.5.1"
 val kafkaVersion = "8.1.1-ce"
-val komponenterVersjon = "2.0.77"
-val behandlingsflytVersjon = "0.0.626"
-val tilgangVersjon = "1.0.226"
-val jacksonVersjon = "2.21.3"
+val komponenterVersjon = "2.0.83"
+val behandlingsflytVersjon = "0.0.629"
+val tilgangVersjon = "1.0.229"
+val jacksonVersjon = "2.22.0"
 
 application {
     mainClass.set("dokumentinnhenting.AppKt")
@@ -35,20 +35,20 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("no.nav.aap.brev:kontrakt:0.0.273")
+    implementation("no.nav.aap.brev:kontrakt:0.0.277")
 
     implementation(project(":dbflyway"))
     implementation(project(":kontrakt"))
     implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.17.0")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersjon")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersjon") // Use the latest version
-    implementation("ch.qos.logback:logback-classic:1.5.32")
+    implementation("ch.qos.logback:logback-classic:1.5.37")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-    implementation("com.nimbusds:nimbus-jose-jwt:10.9")
-    implementation("org.flywaydb:flyway-database-postgresql:12.6.0")
-    implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.9.1")
+    implementation("org.flywaydb:flyway-database-postgresql:12.9.0")
+    implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
     // Felleskomponenter
@@ -72,14 +72,14 @@ dependencies {
 
     // Test
     testImplementation(kotlin("test"))
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.9")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.3")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.9.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:6.1.0")
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
     testImplementation("org.apache.kafka:kafka-streams-test-utils:$kafkaVersion")
     testImplementation("no.nav.aap.kelvin:motor-test-utils:$komponenterVersjon")
-    testImplementation("io.mockk:mockk:1.14.9")
+    testImplementation("io.mockk:mockk:1.14.11")
 }
 
 tasks {

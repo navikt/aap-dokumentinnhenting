@@ -137,6 +137,7 @@ object Fakes : AutoCloseable {
         System.setProperty("NAIS_TOKEN_INTROSPECTION_ENDPOINT", "http://localhost:${texas.engine.port()}/introspect")
 
         System.setProperty("INTEGRASJON_API_INTERN_AZP", UUID.randomUUID().toString())
+        System.setProperty("INTEGRASJON_BEHANDLINGSFLYT_AZP", UUID.randomUUID().toString())
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
     }
