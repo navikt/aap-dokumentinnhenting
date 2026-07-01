@@ -22,16 +22,14 @@ import java.util.Properties
 import java.util.UUID
 import javax.sql.DataSource
 import kotlin.random.Random
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
 import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TopologyTestDriver
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -81,8 +79,8 @@ class KafkaStreamsTest {
     fun `topology konsumerer begge topics`() {
         val description = createDialogmeldingStreamTopology(dataSource).describe().toString()
 
-        assertContains(description, SYFO_STATUS_DIALOGMELDING_TOPIC)
-        assertContains(description, SYFO_DIALOGMELDING_MOTTAK_TOPIC)
+        assertThat(description).contains(SYFO_STATUS_DIALOGMELDING_TOPIC)
+        assertThat(description).contains(SYFO_DIALOGMELDING_MOTTAK_TOPIC)
     }
 
     @Test
@@ -119,7 +117,7 @@ class KafkaStreamsTest {
         statusInputTopic.pipeInput("key", incomingRecord)
 
         val record = hentRepositoryDataStatus(dataSource, saksnummer)
-        assertEquals(uuid, record[0].dialogmeldingUuid)
+        assertThat(record[0].dialogmeldingUuid).isEqualTo(uuid)
     }
 
     @Test
@@ -180,7 +178,7 @@ class KafkaStreamsTest {
 
         mottakInputTopic.pipeInput("key", incomingRecord)
         val oppdatertHendelse = hentRepositoryDataMottak(dataSource, saksnummer)
-        Assertions.assertEquals(uuid, oppdatertHendelse[0].dialogmeldingUuid)
+        assertThat(oppdatertHendelse[0].dialogmeldingUuid).isEqualTo(uuid)
     }
 
     private fun setupRepositoryDataStatus(dataSource: DataSource, record: DialogmeldingRecord) {

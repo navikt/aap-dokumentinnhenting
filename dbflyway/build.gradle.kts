@@ -1,11 +1,9 @@
-val komponenterVersjon = "2.0.83"
-
 plugins {
     id("aap.conventions")
 }
 
 dependencies {
-    implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
-    implementation("org.flywaydb:flyway-database-postgresql:12.9.0")
-    runtimeOnly("org.postgresql:postgresql:42.7.11")
+    implementation(libs.dbmigrering)
+    implementation(libs.flywayDatabasePostgresql)
+    runtimeOnly(libs.postgresql)
 }
