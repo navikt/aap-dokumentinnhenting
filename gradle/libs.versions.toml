@@ -17,7 +17,7 @@ junit = "6.1.1"
 assertJ = "3.27.7"
 testcontainers = "2.0.5"
 mockk = "1.14.11"
-postgresql = "42.7.12"
+postgresql = "42.7.13"
 
 [libraries]
 # Ktor server
