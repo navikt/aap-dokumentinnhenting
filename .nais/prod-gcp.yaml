@@ -19,6 +19,8 @@ spec:
         extra:
           - "NAVident"
           - "azp_name"
+        groups:
+          - id: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5 #NAIS_TEAM_AAP
   kafka:
     pool: nav-prod
     streams: true
@@ -89,6 +91,8 @@ spec:
       value: 3d3bb28c-d020-46b2-a34a-85201e302878
     - name: INTEGRASJON_BEHANDLINGSFLYT_AZP
       value: ead3bfb6-d403-43b3-bb45-dc184ce314b7
+    - name: NAIS_TEAM_AAP
+      value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
   accessPolicy:
     inbound:
       rules:
