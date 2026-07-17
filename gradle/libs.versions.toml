@@ -90,5 +90,5 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 test = ["junitJupiterParams", "assertJ", "mockk", "ktorServerTestHost", "testcontainersPostgres", "motorTestUtils"]
 
 [plugins]
-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.0" }
+jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.10" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
