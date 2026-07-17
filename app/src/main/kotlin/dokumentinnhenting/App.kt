@@ -48,6 +48,7 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
+import no.nav.aap.tilgang.TeamAap
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -95,13 +96,14 @@ fun Application.server(
     val brevGateway = BrevGateway()
     val syfoGateway = SyfoGateway()
     val dokarkivGateway = DokarkivGateway(OboTokenProvider)
+    val påkrevdeRollerMotor = if (Miljø.erProd()) listOf(TeamAap.id) else emptyList()
 
     routing {
         actuator(prometheus, motor)
 
         authenticate(AZURE) {
             apiRouting {
-                motorApi(dataSource)
+                motorApi(dataSource, påkrevdeRollerMotor)
                 syfoApi(dataSource, brevGateway, syfoGateway)
                 dokumentApi(dokarkivGateway)
                 dialogmeldingApi(dataSource)

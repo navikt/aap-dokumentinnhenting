@@ -140,6 +140,7 @@ object Fakes : AutoCloseable {
         System.setProperty("INTEGRASJON_BEHANDLINGSFLYT_AZP", UUID.randomUUID().toString())
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+        System.setProperty("NAIS_TEAM_AAP", "nais-team-aap")
     }
 
     override fun close() {
