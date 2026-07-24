@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import java.util.UUID
 
@@ -37,4 +38,13 @@ enum class DialogmeldingKode(@JsonValue val kode: Int) {
     // Henvendelse fra NAV til lege
     RETUR_AV_LEGEERKLÆRING(3),
     MELDING_FRA_NAV(8),
+    ;
+
+    companion object {
+        @JvmStatic
+        @JsonCreator
+        fun fraKode(kode: Int): DialogmeldingKode =
+            entries.firstOrNull { it.kode == kode }
+                ?: error("Fant ikke kode $kode")
+    }
 }
