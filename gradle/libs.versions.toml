@@ -4,15 +4,11 @@ kafka = "8.1.1-ce"
 kelvin = "2.0.110"
 behandlingsflyt = "0.0.638"
 tilgang = "1.0.234"
-jackson = "2.22.1"
 aapBrev = "0.0.279"
-logback = "1.5.38"
 logstash = "9.0"
 nimbusJoseJwt = "10.9.1"
-flyway = "12.11.0"
 hikari = "7.1.0"
 caffeine = "3.2.4"
-micrometerPrometheus = "1.17.0"
 junit = "6.1.2"
 assertJ = "3.27.7"
 testcontainers = "2.0.5"
@@ -20,22 +16,10 @@ mockk = "1.14.11"
 postgresql = "42.7.13"
 
 [libraries]
-# Ktor server
-ktorServerAuth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
-ktorServerAuthJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
-ktorServerCallLogging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
-ktorServerCallLoggingJvm = { module = "io.ktor:ktor-server-call-logging-jvm", version.ref = "ktor" }
-ktorServerContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
-ktorServerCore = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
-ktorServerMetricsMicrometer = { module = "io.ktor:ktor-server-metrics-micrometer", version.ref = "ktor" }
-ktorServerNetty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
-ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
-ktorSerializationJackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
-
 # Ktor client
-ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktorClientCio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktorClientJackson = { module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
 ktorClientLogging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 
@@ -61,20 +45,13 @@ kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
 # Database
-flywayDatabasePostgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hikariCp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 
-# Jackson
-jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
-jacksonModuleKotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
-
 # Logging
-logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash" }
 
 # Diverse
-micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometerPrometheus" }
 nimbusJoseJwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbusJoseJwt" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 
@@ -90,5 +67,4 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 test = ["junitJupiterParams", "assertJ", "mockk", "ktorServerTestHost", "testcontainersPostgres", "motorTestUtils"]
 
 [plugins]
-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.10" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
