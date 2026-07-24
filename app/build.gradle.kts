@@ -12,35 +12,19 @@ application {
 }
 
 dependencies {
-    implementation(libs.ktorServerAuth)
-    implementation(libs.ktorServerAuthJwt)
-    implementation(libs.ktorServerCallLogging)
-    implementation(libs.ktorServerCallLoggingJvm)
-    implementation(libs.ktorServerContentNegotiation)
-    implementation(libs.ktorServerCore)
-    implementation(libs.ktorServerMetricsMicrometer)
-    implementation(libs.ktorServerNetty)
-    implementation(libs.ktorServerStatusPages)
-
     implementation(libs.ktorClientAuth)
-    implementation(libs.ktorClientCio)
-    implementation(libs.ktorClientContentNegotiation)
     implementation(libs.ktorClientJackson)
     implementation(libs.ktorClientLogging)
+    implementation(libs.ktorClientCio)
+    implementation(libs.ktorClientContentNegotiation)
 
     implementation(libs.brevKontrakt)
 
     implementation(project(":dbflyway"))
     implementation(project(":kontrakt"))
     implementation(libs.ktorOpenApiGenerator)
-    implementation(libs.micrometerRegistryPrometheus)
-    implementation(libs.ktorSerializationJackson)
-    implementation(libs.jacksonDatatypeJsr310)
-    implementation(libs.jacksonModuleKotlin)
-    implementation(libs.logbackClassic)
     implementation(libs.logstashLogbackEncoder)
     implementation(libs.nimbusJoseJwt)
-    implementation(libs.flywayDatabasePostgresql)
     implementation(libs.hikariCp)
     implementation(libs.caffeine)
 

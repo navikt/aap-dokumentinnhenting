@@ -4,6 +4,5 @@ plugins {
 
 dependencies {
     implementation(libs.dbmigrering)
-    implementation(libs.flywayDatabasePostgresql)
     runtimeOnly(libs.postgresql)
 }
