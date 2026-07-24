@@ -25,6 +25,10 @@ enum class DialogmeldingKodeverk {
     HENVENDELSE, FORESPORSEL
 }
 
+/*
+* Verdier hentet herfra:
+* https://github.com/navikt/isdialogmelding/blob/master/documentation/kafka/isdialogmelding-behandler-dialogmelding-bestilling.md
+*/
 enum class DialogmeldingKode(@JsonValue val kode: Int) {
     // Forespørsel om pasient
     FORESPØRSEL_OM_PASIENT(1),
