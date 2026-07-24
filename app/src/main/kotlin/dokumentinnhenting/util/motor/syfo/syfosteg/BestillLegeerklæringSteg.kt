@@ -114,31 +114,31 @@ class BestillLegeerklæringSteg(
             DokumentasjonType.L40 -> DialogmeldingKodeStruktur(
                 DialogmeldingType.DIALOG_FORESPORSEL,
                 DialogmeldingKodeverk.FORESPORSEL,
-                1
+                DialogmeldingKode.FORESPØRSEL_OM_PASIENT
             )
 
             DokumentasjonType.L8 -> DialogmeldingKodeStruktur(
                 DialogmeldingType.DIALOG_FORESPORSEL,
                 DialogmeldingKodeverk.FORESPORSEL,
-                1
+                DialogmeldingKode.FORESPØRSEL_OM_PASIENT
             )
 
             DokumentasjonType.MELDING_FRA_NAV -> DialogmeldingKodeStruktur(
                 DialogmeldingType.DIALOG_NOTAT,
                 DialogmeldingKodeverk.HENVENDELSE,
-                8
+                DialogmeldingKode.MELDING_FRA_NAV
             )
 
             DokumentasjonType.RETUR_LEGEERKLÆRING -> DialogmeldingKodeStruktur(
                 DialogmeldingType.DIALOG_NOTAT,
                 DialogmeldingKodeverk.HENVENDELSE,
-                3
+                DialogmeldingKode.RETUR_AV_LEGEERKLÆRING
             )
 
             DokumentasjonType.PURRING -> DialogmeldingKodeStruktur(
                 DialogmeldingType.DIALOG_FORESPORSEL,
                 DialogmeldingKodeverk.FORESPORSEL,
-                2
+                DialogmeldingKode.PÅMINNELSE_FORESPORSEL_OM_PASIENT
             )
 
             DokumentasjonType.L120 -> TODO() // TODO: Neste fase, lage brev og mapping for 120
@@ -148,6 +148,6 @@ class BestillLegeerklæringSteg(
     private data class DialogmeldingKodeStruktur(
         val dialogmeldingType: DialogmeldingType,
         val dialogmeldingKodeverk: DialogmeldingKodeverk,
-        val dialogmeldingKode: Int
+        val dialogmeldingKode: DialogmeldingKode
     )
 }

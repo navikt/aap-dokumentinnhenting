@@ -1,6 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
-import java.util.*
+import com.fasterxml.jackson.annotation.JsonValue
+import java.util.UUID
 
 data class DialogmeldingToBehandlerBestillingDTO(
     val behandlerRef: String,
@@ -10,10 +11,10 @@ data class DialogmeldingToBehandlerBestillingDTO(
     val dialogmeldingRefConversation: String,
     val dialogmeldingType: DialogmeldingType,
     val dialogmeldingKodeverk: DialogmeldingKodeverk,
-    val dialogmeldingKode: Int,
+    val dialogmeldingKode: DialogmeldingKode,
     val dialogmeldingTekst: String?,
     val dialogmeldingVedlegg: ByteArray,
-    val kilde: String
+    val kilde: String,
 )
 
 enum class DialogmeldingType {
@@ -22,4 +23,14 @@ enum class DialogmeldingType {
 
 enum class DialogmeldingKodeverk {
     HENVENDELSE, FORESPORSEL
+}
+
+enum class DialogmeldingKode(@JsonValue val kode: Int) {
+    // Forespørsel om pasient
+    FORESPØRSEL_OM_PASIENT(1),
+    PÅMINNELSE_FORESPORSEL_OM_PASIENT(2),
+
+    // Henvendelse fra NAV til lege
+    RETUR_AV_LEGEERKLÆRING(3),
+    MELDING_FRA_NAV(8),
 }
