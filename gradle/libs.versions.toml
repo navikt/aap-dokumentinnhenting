@@ -1,7 +1,7 @@
 [versions]
 ktor = "3.5.1"
 kafka = "8.1.1-ce"
-kelvin = "2.0.119"
+kelvin = "2.0.121"
 behandlingsflyt = "0.0.642"
 tilgang = "1.0.234"
 aapBrev = "0.0.279"
