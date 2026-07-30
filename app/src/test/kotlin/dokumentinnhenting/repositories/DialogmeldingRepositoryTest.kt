@@ -179,26 +179,6 @@ class DialogmeldingRepositoryTest {
     }
 
     @Test
-    fun `oppdaterDialogmeldingStatusMedMottatt setter status til MOTTATT`() {
-        val record = lagRecord()
-
-        dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).opprettDialogmelding(record)
-        }
-
-        dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).oppdaterDialogmeldingStatusMedMottatt(record.dialogmeldingUuid)
-        }
-
-        val oppdatert = dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).hentByDialogId(record.dialogmeldingUuid)
-        }!!
-
-        assertEquals(MeldingStatusType.MOTTATT, oppdatert.status)
-        assertEquals(MeldingStatusType.MOTTATT.toString(), oppdatert.statusTekst)
-    }
-
-    @Test
     fun `leggTilJournalpostPåBestilling oppdaterer journalpost og dokument id`() {
         val record = lagRecord()
 

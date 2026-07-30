@@ -55,22 +55,6 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun oppdaterDialogmeldingStatusMedMottatt(dialogmeldingUuid: UUID) {
-        val query = """
-            UPDATE DIALOGMELDING
-            SET STATUS = ?, STATUS_TEKST = ?
-            WHERE DIALOGMELDING_UUID = ?
-        """.trimIndent()
-
-        connection.execute(query) {
-            setParams {
-                setString(1, MeldingStatusType.MOTTATT.toString())
-                setString(2, MeldingStatusType.MOTTATT.toString())
-                setUUID(3, dialogmeldingUuid)
-            }
-        }
-    }
-
     fun leggTilJournalpostPåBestilling(dialogmeldingUuid: UUID, journalpostId: String, dokumentId: String) {
         val query = """
             UPDATE DIALOGMELDING
