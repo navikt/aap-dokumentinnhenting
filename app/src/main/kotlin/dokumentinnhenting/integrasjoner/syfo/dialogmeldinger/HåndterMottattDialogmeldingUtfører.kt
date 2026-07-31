@@ -5,6 +5,7 @@ import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfør
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
+import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -17,12 +18,15 @@ import no.nav.aap.motor.JobbUtfører
 class HåndterMottattDialogmeldingUtfører(
     private val dokArkivGateway: DokarkivGateway,
     private val flytJobbRepository: FlytJobbRepository,
+    private val mottattDialogmeldingRepository: MottattDialogmeldingRepository,
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSakstilknytning>(input.payload())
 
         val record = payload.dialogmeldingMottatt
         val sakOgBehandling = payload.sakOgBehandling
+
+        mottattDialogmeldingRepository.lagre(payload)
 
         runBlocking {
             dokArkivGateway.knyttJournalpostTilAnnenSak(
@@ -49,7 +53,8 @@ class HåndterMottattDialogmeldingUtfører(
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return HåndterMottattDialogmeldingUtfører(
                 DokarkivGateway(SystemTokenProvider),
-                FlytJobbRepository(connection)
+                FlytJobbRepository(connection),
+                MottattDialogmeldingRepository(connection),
             )
         }
 

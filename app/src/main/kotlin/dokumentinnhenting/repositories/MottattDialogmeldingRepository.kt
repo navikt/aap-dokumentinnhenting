@@ -1,0 +1,84 @@
+package dokumentinnhenting.repositories
+
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingMedSakstilknytning
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import java.time.LocalDateTime
+import java.util.UUID
+
+class MottattDialogmeldingRepository(private val connection: DBConnection) {
+
+    fun lagre(payload: DialogmeldingMedSakstilknytning) {
+        val dialogmelding = payload.dialogmeldingMottatt
+
+        val query = """
+            INSERT INTO MOTTATT_DIALOGMELDING (
+                msg_id, msg_type, mottatt_tidspunkt, conversation_ref, parent_ref,
+                person_ident_pasient, lege_hpr, journalpost_id, saksnummer, opprettet_tid
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setUUID(1, UUID.fromString(dialogmelding.msgId))
+                setString(2, dialogmelding.msgType)
+                setLocalDateTime(3, dialogmelding.mottattTidspunkt)
+                setUUID(4, dialogmelding.conversationRef?.toUUIDOrNull())
+                setUUID(5, dialogmelding.parentRef?.toUUIDOrNull())
+                setString(6, dialogmelding.personIdentPasient)
+                setString(7, dialogmelding.legehpr)
+                setString(8, dialogmelding.journalpostId)
+                setString(9, payload.sakOgBehandling.saksnummer)
+                setLocalDateTime(10, LocalDateTime.now())
+            }
+        }
+    }
+
+    fun eksisterer(dialogmeldingId: UUID): Boolean {
+        val query = "SELECT EXISTS(SELECT 1 FROM MOTTATT_DIALOGMELDING WHERE MSG_ID = ?)"
+
+        return connection.queryFirst(query) {
+            setParams { setUUID(1, dialogmeldingId) }
+            setRowMapper { it.getBoolean("exists") }
+        }
+    }
+
+    internal fun hentForMsgId(msgId: UUID): MottattDialogmeldingRecord? {
+        val query = "SELECT * FROM MOTTATT_DIALOGMELDING WHERE MSG_ID = ?"
+
+        return connection.queryFirstOrNull(query) {
+            setParams { setUUID(1, msgId) }
+            setRowMapper { row ->
+                MottattDialogmeldingRecord(
+                    id = row.getLong("ID"),
+                    msgId = row.getUUID("MSG_ID"),
+                    msgType = row.getString("MSG_TYPE"),
+                    mottattTidspunkt = row.getLocalDateTime("MOTTATT_TIDSPUNKT"),
+                    conversationRef = row.getUUIDOrNull("CONVERSATION_REF"),
+                    parentRef = row.getUUIDOrNull("PARENT_REF"),
+                    personIdentPasient = row.getString("PERSON_IDENT_PASIENT"),
+                    legehpr = row.getStringOrNull("LEGE_HPR"),
+                    journalpostId = row.getString("JOURNALPOST_ID"),
+                    saksnummer = row.getString("SAKSNUMMER"),
+                    opprettetTid = row.getLocalDateTime("OPPRETTET_TID"),
+                )
+            }
+        }
+    }
+
+    private fun String.toUUIDOrNull(): UUID? = runCatching { UUID.fromString(this) }.getOrNull()
+}
+
+internal data class MottattDialogmeldingRecord(
+    val id: Long,
+    val msgId: UUID,
+    val msgType: String,
+    val mottattTidspunkt: LocalDateTime,
+    val conversationRef: UUID?,
+    val parentRef: UUID?,
+    val personIdentPasient: String,
+    val legehpr: String?,
+    val journalpostId: String,
+    val saksnummer: String,
+    val opprettetTid: LocalDateTime,
+)
+

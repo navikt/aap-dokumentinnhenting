@@ -6,6 +6,7 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.Azp
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import java.util.UUID
 import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -30,8 +31,14 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                 )
             ) { params ->
                 val dialogmeldingEksisterer = dataSource.transaction { connection ->
-                    DialogmeldingRepository(connection)
-                        .eksisterer(params.dialogmeldingId)
+                    val eksistererUtsendtDialogmelding =
+                        DialogmeldingRepository(connection).eksisterer(params.dialogmeldingId)
+
+                    val eksistererMottattDialogmelding by lazy {
+                        MottattDialogmeldingRepository(connection).eksisterer(params.dialogmeldingId)
+                    }
+
+                    eksistererUtsendtDialogmelding || eksistererMottattDialogmelding
                 }
 
                 logger.info("Dialogmelding med ID ${params.dialogmeldingId} eksisterer: $dialogmeldingEksisterer")
