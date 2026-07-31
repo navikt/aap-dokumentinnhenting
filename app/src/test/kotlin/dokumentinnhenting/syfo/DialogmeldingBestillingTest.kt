@@ -110,53 +110,6 @@ class DialogmeldingBestillingTest {
     }
 
     @Test
-    fun KanOppdatereBestillingStatuserManuelt() {
-        val saksnummer = Random.nextLong().toString()
-        val dto = BehandlingsflytToDokumentInnhentingBestillingDto(
-            bestillerNavIdent = "bestillerNavIdent",
-            behandlerRef = "behandlerRef",
-            personIdent = "12345678910",
-            personNavn = "personNavn",
-            saksnummer = saksnummer,
-            dialogmeldingTekst = "tekst",
-            dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L8,
-            behandlerNavn = "behandlerNavn",
-            behandlingsReferanse = UUID.randomUUID(),
-            behandlerHprNr = "12344321"
-        )
-
-        lateinit var dialogmeldingUuid: UUID
-
-        dataSource.transaction { connection ->
-            //Første del, lagring av dialogmelding i repository
-            dialogmeldingRepository = DialogmeldingRepository(connection)
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
-                FlytJobbRepository(connection),
-                DialogmeldingRepository(connection)
-            )
-
-            //Andre del, henter data i steg og sender til kafka
-            dialogmeldingUuid = behandlerDialogmeldingBestillingService.dialogmeldingBestilling(dto)
-            dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, "journalpostid", "dokumentid")
-            val azureTokenGen = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting")
-            azureTokenGen.generate()
-            val steg = BestillLegeerklæringSteg(dialogmeldingRepository, dialogmeldingBrevGeneratorService, mockProducer)
-            steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
-        }
-
-        val lagretBestilling = hentRepositoryDataByDialogId(dataSource, dialogmeldingUuid)
-        assertEquals(null, lagretBestilling.status)
-
-        dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
-            dialogmeldingRepository.oppdaterDialogmeldingStatusMedMottatt(dialogmeldingUuid)
-        }
-
-        val oppdatertBestilling = hentRepositoryDataByDialogId(dataSource, dialogmeldingUuid)
-        assertEquals(MeldingStatusType.MOTTATT, oppdatertBestilling.status)
-    }
-
-    @Test
     fun FeilerOmLegeerklæringPurringErUnder14Dager() {
         lateinit var dialogmeldingLegerklæringUuid: UUID
         val saksnummer = Random.nextLong().toString()
