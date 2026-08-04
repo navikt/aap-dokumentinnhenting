@@ -19,11 +19,10 @@ class TaSakAvVentUtfører(private val behandlingsflytGateway: BehandlingsflytGat
         val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSakstilknytning>(input.payload())
 
         val record = payload.dialogmeldingMottatt
-        val sakOgBehandling = payload.sakOgBehandling
 
         behandlingsflytGateway.taSakAvVent(
             Innsending(
-                Saksnummer(sakOgBehandling.saksnummer),
+                Saksnummer(payload.sakOgBehandling.saksnummer),
                 referanse = InnsendingReferanse(
                     JournalpostId(record.journalpostId),
                 ),

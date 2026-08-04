@@ -49,7 +49,7 @@ class FiltrerDialogmeldingUtfører(
                 return
             }
             log.info("Er mottatt dialogmelding svar på forespørsel? ${payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null}")
-            opprettJobb(payload, sendtDialogmelding.saksnummer)
+            opprettJobb(payload, sendtDialogmelding.saksnummer, skalLagreMottatDialogmelding = true)
         } else if (payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
             log.info("Fant ikke kobling fra mottatt til sendt dialogmelding. Henter saksinfo fra behandlingsflyt for dialogmelding med journalpostId ${payload.journalpostId}")
             val saksInfo = BehandlingsflytGateway.finnÅpenSakForIdentPåDato(
@@ -62,17 +62,22 @@ class FiltrerDialogmeldingUtfører(
                 return
             }
 
-            opprettJobb(payload, saksInfo.saksnummer)
+            opprettJobb(payload, saksInfo.saksnummer, skalLagreMottatDialogmelding = false)
         }
     }
 
-    private fun opprettJobb(mottattDialogmelding: DialogmeldingMottakDTO, saksnummer: String) {
+    private fun opprettJobb(
+        mottattDialogmelding: DialogmeldingMottakDTO,
+        saksnummer: String,
+        skalLagreMottatDialogmelding: Boolean,
+    ) {
         flytJobbRepository.leggTil(
             JobbInput(HåndterMottattDialogmeldingUtfører).medPayload(
                 DefaultJsonMapper.toJson(
-                    DialogmeldingMedSakstilknytning(
+                    FiltrertDialogmeldingMedSakstilknytning(
+                        skalLagreMottattDialogmelding = skalLagreMottatDialogmelding,
                         dialogmeldingMottatt = mottattDialogmelding,
-                        sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+                        sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer),
                     )
                 )
             )
