@@ -1,20 +1,19 @@
 package dokumentinnhenting.repositories
 
-import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingMedSakstilknytning
-import no.nav.aap.komponenter.dbconnect.DBConnection
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.aap.komponenter.dbconnect.DBConnection
 
 class MottattDialogmeldingRepository(private val connection: DBConnection) {
 
-    fun lagre(payload: DialogmeldingMedSakstilknytning) {
-        val dialogmelding = payload.dialogmeldingMottatt
-
+    fun lagre(dialogmelding: DialogmeldingMottakDTO, saksnummer: String) {
         val query = """
             INSERT INTO MOTTATT_DIALOGMELDING (
-                msg_id, msg_type, mottatt_tidspunkt, conversation_ref, parent_ref,
-                person_ident_pasient, lege_hpr, journalpost_id, saksnummer, opprettet_tid
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                msg_id, msg_type, mottatt_tidspunkt, conversation_ref, parent_ref, 
+                person_ident_pasient, lege_hpr, journalpost_id, navn_helsepersonell, 
+                tekst_notat_innhold, saksnummer, opprettet_tid
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         connection.execute(query) {
@@ -27,8 +26,10 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                 setString(6, dialogmelding.personIdentPasient)
                 setString(7, dialogmelding.legehpr)
                 setString(8, dialogmelding.journalpostId)
-                setString(9, payload.sakOgBehandling.saksnummer)
-                setLocalDateTime(10, LocalDateTime.now())
+                setString(9, dialogmelding.dialogmelding.navnHelsepersonell)
+                setString(10, dialogmelding.dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold)
+                setString(11, saksnummer)
+                setLocalDateTime(12, LocalDateTime.now())
             }
         }
     }
@@ -57,6 +58,8 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                     parentRef = row.getUUIDOrNull("PARENT_REF"),
                     personIdentPasient = row.getString("PERSON_IDENT_PASIENT"),
                     legehpr = row.getStringOrNull("LEGE_HPR"),
+                    navnHelsepersonell = row.getString("NAVN_HELSEPERSONELL"),
+                    tekstNotatInnhold = row.getStringOrNull("TEKST_NOTAT_INNHOLD"),
                     journalpostId = row.getString("JOURNALPOST_ID"),
                     saksnummer = row.getString("SAKSNUMMER"),
                     opprettetTid = row.getLocalDateTime("OPPRETTET_TID"),
@@ -77,6 +80,8 @@ internal data class MottattDialogmeldingRecord(
     val parentRef: UUID?,
     val personIdentPasient: String,
     val legehpr: String?,
+    val navnHelsepersonell: String,
+    val tekstNotatInnhold: String?,
     val journalpostId: String,
     val saksnummer: String,
     val opprettetTid: LocalDateTime,

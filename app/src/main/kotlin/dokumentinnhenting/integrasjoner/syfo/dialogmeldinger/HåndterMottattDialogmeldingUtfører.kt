@@ -21,29 +21,28 @@ class HåndterMottattDialogmeldingUtfører(
     private val mottattDialogmeldingRepository: MottattDialogmeldingRepository,
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val payload = DefaultJsonMapper.fromJson<DialogmeldingMedSakstilknytning>(input.payload())
+        val payload = DefaultJsonMapper.fromJson<FiltrertDialogmeldingMedSakstilknytning>(input.payload())
 
-        val record = payload.dialogmeldingMottatt
-        val sakOgBehandling = payload.sakOgBehandling
+        val dialogmelding = payload.dialogmeldingMottatt
 
-        mottattDialogmeldingRepository.lagre(payload)
+        mottattDialogmeldingRepository.lagre(dialogmelding, payload.saksnummer)
 
         runBlocking {
             dokArkivGateway.knyttJournalpostTilAnnenSak(
-                record.journalpostId,
+                dialogmelding.journalpostId,
                 KnyttTilAnnenSakRequest(
                     OpprettJournalpostRequest.Bruker(
-                        record.personIdentPasient,
+                        dialogmelding.personIdentPasient,
                         OpprettJournalpostRequest.Bruker.IdType.FNR
                     ),
-                    payload.sakOgBehandling.saksnummer,
+                    payload.saksnummer,
                     "KELVIN"
                 )
             )
         }
 
         val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
-            DefaultJsonMapper.toJson(DialogmeldingMedSakstilknytning(record, sakOgBehandling))
+            DefaultJsonMapper.toJson(DialogmeldingMedSakstilknytning(dialogmelding, payload.saksnummer))
         )
         flytJobbRepository.leggTil(jobb)
     }
