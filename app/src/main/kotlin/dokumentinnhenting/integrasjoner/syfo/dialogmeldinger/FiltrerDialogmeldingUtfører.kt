@@ -48,6 +48,7 @@ class FiltrerDialogmeldingUtfører(
                 log.info("Håndterer ikke relevant dialogmelding fordi journalpostId er 0.")
                 return
             }
+            log.info("Er mottatt dialogmelding svar på forespørsel? ${payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null}")
             opprettJobb(payload, sendtDialogmelding.saksnummer, skalLagreMottatDialogmelding = true)
         } else if (payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
             log.info("Fant ikke kobling fra mottatt til sendt dialogmelding. Henter saksinfo fra behandlingsflyt for dialogmelding med journalpostId ${payload.journalpostId}")

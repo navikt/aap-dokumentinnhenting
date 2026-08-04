@@ -19,11 +19,9 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -32,6 +30,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.util.UUID
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -109,9 +108,9 @@ class DialogmeldingApiTest {
 
     private fun ApplicationTestBuilder.initApp() {
         application {
-            commonKtorModule(SimpleMeterRegistry(), AzureConfig(), InfoModel(title = "Test"))
+            commonKtorModule(SimpleMeterRegistry(), InfoModel(title = "Test"), IdentityProvider.ENTRA_ID)
             routing {
-                authenticate(AZURE) {
+                authenticate(IdentityProvider.ENTRA_ID.value) {
                     apiRouting {
                         dialogmeldingApi(dataSource)
                     }

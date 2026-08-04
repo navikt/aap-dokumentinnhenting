@@ -34,15 +34,12 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.MeterRegistry
-import javax.sql.DataSource
-import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.json.DefaultJsonMapper.objectMapper
 import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
@@ -51,6 +48,8 @@ import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.tilgang.TeamAap
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import javax.sql.DataSource
+import kotlin.time.Duration.Companion.seconds
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
@@ -81,8 +80,8 @@ fun Application.server(
     val prometheus = prometheus
     commonKtorModule(
         prometheus,
-        AzureConfig(),
-        InfoModel(title = "AAP - Dokumentinnhenting")
+        identityProvider = IdentityProvider.ENTRA_ID,
+        infoModel = InfoModel(title = "AAP - Dokumentinnhenting")
     )
 
     install(StatusPages, StatusPagesConfigHelper.setup())
@@ -101,7 +100,7 @@ fun Application.server(
     routing {
         actuator(prometheus, motor)
 
-        authenticate(AZURE) {
+        authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
                 motorApi(dataSource, påkrevdeRollerMotor)
                 syfoApi(dataSource, brevGateway, syfoGateway)

@@ -31,6 +31,9 @@ jobs:
 
   publiser-kontrakt:
     needs: gradle
+    concurrency:
+      group: publiser-kontrakt
+      queue: max
     permissions:
       contents: write
       packages: write
@@ -48,7 +51,7 @@ jobs:
           tag_prefix: ""
           bump_each_commit_patch_pattern: ''
           major_pattern: "(MAJOR)" # If major bump, include this in the commit message
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v5.7.0
         if: ${{ steps.tag.outputs.changed == 'true' }}
         with:
           java-version: 21
@@ -87,7 +90,9 @@ jobs:
       contents: read
       id-token: write
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
-    concurrency: deploy-dev
+    concurrency:
+      group: deploy-dev
+      queue: max
     secrets: inherit
     with:
       cluster: dev-gcp
@@ -101,7 +106,9 @@ jobs:
       id-token: write
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     secrets: inherit
-    concurrency: deploy-prod
+    concurrency:
+      group: deploy-prod
+      queue: max
     with:
       cluster: prod-gcp
       manifest: .nais/prod-gcp.yaml
