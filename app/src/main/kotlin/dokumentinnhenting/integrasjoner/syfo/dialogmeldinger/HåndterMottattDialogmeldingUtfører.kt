@@ -1,6 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
 import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
@@ -24,8 +25,11 @@ class HåndterMottattDialogmeldingUtfører(
         val payload = DefaultJsonMapper.fromJson<FiltrertDialogmeldingMedSakstilknytning>(input.payload())
 
         val dialogmelding = payload.dialogmeldingMottatt
+        val saksnummer = payload.sakOgBehandling.saksnummer
 
-        mottattDialogmeldingRepository.lagre(dialogmelding, payload.saksnummer)
+        if (payload.skalLagreMottattDialogmelding) {
+            mottattDialogmeldingRepository.lagre(dialogmelding, saksnummer)
+        }
 
         runBlocking {
             dokArkivGateway.knyttJournalpostTilAnnenSak(
@@ -35,14 +39,14 @@ class HåndterMottattDialogmeldingUtfører(
                         dialogmelding.personIdentPasient,
                         OpprettJournalpostRequest.Bruker.IdType.FNR
                     ),
-                    payload.saksnummer,
+                    saksnummer,
                     "KELVIN"
                 )
             )
         }
 
         val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
-            DefaultJsonMapper.toJson(DialogmeldingMedSakstilknytning(dialogmelding, payload.saksnummer))
+            DefaultJsonMapper.toJson(DialogmeldingMedSakstilknytning(dialogmelding, payload.sakOgBehandling))
         )
         flytJobbRepository.leggTil(jobb)
     }

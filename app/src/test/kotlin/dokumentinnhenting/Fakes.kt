@@ -37,6 +37,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -125,8 +126,8 @@ object Fakes : AutoCloseable {
         System.setProperty("INTEGRASJON_BREV_SCOPE", "http://localhost:${brev.engine.port()}")
 
         // Dokarkiv
-        System.setProperty("INTEGRASJON_DOKARKIV_URL", "http://localhost:${brev.engine.port()}")
-        System.setProperty("INTEGRASJON_DOKARKIV_SCOPE", "http://localhost:${brev.engine.port()}")
+        System.setProperty("INTEGRASJON_DOKARKIV_URL", "http://localhost:${dokarkiv.engine.port()}")
+        System.setProperty("INTEGRASJON_DOKARKIV_SCOPE", "http://localhost:${dokarkiv.engine.port()}")
 
         // Tilgang
         System.setProperty("INTEGRASJON_TILGANG_URL", "http://localhost:${tilgang.engine.port()}")
@@ -418,6 +419,10 @@ object Fakes : AutoCloseable {
             }
         }
         routing {
+            put("/rest/journalpostapi/v1/journalpost/{journalpostId}/knyttTilAnnenSak") {
+                val journalpostId = call.parameters["journalpostId"]!!
+                call.respond(HttpStatusCode.OK, mapOf("nyJournalpostId" to journalpostId))
+            }
         }
     }
 

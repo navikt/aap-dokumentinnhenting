@@ -22,7 +22,7 @@ class TaSakAvVentUtfører(private val behandlingsflytGateway: BehandlingsflytGat
 
         behandlingsflytGateway.taSakAvVent(
             Innsending(
-                Saksnummer(payload.saksnummer),
+                Saksnummer(payload.sakOgBehandling.saksnummer),
                 referanse = InnsendingReferanse(
                     JournalpostId(record.journalpostId),
                 ),

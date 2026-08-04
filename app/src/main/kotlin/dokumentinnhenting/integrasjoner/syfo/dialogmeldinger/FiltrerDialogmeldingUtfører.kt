@@ -77,7 +77,7 @@ class FiltrerDialogmeldingUtfører(
                     FiltrertDialogmeldingMedSakstilknytning(
                         skalLagreMottattDialogmelding = skalLagreMottatDialogmelding,
                         dialogmeldingMottatt = mottattDialogmelding,
-                        saksnummer = saksnummer
+                        sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer),
                     )
                 )
             )
