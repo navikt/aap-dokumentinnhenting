@@ -28,8 +28,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.dokumentinnhenting.kontrakt.FastlegeDto
 import no.nav.aap.dokumentinnhenting.kontrakt.HentFastlegeDto
 import no.nav.aap.komponenter.dbtest.TestDataSource
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -79,10 +78,10 @@ class SyfoApiTest {
 
     private fun ApplicationTestBuilder.initApp() {
         application {
-            commonKtorModule(SimpleMeterRegistry(), AzureConfig(), InfoModel(title = "Test"))
+            commonKtorModule(SimpleMeterRegistry(), InfoModel(title = "Test"), IdentityProvider.ENTRA_ID)
             install(StatusPages, StatusPagesConfigHelper.setup())
             routing {
-                authenticate(AZURE) {
+                authenticate(IdentityProvider.ENTRA_ID.value) {
                     apiRouting {
                         syfoApi(dataSource, BrevGateway(), SyfoGateway())
                     }
