@@ -24,6 +24,11 @@ class FiltrerDialogmeldingUtfører(
         val payload: DialogmeldingMottakDTO =
             DefaultJsonMapper.fromJson<DialogmeldingMottakDTO>(input.payload())
 
+        if (payload.journalpostId == "0") {
+            log.warn("Håndterer ikke dialogmelding fordi journalpostId er 0.")
+            return
+        }
+
         val sendtDialogmelding =
             payload.conversationRef?.toUUIDOrNull()
                 ?.let {
@@ -44,10 +49,6 @@ class FiltrerDialogmeldingUtfører(
                     ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på parentRef.") }
 
         if (sendtDialogmelding != null) {
-            if (payload.journalpostId == "0") {
-                log.info("Håndterer ikke relevant dialogmelding fordi journalpostId er 0.")
-                return
-            }
             log.info("Er mottatt dialogmelding svar på forespørsel? ${payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null}")
             opprettJobb(payload, sendtDialogmelding.saksnummer, skalLagreMottatDialogmelding = true)
         } else if (payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
@@ -55,14 +56,15 @@ class FiltrerDialogmeldingUtfører(
             val saksInfo = BehandlingsflytGateway.finnÅpenSakForIdentPåDato(
                 payload.personIdentPasient,
                 payload.mottattTidspunkt.toLocalDate()
-            ) ?: return
+            )
 
-            if (payload.journalpostId == "0") {
-                log.warn("Håndterer ikke relevant dialogmelding fordi journalpostId er 0.")
+            if (saksInfo == null) {
+                log.info("Fant ikke åpen sak for personident på dialogmelding med journalpostId ${payload.journalpostId}")
                 return
+            } else {
+                log.info("Fant åpen sak for dialogmelding med journalpostId ${payload.journalpostId}")
+                opprettJobb(payload, saksInfo.saksnummer, skalLagreMottatDialogmelding = false)
             }
-
-            opprettJobb(payload, saksInfo.saksnummer, skalLagreMottatDialogmelding = false)
         }
     }
 

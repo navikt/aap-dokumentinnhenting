@@ -66,8 +66,6 @@ class FiltrerDialogmeldingUtførerTest {
     @Test
     fun `skal ikke legge til jobb når journalpostId er 0`() {
         val dto = lagDialogmeldingMottakDTO(journalpostId = "0")
-        behandlingsflytSakResponses[dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate()] =
-            randomUUID().toString()
 
         utfør(dto)
 
