@@ -10,21 +10,24 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraS
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.UUID.randomUUID
+import kotlin.random.Random.Default.nextInt
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import kotlin.random.Random.Default.nextInt
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -50,7 +53,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertEquals(1, hentJobber(dto.personIdentPasient).size)
+        assertThat(hentJobber(dto.personIdentPasient)).hasSize(1)
     }
 
     @Test
@@ -60,16 +63,20 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertTrue(hentJobber(dto.personIdentPasient).isEmpty())
+        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
     }
 
     @Test
     fun `skal ikke legge til jobb når journalpostId er 0`() {
-        val dto = lagDialogmeldingMottakDTO(journalpostId = "0")
-
-        utfør(dto)
-
-        assertTrue(hentJobber(dto.personIdentPasient).isEmpty())
+        mockkObject(Miljø)
+        every { Miljø.erDev() } returns true
+        try {
+            val dto1 = lagDialogmeldingMottakDTO(journalpostId = "0")
+            utfør(dto1)
+            assertThat(hentJobber(dto1.personIdentPasient)).isEmpty()
+        } finally {
+            unmockkObject(Miljø)
+        }
     }
 
     @Test
@@ -80,7 +87,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertTrue(hentJobber(dto.personIdentPasient).isEmpty())
+        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
     }
 
     @Test
@@ -95,25 +102,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertEquals(1, hentJobber(saksnummer).size)
-    }
-
-    @Test
-    fun `skal ikke legge til jobb via conversationRef når journalpostId er 0`() {
-        val samtaleRef = randomUUID()
-        val personIdent = randomPersonIdent()
-
-        opprettDialogmelding(samtaleRef = samtaleRef, personIdent = personIdent)
-
-        val dto = lagDialogmeldingMottakDTO(
-            conversationRef = samtaleRef.toString(),
-            personIdentPasient = personIdent,
-            journalpostId = "0",
-        )
-
-        utfør(dto)
-
-        assertTrue(hentJobber(personIdent).isEmpty())
+        assertThat(hentJobber(saksnummer)).hasSize(1)
     }
 
     @Test
@@ -132,26 +121,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertEquals(1, hentJobber(saksnummer).size)
-    }
-
-    @Test
-    fun `skal ikke legge til jobb via parentRef når journalpostId er 0`() {
-        val dialogmeldingUuid = randomUUID()
-        val personIdent = randomPersonIdent()
-
-        opprettDialogmelding(uuid = dialogmeldingUuid, personIdent = personIdent)
-
-        val dto = lagDialogmeldingMottakDTO(
-            conversationRef = randomUUID().toString(),
-            parentRef = dialogmeldingUuid.toString(),
-            personIdentPasient = personIdent,
-            journalpostId = "0",
-        )
-
-        utfør(dto)
-
-        assertTrue(hentJobber(personIdent).isEmpty())
+        assertThat(hentJobber(saksnummer)).hasSize(1)
     }
 
     @Test
@@ -171,7 +141,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertTrue(hentJobber(saksnummer).isEmpty())
+        assertThat(hentJobber(saksnummer)).isEmpty()
     }
 
     @Test
@@ -192,7 +162,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertTrue(hentJobber(saksnummer).isEmpty())
+        assertThat(hentJobber(saksnummer)).isEmpty()
     }
 
     @Test
@@ -211,7 +181,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertEquals(1, hentJobber(saksnummer).size)
+        assertThat(hentJobber(saksnummer)).hasSize(1)
     }
 
     @Test
@@ -231,7 +201,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertEquals(1, hentJobber(saksnummer).size)
+        assertThat(hentJobber(saksnummer)).hasSize(1)
     }
 
     @Test
@@ -245,7 +215,7 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertEquals(1, hentJobber(dto.personIdentPasient).size)
+        assertThat(hentJobber(dto.personIdentPasient)).hasSize(1)
     }
 
     private fun utfør(dto: DialogmeldingMottakDTO) {
@@ -319,7 +289,7 @@ class FiltrerDialogmeldingUtførerTest {
         uuid: UUID = randomUUID(),
         samtaleRef: UUID = randomUUID(),
         personIdent: String = randomPersonIdent(),
-        saksnummer: String = randomSaksnummer()
+        saksnummer: String = randomSaksnummer(),
     ): DialogmeldingRecord {
         val record = lagDialogmeldingRecord(
             uuid = uuid,
@@ -355,4 +325,5 @@ class FiltrerDialogmeldingUtførerTest {
     )
 
     private fun randomSaksnummer(): String = "SAK${nextInt(1111, 9999)}"
+
 }

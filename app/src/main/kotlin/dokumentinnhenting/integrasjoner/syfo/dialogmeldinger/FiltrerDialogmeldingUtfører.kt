@@ -6,6 +6,7 @@ import dokumentinnhenting.repositories.DialogmeldingRepository
 import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -15,8 +16,7 @@ import org.slf4j.LoggerFactory
 class FiltrerDialogmeldingUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     private val dialogmeldingRepository: DialogmeldingRepository,
-) :
-    JobbUtfører {
+) : JobbUtfører {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -24,7 +24,8 @@ class FiltrerDialogmeldingUtfører(
         val payload: DialogmeldingMottakDTO =
             DefaultJsonMapper.fromJson<DialogmeldingMottakDTO>(input.payload())
 
-        if (payload.journalpostId == "0") {
+        if (Miljø.erDev() && payload.journalpostId == "0") {
+            // Skal kun skje i testmiljøet. Vil være "0" i tilfeller hvor Syfo ikke klarer å opprette journalpost.
             log.warn("Håndterer ikke dialogmelding fordi journalpostId er 0.")
             return
         }
