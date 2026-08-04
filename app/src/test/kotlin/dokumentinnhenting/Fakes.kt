@@ -84,7 +84,8 @@ object Fakes : AutoCloseable {
                 behandlingsflyt,
                 brev,
                 dokarkiv,
-                tilgang
+                tilgang,
+                texas,
             )
         )
 
