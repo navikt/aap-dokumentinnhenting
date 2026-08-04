@@ -1,10 +1,10 @@
 package dokumentinnhenting
 
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.time.Duration
 import java.time.temporal.ChronoUnit
@@ -53,8 +53,8 @@ private fun Application.module() {
     }
 }
 
-fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
-    val postgres = PostgreSQLContainer<Nothing>("postgres:16")
+fun postgreSQLContainer(): org.testcontainers.postgresql.PostgreSQLContainer {
+    val postgres = org.testcontainers.postgresql.PostgreSQLContainer("postgres:16")
     postgres.waitingFor(HostPortWaitStrategy().withStartupTimeout(Duration.of(60L, ChronoUnit.SECONDS)))
     postgres.start()
     return postgres
