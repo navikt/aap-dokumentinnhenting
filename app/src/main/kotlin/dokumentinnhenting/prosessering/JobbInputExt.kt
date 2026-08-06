@@ -1,5 +1,6 @@
 package dokumentinnhenting.prosessering
 
+import java.util.UUID
 import no.nav.aap.motor.JobbInput
 
 private const val DIALOGMELDING_UUID_KEY = "dialogmeldingUuid"
@@ -14,5 +15,5 @@ fun JobbInput.medDialogmeldingUuid(uuid: Any?): JobbInput =
         }
     }
 
-fun JobbInput.dialogmeldingUuidOrNull(): String? =
-    this.optionalParameter(DIALOGMELDING_UUID_KEY)
+fun JobbInput.dialogmeldingUuidOrNull(): UUID? =
+    runCatching { UUID.fromString(this.optionalParameter(DIALOGMELDING_UUID_KEY)) }.getOrNull()

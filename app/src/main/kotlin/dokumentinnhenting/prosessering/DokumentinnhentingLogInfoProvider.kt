@@ -19,7 +19,7 @@ object DokumentinnhentingLogInfoProvider : JobbLogInfoProvider {
             "SELECT dialogmelding_uuid, journalpost_id FROM dialogmelding WHERE dialogmelding_uuid = ?"
         ) {
             setParams {
-                setString(1, dialogmeldingUuid)
+                setUUID(1, dialogmeldingUuid)
             }
             setRowMapper { row ->
                 buildMap {
@@ -33,7 +33,7 @@ object DokumentinnhentingLogInfoProvider : JobbLogInfoProvider {
             "SELECT msg_id, journalpost_id FROM mottatt_dialogmelding WHERE msg_id = ?"
         ) {
             setParams {
-                setString(1, dialogmeldingUuid)
+                setUUID(1, dialogmeldingUuid)
             }
             setRowMapper { row ->
                 buildMap {
