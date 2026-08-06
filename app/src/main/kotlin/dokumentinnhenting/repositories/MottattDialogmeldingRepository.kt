@@ -12,9 +12,11 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
             INSERT INTO MOTTATT_DIALOGMELDING (
                 msg_id, msg_type, mottatt_tidspunkt, conversation_ref, parent_ref, 
                 person_ident_pasient, lege_hpr, journalpost_id, navn_helsepersonell, 
-                tekst_notat_innhold, saksnummer, opprettet_tid
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tekst_notat_innhold, dialogmelding_type, dialogmelding_kodeverk, dialogmelding_dn, saksnummer, opprettet_tid
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
+
+        val dialogmeldingDetaljer = dialogmelding.dialogmeldingDetaljer()
 
         connection.execute(query) {
             setParams {
@@ -27,9 +29,12 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                 setString(7, dialogmelding.legehpr)
                 setString(8, dialogmelding.journalpostId)
                 setString(9, dialogmelding.dialogmelding.navnHelsepersonell)
-                setString(10, dialogmelding.dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold)
-                setString(11, saksnummer)
-                setLocalDateTime(12, LocalDateTime.now())
+                setString(10, dialogmeldingDetaljer.tekstNotatInnhold)
+                setEnumName(11, dialogmeldingDetaljer.dialogmeldingType)
+                setString(12, dialogmeldingDetaljer.kodeverk)
+                setString(13, dialogmeldingDetaljer.dn)
+                setString(14, saksnummer)
+                setLocalDateTime(15, LocalDateTime.now())
             }
         }
     }
@@ -59,7 +64,10 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                     personIdentPasient = row.getString("PERSON_IDENT_PASIENT"),
                     legehpr = row.getStringOrNull("LEGE_HPR"),
                     navnHelsepersonell = row.getString("NAVN_HELSEPERSONELL"),
+                    dialogmeldingType = row.getEnumOrNull("DIALOGMELDING_TYPE"),
                     tekstNotatInnhold = row.getStringOrNull("TEKST_NOTAT_INNHOLD"),
+                    kodeverk = row.getStringOrNull("DIALOGMELDING_KODEVERK"),
+                    dn = row.getStringOrNull("DIALOGMELDING_DN"),
                     journalpostId = row.getString("JOURNALPOST_ID"),
                     saksnummer = row.getString("SAKSNUMMER"),
                     opprettetTid = row.getLocalDateTime("OPPRETTET_TID"),
@@ -69,6 +77,41 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
     }
 
     private fun String.toUUIDOrNull(): UUID? = runCatching { UUID.fromString(this) }.getOrNull()
+
+    private fun DialogmeldingMottakDTO.dialogmeldingDetaljer(): MottattDialogmeldingDetaljer {
+        return when {
+            dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null -> {
+                MottattDialogmeldingDetaljer(
+                    dialogmeldingType = DialogmeldingType.FORESPORSEL_SVAR,
+                    tekstNotatInnhold = dialogmelding.foresporselFraSaksbehandlerForesporselSvar.tekstNotatInnhold,
+                    kodeverk = dialogmelding.foresporselFraSaksbehandlerForesporselSvar.temaKode.kodeverkOID,
+                    dn = dialogmelding.foresporselFraSaksbehandlerForesporselSvar.temaKode.dn,
+                )
+            }
+
+            dialogmelding.henvendelseFraLegeHenvendelse != null -> {
+                MottattDialogmeldingDetaljer(
+                    dialogmeldingType = DialogmeldingType.HENVENDELSE,
+                    tekstNotatInnhold = dialogmelding.henvendelseFraLegeHenvendelse.tekstNotatInnhold,
+                    kodeverk = dialogmelding.henvendelseFraLegeHenvendelse.temaKode.kodeverkOID,
+                    dn = dialogmelding.henvendelseFraLegeHenvendelse.temaKode.dn,
+                )
+            }
+
+            dialogmelding.innkallingMoterespons != null -> {
+                MottattDialogmeldingDetaljer(
+                    dialogmeldingType = DialogmeldingType.MOTEINNKALLING_SVAR,
+                    tekstNotatInnhold = dialogmelding.innkallingMoterespons.tekstNotatInnhold,
+                    kodeverk = dialogmelding.innkallingMoterespons.temaKode?.kodeverkOID,
+                    dn = dialogmelding.innkallingMoterespons.temaKode?.dn,
+                )
+            }
+
+            else -> {
+                throw IllegalArgumentException("Ukjent type dialogmelding for dialogmelding med id ${dialogmelding.id}")
+            }
+        }
+    }
 }
 
 internal data class MottattDialogmeldingRecord(
@@ -81,9 +124,24 @@ internal data class MottattDialogmeldingRecord(
     val personIdentPasient: String,
     val legehpr: String?,
     val navnHelsepersonell: String,
+    val dialogmeldingType: DialogmeldingType?,
     val tekstNotatInnhold: String?,
+    val kodeverk: String?,
+    val dn: String?,
     val journalpostId: String,
     val saksnummer: String,
     val opprettetTid: LocalDateTime,
 )
 
+internal enum class DialogmeldingType {
+    FORESPORSEL_SVAR,
+    HENVENDELSE,
+    MOTEINNKALLING_SVAR,
+}
+
+private data class MottattDialogmeldingDetaljer(
+    val dialogmeldingType: DialogmeldingType,
+    val tekstNotatInnhold: String?,
+    val kodeverk: String?,
+    val dn: String?,
+)

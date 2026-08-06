@@ -4,6 +4,7 @@ import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.randomPersonIdent
 import io.mockk.clearAllMocks
 import io.mockk.mockk
@@ -45,7 +46,14 @@ class MottattDialogmeldingRepositoryTest {
     @Test
     fun `lagre dialogmelding og hentForMsgId returnerer den`() {
         val saksnummer = UUID.randomUUID().toString()
-        val dialogmeldingMottatt = lagMottattDialogmelding()
+        val tekstNotatInnhold = "tekst notat innhold"
+        val dialogmeldingKodeverk = "dialogmelding kodeverk"
+        val dialogmeldingDn = "dialogmelding dn"
+        val dialogmeldingMottatt = lagMottattDialogmelding(
+            tekstNotatInnhold = tekstNotatInnhold,
+            kodeverk = dialogmeldingKodeverk,
+            dn = dialogmeldingDn
+        )
         val msgId = UUID.fromString(dialogmeldingMottatt.msgId)
 
         dataSource.transaction { connection ->
@@ -63,6 +71,10 @@ class MottattDialogmeldingRepositoryTest {
         assertEquals(dialogmeldingMottatt.journalpostId, lagret.journalpostId)
         assertEquals(dialogmeldingMottatt.legehpr, lagret.legehpr)
         assertEquals(saksnummer, lagret.saksnummer)
+        assertEquals(DialogmeldingType.FORESPORSEL_SVAR, lagret.dialogmeldingType)
+        assertEquals(tekstNotatInnhold, lagret.tekstNotatInnhold)
+        assertEquals(dialogmeldingKodeverk, lagret.kodeverk)
+        assertEquals(dialogmeldingDn, lagret.dn)
     }
 
     @Test
@@ -168,7 +180,9 @@ class MottattDialogmeldingRepositoryTest {
         conversationRef: String? = UUID.randomUUID().toString(),
         parentRef: String? = null,
         legehpr: String? = "12345678",
-        tekstNotatInnhold: String? = null,
+        tekstNotatInnhold: String? = "tekstNotatInnhold",
+        kodeverk: String? = "kodeverk",
+        dn: String? = "dn",
         navnHelsepersonell: String = "Dr. Testperson",
         journalpostId: String = "JP-${UUID.randomUUID()}",
         mottattTidspunkt: LocalDateTime = LocalDateTime.now(),
@@ -190,7 +204,14 @@ class MottattDialogmeldingRepositoryTest {
             innkallingMoterespons = null,
             foresporselFraSaksbehandlerForesporselSvar = tekstNotatInnhold?.let {
                 ForesporselFraSaksbehandlerForesporselSvar(
-                    temaKode = mockk(),
+                    temaKode = TemaKode(
+                        kodeverkOID = kodeverk ?: "kodeverkOID",
+                        dn = dn ?: "dn",
+                        v = "v",
+                        arenaNotatKategori = "arenaNotatKategori",
+                        arenaNotatKode = "arenaNotatKode",
+                        arenaNotatTittel = "arenaNotatTittel",
+                    ),
                     tekstNotatInnhold = tekstNotatInnhold,
                     dokIdNotat = null,
                     datoNotat = null
