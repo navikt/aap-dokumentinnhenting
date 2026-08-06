@@ -10,7 +10,7 @@ object DokumentinnhentingLogInfoProvider : JobbLogInfoProvider {
     override fun hentInformasjon(connection: DBConnection, jobbInput: JobbInput): LogInformasjon? {
 
         /*
-        * SakId er i dette tilfellet journalpostId
+        * Henter info til jobb med dialogmeldingUuid / msgId
         * Se extension-funksjon JobbInput.medDialogmeldingUuid()
         */
         val dialogmeldingUuid = jobbInput.dialogmeldingUuidOrNull() ?: return null
@@ -43,6 +43,7 @@ object DokumentinnhentingLogInfoProvider : JobbLogInfoProvider {
             }
         }
 
-        return LogInformasjon(dialogmeldingMap + mottattDialogmeldingMap)
+        return if (dialogmeldingMap == null && mottattDialogmeldingMap == null) null
+        else LogInformasjon((dialogmeldingMap ?: emptyMap()) + (mottattDialogmeldingMap ?: emptyMap()))
     }
 }
