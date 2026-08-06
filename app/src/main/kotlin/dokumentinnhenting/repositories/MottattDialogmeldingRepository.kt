@@ -12,8 +12,8 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
             INSERT INTO MOTTATT_DIALOGMELDING (
                 msg_id, msg_type, mottatt_tidspunkt, conversation_ref, parent_ref, 
                 person_ident_pasient, lege_hpr, journalpost_id, navn_helsepersonell, 
-                tekst_notat_innhold, dialogmelding_type, dialogmelding_kodeverk, dialogmelding_dn, saksnummer, opprettet_tid
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tekst_notat_innhold, dialogmelding_type, dialogmelding_dn, saksnummer, opprettet_tid
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         val dialogmeldingDetaljer = dialogmelding.dialogmeldingDetaljer()
@@ -31,10 +31,9 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                 setString(9, dialogmelding.dialogmelding.navnHelsepersonell)
                 setString(10, dialogmeldingDetaljer.tekstNotatInnhold)
                 setEnumName(11, dialogmeldingDetaljer.dialogmeldingType)
-                setString(12, dialogmeldingDetaljer.kodeverk)
-                setString(13, dialogmeldingDetaljer.dn)
-                setString(14, saksnummer)
-                setLocalDateTime(15, LocalDateTime.now())
+                setString(12, dialogmeldingDetaljer.dn)
+                setString(13, saksnummer)
+                setLocalDateTime(14, LocalDateTime.now())
             }
         }
     }
@@ -66,7 +65,6 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                     navnHelsepersonell = row.getString("NAVN_HELSEPERSONELL"),
                     dialogmeldingType = row.getEnumOrNull("DIALOGMELDING_TYPE"),
                     tekstNotatInnhold = row.getStringOrNull("TEKST_NOTAT_INNHOLD"),
-                    kodeverk = row.getStringOrNull("DIALOGMELDING_KODEVERK"),
                     dn = row.getStringOrNull("DIALOGMELDING_DN"),
                     journalpostId = row.getString("JOURNALPOST_ID"),
                     saksnummer = row.getString("SAKSNUMMER"),
@@ -84,7 +82,6 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                 MottattDialogmeldingDetaljer(
                     dialogmeldingType = DialogmeldingType.FORESPORSEL_SVAR,
                     tekstNotatInnhold = dialogmelding.foresporselFraSaksbehandlerForesporselSvar.tekstNotatInnhold,
-                    kodeverk = dialogmelding.foresporselFraSaksbehandlerForesporselSvar.temaKode.kodeverkOID,
                     dn = dialogmelding.foresporselFraSaksbehandlerForesporselSvar.temaKode.dn,
                 )
             }
@@ -93,7 +90,6 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                 MottattDialogmeldingDetaljer(
                     dialogmeldingType = DialogmeldingType.HENVENDELSE,
                     tekstNotatInnhold = dialogmelding.henvendelseFraLegeHenvendelse.tekstNotatInnhold,
-                    kodeverk = dialogmelding.henvendelseFraLegeHenvendelse.temaKode.kodeverkOID,
                     dn = dialogmelding.henvendelseFraLegeHenvendelse.temaKode.dn,
                 )
             }
@@ -102,7 +98,6 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                 MottattDialogmeldingDetaljer(
                     dialogmeldingType = DialogmeldingType.MOTEINNKALLING_SVAR,
                     tekstNotatInnhold = dialogmelding.innkallingMoterespons.tekstNotatInnhold,
-                    kodeverk = dialogmelding.innkallingMoterespons.temaKode?.kodeverkOID,
                     dn = dialogmelding.innkallingMoterespons.temaKode?.dn,
                 )
             }
@@ -126,7 +121,6 @@ internal data class MottattDialogmeldingRecord(
     val navnHelsepersonell: String,
     val dialogmeldingType: DialogmeldingType?,
     val tekstNotatInnhold: String?,
-    val kodeverk: String?,
     val dn: String?,
     val journalpostId: String,
     val saksnummer: String,
@@ -142,6 +136,5 @@ internal enum class DialogmeldingType {
 private data class MottattDialogmeldingDetaljer(
     val dialogmeldingType: DialogmeldingType,
     val tekstNotatInnhold: String?,
-    val kodeverk: String?,
     val dn: String?,
 )

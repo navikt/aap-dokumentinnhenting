@@ -47,11 +47,9 @@ class MottattDialogmeldingRepositoryTest {
     fun `lagre dialogmelding og hentForMsgId returnerer den`() {
         val saksnummer = UUID.randomUUID().toString()
         val tekstNotatInnhold = "tekst notat innhold"
-        val dialogmeldingKodeverk = "dialogmelding kodeverk"
         val dialogmeldingDn = "dialogmelding dn"
         val dialogmeldingMottatt = lagMottattDialogmelding(
             tekstNotatInnhold = tekstNotatInnhold,
-            kodeverk = dialogmeldingKodeverk,
             dn = dialogmeldingDn
         )
         val msgId = UUID.fromString(dialogmeldingMottatt.msgId)
@@ -73,7 +71,6 @@ class MottattDialogmeldingRepositoryTest {
         assertEquals(saksnummer, lagret.saksnummer)
         assertEquals(DialogmeldingType.FORESPORSEL_SVAR, lagret.dialogmeldingType)
         assertEquals(tekstNotatInnhold, lagret.tekstNotatInnhold)
-        assertEquals(dialogmeldingKodeverk, lagret.kodeverk)
         assertEquals(dialogmeldingDn, lagret.dn)
     }
 
@@ -181,7 +178,6 @@ class MottattDialogmeldingRepositoryTest {
         parentRef: String? = null,
         legehpr: String? = "12345678",
         tekstNotatInnhold: String? = "tekstNotatInnhold",
-        kodeverk: String? = "kodeverk",
         dn: String? = "dn",
         navnHelsepersonell: String = "Dr. Testperson",
         journalpostId: String = "JP-${UUID.randomUUID()}",
@@ -205,7 +201,7 @@ class MottattDialogmeldingRepositoryTest {
             foresporselFraSaksbehandlerForesporselSvar = tekstNotatInnhold?.let {
                 ForesporselFraSaksbehandlerForesporselSvar(
                     temaKode = TemaKode(
-                        kodeverkOID = kodeverk ?: "kodeverkOID",
+                        kodeverkOID = "kodeverkOID",
                         dn = dn ?: "dn",
                         v = "v",
                         arenaNotatKategori = "arenaNotatKategori",
