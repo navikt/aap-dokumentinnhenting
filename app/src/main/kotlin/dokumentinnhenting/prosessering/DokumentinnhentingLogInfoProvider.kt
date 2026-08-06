@@ -15,7 +15,7 @@ object DokumentinnhentingLogInfoProvider : JobbLogInfoProvider {
         */
         val dialogmeldingUuid = jobbInput.dialogmeldingUuidOrNull() ?: return null
 
-        val dialogmeldingMap = connection.queryFirst(
+        val dialogmeldingMap = connection.queryFirstOrNull(
             "SELECT dialogmelding_uuid, journalpost_id FROM dialogmelding WHERE dialogmelding_uuid = ?"
         ) {
             setParams {
@@ -29,7 +29,7 @@ object DokumentinnhentingLogInfoProvider : JobbLogInfoProvider {
             }
         }
 
-        val mottattDialogmeldingMap = connection.queryFirst(
+        val mottattDialogmeldingMap = connection.queryFirstOrNull(
             "SELECT msg_id, journalpost_id FROM mottatt_dialogmelding WHERE msg_id = ?"
         ) {
             setParams {
