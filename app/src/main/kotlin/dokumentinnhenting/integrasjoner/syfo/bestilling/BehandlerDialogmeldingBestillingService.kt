@@ -1,15 +1,16 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
 import dokumentinnhenting.api.fraDto
+import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
+import java.util.UUID
+import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.slf4j.LoggerFactory
-import java.util.*
-import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
-import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 
 private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestillingService::class.java)
 
@@ -72,6 +73,7 @@ class BehandlerDialogmeldingBestillingService(
             JobbInput(ProsesserLegeerklæringBestillingUtfører)
                 .medCallId()
                 .medParameter(BESTILLING_REFERANSE_PARAMETER_NAVN, id.toString())
+                .medDialogmeldingUuid(dialogMeldingRecord.dialogmeldingUuid)
 
         jobbRepository.leggTil(jobb)
 

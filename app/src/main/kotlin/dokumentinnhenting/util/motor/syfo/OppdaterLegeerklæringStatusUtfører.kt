@@ -4,6 +4,7 @@ import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
+import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import java.time.LocalDateTime
 import java.util.UUID
@@ -74,6 +75,7 @@ class OppdaterLegeerklæringStatusUtfører (
                     JobbInput(SendVarslingsbrevUtfører)
                         .medCallId()
                         .medPayload(DefaultJsonMapper.toJson(sak))
+                        .medDialogmeldingUuid(sak.dialogmeldingUuid)
                 jobbRepository.leggTil(jobb)
             }
         }

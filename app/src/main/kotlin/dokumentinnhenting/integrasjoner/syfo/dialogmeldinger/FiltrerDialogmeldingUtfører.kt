@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
+import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -83,7 +84,7 @@ class FiltrerDialogmeldingUtfører(
                         sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer),
                     )
                 )
-            )
+            ).medDialogmeldingUuid(mottattDialogmelding.msgId)
         )
     }
 
