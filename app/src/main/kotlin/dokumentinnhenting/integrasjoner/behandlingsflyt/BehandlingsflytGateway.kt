@@ -4,12 +4,14 @@ import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
 
@@ -40,6 +42,17 @@ object BehandlingsflytGateway {
             throw BehandlingsflytException("Feilet ved bestilling av varslingsbrev: ${e.message}")
         }
     }
+
+    fun finnKandidaterForAutomatiskPurring(): List<BehandlingReferanse> =
+        runBlocking {
+            try {
+                defaultHttpClient.get("$uri/api/dokumentinnhenting/purring") {
+                    bearerAuth(SystemTokenProvider.getToken(scope, null))
+                }.body<List<BehandlingReferanse>>()
+            } catch (e: Exception) {
+                throw BehandlingsflytException("Feilet ved henting av kandidater for purring: ${e.message}")
+            }
+        }
 
     fun finnÅpenSakForIdentPåDato(
         personIdentPasient: String,

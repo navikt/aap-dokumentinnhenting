@@ -2,12 +2,13 @@ package dokumentinnhenting.repositories
 
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
-import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
-import java.util.UUID
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
+import java.util.UUID
 
 class DialogmeldingRepository(private val connection: DBConnection) {
     fun opprettDialogmelding(melding: DialogmeldingRecord): UUID {
@@ -98,6 +99,28 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             }
             setRowMapper(::mapDialogmeldingFullRecord)
         }
+    }
+
+    fun hentBestillingerForDokumentasjonstyper(
+        behandlingReferanse: BehandlingReferanse,
+        dokumentasjonstyper: List<DokumentasjonType>
+    ): List<DialogmeldingFullRecord> {
+        val query = """
+            SELECT * FROM DIALOGMELDING
+            WHERE behandlingsReferanse = ?
+            AND DOKUMENTASJONTYPE in  (${dokumentasjonstyper.joinToString(",") { "'${it.name}'" }})
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setUUID(1, behandlingReferanse.referanse)
+            }
+            setRowMapper {
+                mapDialogmeldingFullRecord(it)
+            }
+        }
+
+
     }
 
     fun hentBySaksnummer(saksnummer: String): List<DialogmeldingFullRecord> {
