@@ -14,6 +14,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import java.time.LocalDateTime
 import no.nav.aap.brev.kontrakt.HentSignaturDokumentinnhentingRequest
@@ -91,12 +92,13 @@ class BrevGateway {
             brukerFnr = brukerFnr,
             bestillerNavIdent = bestillerNavIdent
         )
-        return defaultHttpClient.post("$baseUri/api/dokumentinnhenting/forhandsvis-signatur") {
+        val response = defaultHttpClient.post("$baseUri/api/dokumentinnhenting/forhandsvis-signatur") {
             bearerAuth(SystemTokenProvider.getToken(scope, null))
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
             setBody(request)
-        }.body()
+        }
+        return if (response.status == HttpStatusCode.NoContent) null else response.body()
     }
 
     private fun mapPdfBrev(
