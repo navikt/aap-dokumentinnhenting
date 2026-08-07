@@ -18,7 +18,7 @@ class BrevGatewayTest {
         val navIdent = randomNavIdent()
         val forventetSignatur = Signatur("Navn $navIdent", "Enhet $navIdent")
 
-        Fakes.signaturResopnseForRequestNavIdent[navIdent] = forventetSignatur
+        Fakes.signaturResponseForRequestNavIdent[navIdent] = forventetSignatur
 
         val response = BrevGateway().hentSignaturForhåndsvisning(randomPersonIdent(), navIdent)
 
@@ -29,7 +29,7 @@ class BrevGatewayTest {
     suspend fun `hentSignaturForhåndsvisning gir null dersom ingen signatur`() {
         val navIdent = randomNavIdent()
 
-        Fakes.signaturResopnseForRequestNavIdent[navIdent] = null
+        Fakes.signaturResponseForRequestNavIdent[navIdent] = null
 
         val response = BrevGateway().hentSignaturForhåndsvisning(randomPersonIdent(), randomNavIdent())
 

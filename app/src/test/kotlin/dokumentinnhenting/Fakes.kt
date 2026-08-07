@@ -333,7 +333,7 @@ object Fakes : AutoCloseable {
         )
     }
 
-    val signaturResopnseForRequestNavIdent: MutableMap<String, Signatur?> = mutableMapOf()
+    val signaturResponseForRequestNavIdent: MutableMap<String, Signatur?> = mutableMapOf()
 
     private fun Application.brevFake() {
         install(ContentNegotiation) {
@@ -367,7 +367,7 @@ object Fakes : AutoCloseable {
             }
             post("/api/dokumentinnhenting/forhandsvis-signatur") {
                 val request = call.receive<HentSignaturDokumentinnhentingRequest>()
-                val response = signaturResopnseForRequestNavIdent[request.bestillerNavIdent]
+                val response = signaturResponseForRequestNavIdent[request.bestillerNavIdent]
                 if (response != null) {
                     call.respond(response)
                 } else {
