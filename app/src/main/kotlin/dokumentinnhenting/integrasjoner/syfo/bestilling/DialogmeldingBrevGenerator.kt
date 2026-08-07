@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.syfo.bestilling
 
 import java.time.LocalDateTime
 import no.nav.aap.brev.kontrakt.Signatur
+import java.time.LocalDate
 
 fun genererDialogmelding(dto: BrevGenerering): String {
     return buildString {
@@ -21,7 +22,7 @@ fun genererDialogmelding(dto: BrevGenerering): String {
                 dto.dialogmeldingTekst
             )
 
-            DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.tidligereBestillingDato)
+            DokumentasjonType.PURRING -> brevPurring(dto)
         }.also { append(it) }
 
         if (dto.dokumentasjonType.skalVarsleBruker()) {
@@ -118,28 +119,36 @@ private fun brev120(): String {
     return ""
 }
 
-private fun brevPurring(navn: String, fnr: String, tidligereBestillingDato: LocalDateTime?): String {
-    val tidligereDato = requireNotNull(tidligereBestillingDato).toLocalDate()
+private fun brevPurring(dto: BrevGenerering): String {
+    val tidligereDato = requireNotNull(dto.tidligereBestillingDato).toLocalDate()
     return """
-        |Påminnelse.
+        |Til: ${dto.behandlerNavn}
         |
-        |Forespørsel om legeerklæring ved arbeidsuførhet
+        |HPR-nummer: ${dto.behandlerHprNr}
         |
-        |Gjelder $navn, f.nr. $fnr.
+        |Dato: ${dto.forsendelseDato}
         |
-        |Vi viser til tidligere forespørsel av $tidligereDato angående din pasient.
+        |Vår referanse: ${dto.saksnummer}
         |
-        |Vi kan ikke se å ha mottatt svar på vår henvendelse og ber om at denne besvares snarest.
+        |Påminnelse på forespørsel om legeerklæring
         |
-        |Hvis opplysningene er sendt oss i løpet av de siste dagene, kan du se bort fra denne meldingen.
-    """.trimMargin()
+        |Gjelder pasient: ${dto.personNavn}, f.nr. ${dto.personIdent}
+        |
+        |Viser til tidligere forespørsel om legeerklæring sendt $tidligereDato. Vi har ikke mottatt svar og ber deg besvare denne snarest.
+        |
+        |Hvis du har sendt oss opplysningene i løpet av de siste dagene, kan du se bort fra denne.
+    """.trimIndent()
 }
 
 data class BrevGenerering(
     val personNavn: String,
     val personIdent: String,
+    val behandlerNavn: String?,
+    val behandlerHprNr: String?,
     val dialogmeldingTekst: String,
     val dokumentasjonType: DokumentasjonType,
     val tidligereBestillingDato: LocalDateTime? = null,
+    val forsendelseDato: LocalDate? = null,
+    val saksnummer: String? = null,
     val signatur: Signatur?
 )
