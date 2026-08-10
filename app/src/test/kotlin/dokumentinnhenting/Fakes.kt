@@ -44,6 +44,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.brev.kontrakt.HentSignaturDokumentinnhentingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
 import no.nav.aap.brev.kontrakt.Signatur
 import no.nav.aap.tilgang.BehandlingTilgangRequest
@@ -332,6 +333,7 @@ object Fakes : AutoCloseable {
         )
     }
 
+    val signaturResponseForRequestNavIdent: MutableMap<String, Signatur?> = mutableMapOf()
 
     private fun Application.brevFake() {
         install(ContentNegotiation) {
@@ -364,7 +366,13 @@ object Fakes : AutoCloseable {
                 call.respond("")
             }
             post("/api/dokumentinnhenting/forhandsvis-signatur") {
-                call.respond(Signatur("Navn", "Enhet"))
+                val request = call.receive<HentSignaturDokumentinnhentingRequest>()
+                val response = signaturResponseForRequestNavIdent[request.bestillerNavIdent]
+                if (response != null) {
+                    call.respond(response)
+                } else {
+                    call.respond(HttpStatusCode.NoContent)
+                }
             }
         }
     }

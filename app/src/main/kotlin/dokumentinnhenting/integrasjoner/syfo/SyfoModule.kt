@@ -3,16 +3,23 @@ package dokumentinnhenting.integrasjoner.syfo
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FiltrerDialogmeldingUtfører
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
+import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
-import dokumentinnhenting.util.kafka.*
-import io.ktor.server.application.*
-import io.micrometer.core.instrument.MeterRegistry
-import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.miljo.MiljøKode
+import dokumentinnhenting.util.kafka.KafkaStream
+import dokumentinnhenting.util.kafka.NoopStream
+import dokumentinnhenting.util.kafka.Stream
 import dokumentinnhenting.util.kafka.config.StreamsConfig
+import dokumentinnhenting.util.kafka.createGenericSerde
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
+import io.micrometer.core.instrument.MeterRegistry
+import java.util.UUID
+import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.apache.kafka.common.serialization.Serdes
@@ -20,8 +27,6 @@ import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.Consumed
 import org.slf4j.LoggerFactory
-import java.util.*
-import javax.sql.DataSource
 
 private val log = LoggerFactory.getLogger("app")
 
@@ -79,7 +84,7 @@ fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDto) {
       JobbInput(OppdaterLegeerklæringStatusUtfører)
         .medCallId()
         .medPayload(DefaultJsonMapper.toJson(record))
-        .forSak(lagretBestilling.id)
+        .medDialogmeldingUuid(lagretBestilling.dialogmeldingUuid)
 
     jobbRepository.leggTil(jobb)
   }
@@ -99,9 +104,9 @@ fun opprettJobb(dataSource: DataSource, dto: DialogmeldingMottakDTO) {
     val flytJobbRepository = FlytJobbRepository(connection)
 
     flytJobbRepository.leggTil(
-      JobbInput(FiltrerDialogmeldingUtfører).medPayload(
-        DefaultJsonMapper.toJson(dto)
-      )
+      JobbInput(FiltrerDialogmeldingUtfører)
+        .medPayload(DefaultJsonMapper.toJson(dto))
+        .medDialogmeldingUuid(dto.msgId)
     )
   }
 }

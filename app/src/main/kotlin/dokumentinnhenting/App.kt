@@ -15,6 +15,7 @@ import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
+import dokumentinnhenting.prosessering.DokumentinnhentingLogInfoProvider
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import io.ktor.client.HttpClient
@@ -121,7 +122,7 @@ fun Application.module(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
-        logInfoProvider = NoExtraLogInfoProvider,
+        logInfoProvider = DokumentinnhentingLogInfoProvider,
         jobber = ProsesseringsJobber.alle(),
         prometheus = prometheus,
     )
