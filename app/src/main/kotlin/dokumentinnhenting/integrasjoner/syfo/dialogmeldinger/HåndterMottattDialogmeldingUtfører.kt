@@ -6,6 +6,7 @@ import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfør
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
+import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -47,7 +48,8 @@ class HåndterMottattDialogmeldingUtfører(
 
         val jobb = JobbInput(TaSakAvVentUtfører).medPayload(
             DefaultJsonMapper.toJson(DialogmeldingMedSakstilknytning(dialogmelding, payload.sakOgBehandling))
-        )
+        ).medDialogmeldingUuid(dialogmelding.msgId)
+
         flytJobbRepository.leggTil(jobb)
     }
 
