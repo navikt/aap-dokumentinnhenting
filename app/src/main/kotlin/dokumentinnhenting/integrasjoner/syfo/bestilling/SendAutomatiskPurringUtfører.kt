@@ -49,6 +49,6 @@ class SendAutomatiskPurringUtfører(
             return "Ansvarlig for å finne behandlinger med bestilling som skal purres på og sende purringen."
         }
 
-        override val cron = CronExpression.create("0 0 9 * * *")
+        override val cron = CronExpression.create("0 0 8 * * *")
     }
 }

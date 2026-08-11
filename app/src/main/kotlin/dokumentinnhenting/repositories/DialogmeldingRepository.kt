@@ -108,19 +108,32 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         val query = """
             SELECT * FROM DIALOGMELDING
             WHERE behandlingsReferanse = ?
-            AND DOKUMENTASJONTYPE in  (${dokumentasjonstyper.joinToString(",") { "'${it.name}'" }})
+            AND DOKUMENTASJONTYPE = ANY(?::text[])
         """.trimIndent()
 
         return connection.queryList(query) {
             setParams {
                 setUUID(1, behandlingReferanse.referanse)
+                setArray(2, dokumentasjonstyper.map { it.name })
             }
             setRowMapper {
                 mapDialogmeldingFullRecord(it)
             }
         }
+    }
 
+    fun hentPurringForBestilling(bestillingUUID: UUID): DialogmeldingFullRecord? {
+        val query = """
+            SELECT * FROM DIALOGMELDING
+            WHERE DOKUMENTASJONTYPE = '${DokumentasjonType.PURRING}' AND TIDLIGERE_BESTILLING_REFERANSE = ?
+        """.trimIndent()
 
+        return connection.queryFirstOrNull(query) {
+            setParams {
+                setString(1, bestillingUUID.toString())
+            }
+            setRowMapper(::mapDialogmeldingFullRecord)
+        }
     }
 
     fun hentBySaksnummer(saksnummer: String): List<DialogmeldingFullRecord> {

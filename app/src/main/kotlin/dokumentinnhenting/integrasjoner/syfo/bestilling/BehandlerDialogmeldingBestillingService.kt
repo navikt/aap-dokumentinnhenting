@@ -17,14 +17,15 @@ import java.util.UUID
 private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestillingService::class.java)
 
 class BehandlerDialogmeldingBestillingService(
-    private val jobbRepository: FlytJobbRepository,
-    private val dialogmeldingRepository: DialogmeldingRepository,
+    private val connection: DBConnection,
 ) {
+    private val jobbRepository = FlytJobbRepository(connection)
+    private val dialogmeldingRepository = DialogmeldingRepository(connection)
+
     companion object {
         fun konstruer(connection: DBConnection): BehandlerDialogmeldingBestillingService {
             return BehandlerDialogmeldingBestillingService(
-                jobbRepository = FlytJobbRepository(connection),
-                dialogmeldingRepository = DialogmeldingRepository(connection)
+                connection = connection
             )
         }
     }
@@ -64,8 +65,9 @@ class BehandlerDialogmeldingBestillingService(
         // TODO: må også ta hensyn til om påminnelse er manuelt avbrutt
         val bestillingerSomSkalPurresPå =
             bestillinger.filter { it.opprettet.toLocalDate() == treUkerOgEnDagSiden }.ifEmpty {
-                throw RuntimeException("Fant ingen bestillinger som skal purres på for behandlingsreferanse $behandlingReferanse")
-            }
+                log.error("Fant ingen bestillinger som skal purres på for behandlingsreferanse $behandlingReferanse")
+                return
+            }.filter { dialogmeldingRepository.hentPurringForBestilling(it.dialogmeldingUuid) == null }
 
         bestillingerSomSkalPurresPå.forEach {
             log.info("Sender purring på behandling $behandlingReferanse på sak ${it.saksnummer} for opprinnelig bestilling med id ${it.dialogmeldingUuid}")
@@ -84,6 +86,7 @@ class BehandlerDialogmeldingBestillingService(
                     tidligereBestillingReferanse = it.dialogmeldingUuid,
                 )
             )
+            connection.markerSavepoint()
         }
     }
 
