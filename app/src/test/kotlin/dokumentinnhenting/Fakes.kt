@@ -53,6 +53,8 @@ import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.SakTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
+import io.mockk.mockk
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.random.Random
@@ -95,6 +97,8 @@ object Fakes : AutoCloseable {
 
         Thread.currentThread()
             .setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
+
+        kafkaProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
         // Azure
         System.setProperty(
             "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT",

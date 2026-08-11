@@ -16,6 +16,7 @@ import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.prosessering.DokumentinnhentingLogInfoProvider
+import dokumentinnhenting.util.kafka.config.ProducerConfig
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
 import io.ktor.client.HttpClient
@@ -35,6 +36,8 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.MeterRegistry
+import javax.sql.DataSource
+import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -44,18 +47,18 @@ import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
-import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.tilgang.TeamAap
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import javax.sql.DataSource
-import kotlin.time.Duration.Companion.seconds
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
 
 private const val ANTALL_WORKERS = 4
+
+lateinit var kafkaProducer: KafkaProducer<String, String>
 
 fun main() {
     Thread.currentThread()
@@ -78,6 +81,10 @@ fun main() {
 fun Application.server(
     config: Config = Config(),
 ) {
+    if (!::kafkaProducer.isInitialized) {
+        kafkaProducer = KafkaProducer(ProducerConfig().properties())
+    }
+
     val prometheus = prometheus
     commonKtorModule(
         prometheus,
@@ -137,6 +144,7 @@ fun Application.module(dataSource: DataSource): Motor {
     monitor.subscribe(ApplicationStopped) { application ->
         application.environment.log.info("Server har stoppet")
         motor.stop()
+        kafkaProducer.close()
         // Release resources and unsubscribe from events
         application.monitor.unsubscribe(ApplicationStarted) {}
         application.monitor.unsubscribe(ApplicationStopped) {}

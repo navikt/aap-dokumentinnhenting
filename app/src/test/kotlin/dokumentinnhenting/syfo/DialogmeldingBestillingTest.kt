@@ -6,7 +6,6 @@ import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
-import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
