@@ -4,8 +4,8 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.saf.SafRestGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.*
+import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepository
-import dokumentinnhenting.util.kafka.config.ProducerConfig
 import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
 import java.time.LocalDateTime
@@ -22,8 +22,7 @@ const val KILDE = "AAP"
 class BestillLegeerklæringSteg(
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val brevGeneratorService: DialogmeldingBrevGeneratorService,
-    private val producer: KafkaProducer<String, String> = KafkaProducer(ProducerConfig().properties()),
-
+    private val producer: KafkaProducer<String, String>,
     ) : SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
     private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
@@ -36,8 +35,9 @@ class BestillLegeerklæringSteg(
     companion object : SyfoSteg {
         override fun konstruer(connection: DBConnection): SyfoSteg.Utfører {
             return BestillLegeerklæringSteg(
-                DialogmeldingRepository(connection),
-                DialogmeldingBrevGeneratorService(BrevGateway()),
+                dialogmeldingRepository = DialogmeldingRepository(connection),
+                brevGeneratorService = DialogmeldingBrevGeneratorService(BrevGateway()),
+                producer = kafkaProducer
             )
         }
     }
