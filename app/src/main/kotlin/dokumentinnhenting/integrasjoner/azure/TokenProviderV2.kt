@@ -12,12 +12,12 @@ object OboTokenProvider : TokenProviderV2 {
             "Kan ikke hente OBO-token uten innkommende token"
         }
 
-        return AzureAdGateway.getOboToken(scope, token).accessToken
+        return TexasGateway.getOboToken(scope, token).accessToken
     }
 }
 
 object SystemTokenProvider : TokenProviderV2 {
     override suspend fun getToken(scope: String, token: OidcToken?): String {
-        return AzureAdGateway.getSystemToken(scope).accessToken
+        return TexasGateway.getSystemToken(scope).accessToken
     }
 }
