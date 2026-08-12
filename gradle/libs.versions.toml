@@ -1,8 +1,8 @@
 [versions]
 ktor = "3.5.2"
 kafka = "8.1.1-ce"
-kelvin = "2.0.129"
-behandlingsflyt = "0.0.644"
+kelvin = "2.0.132"
+behandlingsflyt = "0.0.648"
 tilgang = "1.0.234"
 aapBrev = "0.0.279"
 logstash = "9.0"
