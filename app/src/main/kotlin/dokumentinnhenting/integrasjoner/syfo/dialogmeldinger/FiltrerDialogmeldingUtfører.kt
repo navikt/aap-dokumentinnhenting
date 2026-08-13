@@ -40,7 +40,7 @@ class FiltrerDialogmeldingUtfører(
                     )
                 }
                 ?.maxByOrNull { it.opprettet }
-                ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef.") }
+                ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${payload.msgId}") }
                 ?: payload.parentRef?.toUUIDOrNull()
                     ?.let {
                         dialogmeldingRepository.hentForParent(
@@ -48,10 +48,9 @@ class FiltrerDialogmeldingUtfører(
                             personIdent = payload.personIdentPasient
                         )
                     }
-                    ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på parentRef.") }
+                    ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på parentRef. msgId: ${payload.msgId}") }
 
         if (sendtDialogmelding != null) {
-            log.info("Er mottatt dialogmelding svar på forespørsel? ${payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null}")
             opprettJobb(payload, sendtDialogmelding.saksnummer, skalLagreMottatDialogmelding = true)
         } else if (payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
             log.info("Fant ikke kobling fra mottatt til sendt dialogmelding. Henter saksinfo fra behandlingsflyt for dialogmelding med journalpostId ${payload.journalpostId}")
