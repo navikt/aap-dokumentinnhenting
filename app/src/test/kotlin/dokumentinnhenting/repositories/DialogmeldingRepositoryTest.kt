@@ -8,10 +8,12 @@ import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomNavIdent
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import java.time.OffsetDateTime
 import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -39,22 +41,24 @@ class DialogmeldingRepositoryTest {
 
     private fun lagRecord(
         uuid: UUID = UUID.randomUUID(),
+        behandlingsreferanse: UUID = UUID.randomUUID(),
         saksnummer: String = "SAK-001",
         tidligereBestillingReferanse: UUID? = null,
         personIdent: String = randomNavIdent(),
         samtaleRef: UUID = UUID.randomUUID(),
+        dokumentasjonType: DokumentasjonType = DokumentasjonType.L8
     ) = DialogmeldingRecord(
         bestillerNavIdent = randomNavIdent(),
         dialogmeldingUuid = uuid,
+        behandlingsReferanse = behandlingsreferanse,
         behandlerRef = "behandlerRef-123",
         behandlerHprNr = "12344321",
         personIdent = personIdent,
         personNavn = "Ola Nordmann",
         saksnummer = saksnummer,
-        dokumentasjonType = DokumentasjonType.L8,
+        dokumentasjonType = dokumentasjonType,
         behandlerNavn = "Dr. Behandler",
         fritekst = "En fritekst",
-        behandlingsReferanse = UUID.randomUUID(),
         tidligereBestillingReferanse = tidligereBestillingReferanse,
         samtaleRef = samtaleRef,
     )
@@ -393,5 +397,37 @@ class DialogmeldingRepositoryTest {
         }
 
         assertTrue(resultat.isEmpty())
+    }
+
+
+    @Test
+    fun `hent bestillinger gitt behandlingsreferanse`() {
+        val behandlingsreferanse = BehandlingReferanse(UUID.randomUUID())
+        val recordLegeerklæring = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40)
+        val recordTilleggsopplysning = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L8)
+
+
+        dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).opprettDialogmelding(recordLegeerklæring)
+            DialogmeldingRepository(connection).opprettDialogmelding(recordTilleggsopplysning)
+        }
+
+        val bestillinger = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentBestillingerForDokumentasjonstyper(behandlingsreferanse, dokumentasjonstyper = listOf(
+                DokumentasjonType.L40, DokumentasjonType.L8))
+        }
+
+        assertThat(bestillinger).hasSize(2)
+        assertThat(bestillinger.all { it.behandlingsReferanse == behandlingsreferanse.referanse }).isTrue()
+        assertThat(bestillinger.map { it.dokumentasjonType }).containsExactlyInAnyOrder(DokumentasjonType.L40, DokumentasjonType.L8)
+
+        val bestillingerBareL40 = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentBestillingerForDokumentasjonstyper(behandlingsreferanse, dokumentasjonstyper = listOf(
+                DokumentasjonType.L40))
+        }
+
+        assertThat(bestillingerBareL40).hasSize(1)
+        assertThat(bestillingerBareL40.first().dokumentasjonType).isEqualTo(DokumentasjonType.L40)
+
     }
 }

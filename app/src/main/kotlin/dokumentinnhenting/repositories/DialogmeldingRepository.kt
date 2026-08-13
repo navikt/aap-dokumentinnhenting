@@ -2,12 +2,13 @@ package dokumentinnhenting.repositories
 
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
-import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
-import java.util.UUID
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
+import java.util.UUID
 
 class DialogmeldingRepository(private val connection: DBConnection) {
     fun opprettDialogmelding(melding: DialogmeldingRecord): UUID {
@@ -95,6 +96,41 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         return connection.queryFirstOrNull(query) {
             setParams {
                 setUUID(1, dialogmeldingUuid)
+            }
+            setRowMapper(::mapDialogmeldingFullRecord)
+        }
+    }
+
+    fun hentBestillingerForDokumentasjonstyper(
+        behandlingReferanse: BehandlingReferanse,
+        dokumentasjonstyper: List<DokumentasjonType>
+    ): List<DialogmeldingFullRecord> {
+        val query = """
+            SELECT * FROM DIALOGMELDING
+            WHERE behandlingsReferanse = ?
+            AND DOKUMENTASJONTYPE = ANY(?::text[])
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setUUID(1, behandlingReferanse.referanse)
+                setArray(2, dokumentasjonstyper.map { it.name })
+            }
+            setRowMapper {
+                mapDialogmeldingFullRecord(it)
+            }
+        }
+    }
+
+    fun hentPurringForBestilling(bestillingUUID: UUID): DialogmeldingFullRecord? {
+        val query = """
+            SELECT * FROM DIALOGMELDING
+            WHERE DOKUMENTASJONTYPE = '${DokumentasjonType.PURRING}' AND TIDLIGERE_BESTILLING_REFERANSE = ?
+        """.trimIndent()
+
+        return connection.queryFirstOrNull(query) {
+            setParams {
+                setString(1, bestillingUUID.toString())
             }
             setRowMapper(::mapDialogmeldingFullRecord)
         }

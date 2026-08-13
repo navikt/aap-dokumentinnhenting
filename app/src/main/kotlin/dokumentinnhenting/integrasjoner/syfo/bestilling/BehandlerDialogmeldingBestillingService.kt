@@ -4,25 +4,28 @@ import dokumentinnhenting.api.fraDto
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
-import java.util.UUID
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.util.UUID
 
 private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestillingService::class.java)
 
 class BehandlerDialogmeldingBestillingService(
-    private val jobbRepository: FlytJobbRepository,
-    private val dialogmeldingRepository: DialogmeldingRepository,
+    private val connection: DBConnection,
 ) {
+    private val jobbRepository = FlytJobbRepository(connection)
+    private val dialogmeldingRepository = DialogmeldingRepository(connection)
+
     companion object {
         fun konstruer(connection: DBConnection): BehandlerDialogmeldingBestillingService {
             return BehandlerDialogmeldingBestillingService(
-                jobbRepository = FlytJobbRepository(connection),
-                dialogmeldingRepository = DialogmeldingRepository(connection)
+                connection = connection
             )
         }
     }
@@ -46,6 +49,45 @@ class BehandlerDialogmeldingBestillingService(
                 tidligereBestillingReferanse = bestilling.dialogmeldingUuid,
             )
         )
+    }
+
+    fun sendAutomatiskPurringHvisBestillingFinnes(behandlingReferanse: BehandlingReferanse) {
+        val bestillinger =
+            dialogmeldingRepository.hentBestillingerForDokumentasjonstyper(
+                behandlingReferanse, listOf(
+                    DokumentasjonType.L40,
+                    DokumentasjonType.L8
+                )
+            )
+
+        val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1)
+
+        // TODO: må også ta hensyn til om påminnelse er manuelt avbrutt
+        val bestillingerSomSkalPurresPå =
+            bestillinger.filter { it.opprettet.toLocalDate() == treUkerOgEnDagSiden }.ifEmpty {
+                log.error("Fant ingen bestillinger som skal purres på for behandlingsreferanse $behandlingReferanse")
+                return
+            }.filter { dialogmeldingRepository.hentPurringForBestilling(it.dialogmeldingUuid) == null }
+
+        bestillingerSomSkalPurresPå.forEach {
+            log.info("Sender purring på behandling $behandlingReferanse på sak ${it.saksnummer} for opprinnelig bestilling med id ${it.dialogmeldingUuid}")
+            dialogmeldingBestilling(
+                BehandlingsflytToDokumentInnhentingBestillingDto(
+                    bestillerNavIdent = it.bestillerNavIdent,
+                    behandlerRef = it.behandlerRef,
+                    behandlerNavn = it.behandlerNavn,
+                    behandlerHprNr = it.behandlerHprNr,
+                    personIdent = it.personIdent,
+                    personNavn = it.personNavn,
+                    dialogmeldingTekst = it.fritekst,
+                    saksnummer = it.saksnummer,
+                    dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING,
+                    behandlingsReferanse = it.behandlingsReferanse,
+                    tidligereBestillingReferanse = it.dialogmeldingUuid,
+                )
+            )
+            connection.markerSavepoint()
+        }
     }
 
     fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID? = null): UUID {
