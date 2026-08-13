@@ -16,7 +16,6 @@ import io.mockk.verify
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
-import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -24,10 +23,10 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import java.util.UUID.randomUUID
 import javax.sql.DataSource
 import kotlin.random.Random
 
@@ -104,8 +103,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             assertThrows<RuntimeException> {
-                behandlerDialogmeldingBestillingService.dialogmeldingPurring(
-                    LegeerklæringPurringDto(UUID.randomUUID())
+                behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
+                    randomUUID()
                 )
             }
         }
@@ -150,8 +149,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
 
             assertThrows<RuntimeException> {
-                behandlerDialogmeldingBestillingService.dialogmeldingPurring(
-                    LegeerklæringPurringDto(dialogmeldingLegerklæringUuid)
+                behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
+                    dialogmeldingLegerklæringUuid
                 )
             }
         }
@@ -159,39 +158,14 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
     @Test
     fun `sender automatisk purring når bestilling er 3 uker og 1 dag gammel`() {
-        val behandlingsReferanse = UUID.randomUUID()
-        val saksnummer = Random.nextLong().toString()
-        val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDto(
-            bestillerNavIdent = "bestillerNavIdent",
-            behandlerRef = "behandlerRef",
-            personIdent = "12345678910",
-            personNavn = "personNavn",
-            saksnummer = saksnummer,
-            dialogmeldingTekst = "tekst",
-            dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L8,
-            behandlerNavn = "behandlerNavn",
-            behandlingsReferanse = behandlingsReferanse,
-            behandlerHprNr = "12344321"
-        )
+        val (behandlingsReferanse, saksnummer, dialogmeldingUuid) = opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden()
 
-        lateinit var dialogmeldingUuid: UUID
 
         dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
-            dialogmeldingUuid = behandlerDialogmeldingBestillingService.dialogmeldingBestilling(legeerklæring)
-        }
-
-        // Setter opprettet tid til tre uker og en dag siden
-        val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1).atStartOfDay()
-        oppdaterOpprettetTidspunktForDialogmeldingRecord(treUkerOgEnDagSiden, dialogmeldingUuid)
-
-        dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
-
-            behandlerDialogmeldingBestillingService.sendAutomatiskPurringHvisBestillingFinnes(
+            behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                 BehandlingReferanse(behandlingsReferanse)
             )
 
@@ -206,60 +180,99 @@ class BehandlerDialogmeldingBestillingServiceTest {
     }
 
     @Test
-    fun `sender ikke automatisk purring når bestilling allerede har purring`() {
-        val behandlingsReferanse = UUID.randomUUID()
-        val saksnummer = Random.nextLong().toString()
-        val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDto(
-            bestillerNavIdent = "bestillerNavIdent",
-            behandlerRef = "behandlerRef",
-            personIdent = "12345678910",
-            personNavn = "personNavn",
-            saksnummer = saksnummer,
-            dialogmeldingTekst = "tekst",
-            dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L40,
-            behandlerNavn = "behandlerNavn",
-            behandlingsReferanse = behandlingsReferanse,
-            behandlerHprNr = "12344321"
-        )
-
-        lateinit var dialogmeldingUuid: UUID
-
-        dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
-
-            dialogmeldingUuid = behandlerDialogmeldingBestillingService.dialogmeldingBestilling(legeerklæring)
-        }
-
-        // Setter opprettet-tid tre uker og en dag tilbake i tid
-        val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1).atStartOfDay()
-        oppdaterOpprettetTidspunktForDialogmeldingRecord(treUkerOgEnDagSiden, dialogmeldingUuid)
+    fun `sender ikke automatisk påminnelse når det allerede finnes en påminnelse for bestilling`() {
+        val (behandlingsReferanse, saksnummer, dialogmeldingUuid) = opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden()
 
 
         dataSource.transaction { connection ->
-            // lager manuell purring
+            // lager manuell påminnelse
             dialogmeldingRepository = DialogmeldingRepository(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
-            behandlerDialogmeldingBestillingService.dialogmeldingPurring(
-                dto = LegeerklæringPurringDto(dialogmeldingUuid)
+            behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
+                dialogmeldingUuid
             )
 
-            val purringerFørAutomatisk = dialogmeldingRepository.hentBySaksnummer(saksnummer).filter { it.dokumentasjonType == DokumentasjonType.PURRING }
-            assertThat(purringerFørAutomatisk).hasSize(1)
+            val påminnelserFørAutomatisk = dialogmeldingRepository.hentBySaksnummer(saksnummer)
+                .filter { it.dokumentasjonType == DokumentasjonType.PURRING }
+            assertThat(påminnelserFørAutomatisk).hasSize(1)
 
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
-            behandlerDialogmeldingBestillingService.sendAutomatiskPurringHvisBestillingFinnes(
+            behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                 BehandlingReferanse(behandlingsReferanse)
             )
 
-            // skal ikke opprette ny purring hvis det allerede finnes en
+            // skal ikke opprette ny påminnelse hvis det allerede finnes en
             val lagretBestillinger = dialogmeldingRepository.hentBySaksnummer(saksnummer)
-            val purringerEtterAutomatisk = lagretBestillinger.filter {
+            val påminnelserEtterAutomatisk = lagretBestillinger.filter {
                 it.dokumentasjonType == DokumentasjonType.PURRING
             }
-            assertThat(purringerEtterAutomatisk.size).isEqualTo(1)
-            assertThat(purringerEtterAutomatisk.first().tidligereBestillingReferanse).isEqualTo(dialogmeldingUuid)
+            assertThat(påminnelserEtterAutomatisk.size).isEqualTo(1)
+            assertThat(påminnelserEtterAutomatisk.first().tidligereBestillingReferanse).isEqualTo(dialogmeldingUuid)
+        }
+    }
+
+
+    @Test
+    fun `sender ikke purring når manuelt avbrutt`() {
+        val (behandlingsReferanse, saksnummer, bestillingUuid) = opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden()
+
+        // setter påminnelse avbrutt
+        dataSource.transaction { connection ->
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(bestillingUuid)
+        }
+
+
+        dataSource.transaction { connection ->
+            dialogmeldingRepository = DialogmeldingRepository(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+
+            behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
+                BehandlingReferanse(behandlingsReferanse)
+            )
+
+            // skal ikke opprette ny påminnelse hvis manuelt avbrutt
+            val lagretBestillinger = dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            val påminnelserEtterAutomatisk = lagretBestillinger.filter {
+                it.dokumentasjonType == DokumentasjonType.PURRING
+            }
+            assertThat(påminnelserEtterAutomatisk).isEmpty()
+        }
+    }
+
+    @Test
+    fun `skal sende påminnelse når manuelt avbrutt og så gjenopptatt`() {
+        val (behandlingsReferanse, saksnummer, bestillingUuid) = opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden()
+
+        // setter påminnelse avbrutt
+        dataSource.transaction { connection ->
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(bestillingUuid)
+        }
+
+        // setter purring gjenopptatt
+        dataSource.transaction { connection ->
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService.gjenopptaPåminnelseForBestilling(bestillingUuid)
+        }
+
+
+        dataSource.transaction { connection ->
+            dialogmeldingRepository = DialogmeldingRepository(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+
+            behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
+                BehandlingReferanse(behandlingsReferanse)
+            )
+
+            // skal opprette ny purring hvis manuelt avbrutt og så gjenopptatt
+            val lagretBestillinger = dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            val påminnelserEtterAutomatisk = lagretBestillinger.filter {
+                it.dokumentasjonType == DokumentasjonType.PURRING
+            }
+            assertThat(påminnelserEtterAutomatisk).isNotEmpty()
+            assertThat(påminnelserEtterAutomatisk.first().tidligereBestillingReferanse).isEqualTo(bestillingUuid)
         }
     }
 
@@ -285,5 +298,31 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 }
             }
         }
+    }
+
+    private fun opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden(): Triple<UUID, String, UUID> {
+        val behandlingsReferanse = randomUUID()
+        val saksnummer = Random.nextLong().toString()
+        val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDto(
+            bestillerNavIdent = "bestillerNavIdent",
+            behandlerRef = "behandlerRef",
+            personIdent = "12345678910",
+            personNavn = "personNavn",
+            saksnummer = saksnummer,
+            dialogmeldingTekst = "tekst",
+            dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L40,
+            behandlerNavn = "behandlerNavn",
+            behandlingsReferanse = behandlingsReferanse,
+            behandlerHprNr = "12344321"
+        )
+
+        val dialogmeldingUuid = dataSource.transaction { connection ->
+            val behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService.dialogmeldingBestilling(legeerklæring)
+        }
+
+        val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1).atStartOfDay()
+        oppdaterOpprettetTidspunktForDialogmeldingRecord(treUkerOgEnDagSiden, dialogmeldingUuid)
+        return Triple(behandlingsReferanse, saksnummer, dialogmeldingUuid)
     }
 }

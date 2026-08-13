@@ -103,6 +103,7 @@ spec:
           permissions:
             roles:
               - "syfo-api"
+              - "paaminnelse-api"
         - application: paw-patrol
         - application: saksbehandling
         - application: api-intern

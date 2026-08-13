@@ -25,7 +25,6 @@ import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslings
 import no.nav.aap.dokumentinnhenting.kontrakt.FastlegeDto
 import no.nav.aap.dokumentinnhenting.kontrakt.ForhåndsvisDialogmeldingDto
 import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
-import no.nav.aap.dokumentinnhenting.kontrakt.MarkerBestillingSomMottattDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
@@ -69,6 +68,7 @@ fun NormalOpenAPIRoute.syfoApi(
             respond(response)
         }
 
+        // TODO: slett når behandlingsflyt er over på nytt /paaminnelse-endepunkt
         route("/purring").authorizedPost<Unit, UUID, LegeerklæringPurringDto>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
@@ -78,7 +78,7 @@ fun NormalOpenAPIRoute.syfoApi(
         ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
-                service.dialogmeldingPurring(req)
+                service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
             }
             respond(response)
         }
