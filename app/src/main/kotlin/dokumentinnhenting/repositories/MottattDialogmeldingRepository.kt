@@ -4,6 +4,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMo
 import java.time.LocalDateTime
 import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.Row
 
 class MottattDialogmeldingRepository(private val connection: DBConnection) {
 
@@ -52,27 +53,42 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
 
         return connection.queryFirstOrNull(query) {
             setParams { setUUID(1, msgId) }
-            setRowMapper { row ->
-                MottattDialogmeldingRecord(
-                    id = row.getLong("ID"),
-                    msgId = row.getUUID("MSG_ID"),
-                    msgType = row.getString("MSG_TYPE"),
-                    mottattTidspunkt = row.getLocalDateTime("MOTTATT_TIDSPUNKT"),
-                    conversationRef = row.getUUIDOrNull("CONVERSATION_REF"),
-                    parentRef = row.getUUIDOrNull("PARENT_REF"),
-                    personIdentPasient = row.getString("PERSON_IDENT_PASIENT"),
-                    legehpr = row.getStringOrNull("LEGE_HPR"),
-                    navnHelsepersonell = row.getString("NAVN_HELSEPERSONELL"),
-                    dialogmeldingType = row.getEnumOrNull("DIALOGMELDING_TYPE"),
-                    tekstNotatInnhold = row.getStringOrNull("TEKST_NOTAT_INNHOLD"),
-                    dn = row.getStringOrNull("DIALOGMELDING_DN"),
-                    journalpostId = row.getString("JOURNALPOST_ID"),
-                    saksnummer = row.getString("SAKSNUMMER"),
-                    opprettetTid = row.getLocalDateTime("OPPRETTET_TID"),
-                )
-            }
+            setRowMapper(::mapMottattDialogmeldingRecord)
         }
     }
+
+    fun hentForSamtale(samtaleRef: UUID, personIdent: String): List<MottattDialogmeldingRecord> {
+        val query = """
+            SELECT * FROM MOTTATT_DIALOGMELDING
+            WHERE CONVERSATION_REF = ? AND PERSON_IDENT_PASIENT = ?
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setUUID(1, samtaleRef)
+                setString(2, personIdent)
+            }
+            setRowMapper(::mapMottattDialogmeldingRecord)
+        }
+    }
+
+    private fun mapMottattDialogmeldingRecord(row: Row): MottattDialogmeldingRecord = MottattDialogmeldingRecord(
+        id = row.getLong("ID"),
+        msgId = row.getUUID("MSG_ID"),
+        msgType = row.getString("MSG_TYPE"),
+        mottattTidspunkt = row.getLocalDateTime("MOTTATT_TIDSPUNKT"),
+        conversationRef = row.getUUIDOrNull("CONVERSATION_REF"),
+        parentRef = row.getUUIDOrNull("PARENT_REF"),
+        personIdentPasient = row.getString("PERSON_IDENT_PASIENT"),
+        legehpr = row.getStringOrNull("LEGE_HPR"),
+        navnHelsepersonell = row.getString("NAVN_HELSEPERSONELL"),
+        dialogmeldingType = row.getEnumOrNull("DIALOGMELDING_TYPE"),
+        tekstNotatInnhold = row.getStringOrNull("TEKST_NOTAT_INNHOLD"),
+        dn = row.getStringOrNull("DIALOGMELDING_DN"),
+        journalpostId = row.getString("JOURNALPOST_ID"),
+        saksnummer = row.getString("SAKSNUMMER"),
+        opprettetTid = row.getLocalDateTime("OPPRETTET_TID"),
+    )
 
     private fun String.toUUIDOrNull(): UUID? = runCatching { UUID.fromString(this) }.getOrNull()
 
@@ -109,7 +125,7 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
     }
 }
 
-internal data class MottattDialogmeldingRecord(
+data class MottattDialogmeldingRecord(
     val id: Long,
     val msgId: UUID,
     val msgType: String,
@@ -127,7 +143,7 @@ internal data class MottattDialogmeldingRecord(
     val opprettetTid: LocalDateTime,
 )
 
-internal enum class DialogmeldingType {
+enum class DialogmeldingType {
     FORESPORSEL_SVAR,
     HENVENDELSE,
     MOTEINNKALLING_SVAR,

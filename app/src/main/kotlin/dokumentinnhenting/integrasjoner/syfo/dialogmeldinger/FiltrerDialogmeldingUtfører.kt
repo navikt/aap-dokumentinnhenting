@@ -1,9 +1,12 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.MottattDialogmeldingRecord
+import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -17,6 +20,7 @@ import org.slf4j.LoggerFactory
 class FiltrerDialogmeldingUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     private val dialogmeldingRepository: DialogmeldingRepository,
+    private val mottattDialogmeldingRepository: MottattDialogmeldingRepository,
 ) : JobbUtfører {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -31,27 +35,12 @@ class FiltrerDialogmeldingUtfører(
             return
         }
 
-        val sendtDialogmelding =
-            payload.conversationRef?.toUUIDOrNull()
-                ?.let {
-                    dialogmeldingRepository.hentForSamtale(
-                        samtaleRef = it,
-                        personIdent = payload.personIdentPasient
-                    )
-                }
-                ?.maxByOrNull { it.opprettet }
-                ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${payload.msgId}") }
-                ?: payload.parentRef?.toUUIDOrNull()
-                    ?.let {
-                        dialogmeldingRepository.hentForParent(
-                            parentRef = it,
-                            personIdent = payload.personIdentPasient
-                        )
-                    }
-                    ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på parentRef. msgId: ${payload.msgId}") }
+        val saksnummer =
+            finnKoblingViaSendtDialogmelding(payload)?.saksnummer
+                ?: finnKoblingViaTidligereMottattDialogmelding(payload)?.saksnummer
 
-        if (sendtDialogmelding != null) {
-            opprettJobb(payload, sendtDialogmelding.saksnummer, skalLagreMottatDialogmelding = true)
+        if (saksnummer != null) {
+            opprettJobb(payload, saksnummer, skalLagreMottatDialogmelding = true)
         } else if (payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
             log.info("Fant ikke kobling fra mottatt til sendt dialogmelding. Henter saksinfo fra behandlingsflyt for dialogmelding med journalpostId ${payload.journalpostId}")
             val saksInfo = BehandlingsflytGateway.finnÅpenSakForIdentPåDato(
@@ -63,10 +52,43 @@ class FiltrerDialogmeldingUtfører(
                 log.info("Fant ikke åpen sak for personident på dialogmelding med journalpostId ${payload.journalpostId}")
                 return
             } else {
-                log.info("Fant åpen sak for dialogmelding med journalpostId ${payload.journalpostId}")
+                log.info("Fant åpen sak for dialogmelding. msgId: ${payload.msgId}, conversationRef: ${payload.conversationRef}, parentRef: ${payload.parentRef}, journalpostId: ${payload.journalpostId}")
                 opprettJobb(payload, saksInfo.saksnummer, skalLagreMottatDialogmelding = false)
             }
         }
+    }
+
+    private fun finnKoblingViaSendtDialogmelding(mottattDialogmelding: DialogmeldingMottakDTO): DialogmeldingFullRecord? {
+        return mottattDialogmelding.conversationRef?.toUUIDOrNull()
+            ?.let {
+                dialogmeldingRepository.hentForSamtale(
+                    samtaleRef = it,
+                    personIdent = mottattDialogmelding.personIdentPasient
+                )
+            }
+            ?.maxByOrNull { it.opprettet }
+            ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
+            ?: mottattDialogmelding.parentRef?.toUUIDOrNull()
+                ?.let {
+                    dialogmeldingRepository.hentForParent(
+                        parentRef = it,
+                        personIdent = mottattDialogmelding.personIdentPasient
+                    )
+                }
+                ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på parentRef. msgId: ${mottattDialogmelding.msgId}") }
+    }
+
+    // Midlertidig kobling med logging med tidligere mottatt melding som kan ha blitt koblet med parentRef til utgående melding.
+    // Dette siden vi ikke har full historikk på conversationRef på utgående meldinger. Denne mappingen bør ikke treffe
+    // etterhvert som vi har conversationRef på alle utestående forespøsler/utgående dialogmeldinger.
+    private fun finnKoblingViaTidligereMottattDialogmelding(mottattDialogmelding: DialogmeldingMottakDTO): MottattDialogmeldingRecord? {
+        return mottattDialogmelding.conversationRef?.toUUIDOrNull()
+            ?.let { conversationRef ->
+                mottattDialogmeldingRepository
+                    .hentForSamtale(conversationRef, mottattDialogmelding.personIdentPasient)
+                    .firstOrNull()
+            }
+            ?.also { log.info("Fant kobling fra mottatt til tidligere mottatt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
     }
 
     private fun opprettJobb(
@@ -102,6 +124,7 @@ class FiltrerDialogmeldingUtfører(
             return FiltrerDialogmeldingUtfører(
                 flytJobbRepository = FlytJobbRepository(connection),
                 dialogmeldingRepository = DialogmeldingRepository(connection),
+                mottattDialogmeldingRepository = MottattDialogmeldingRepository(connection),
             )
         }
 
