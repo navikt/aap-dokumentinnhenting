@@ -25,7 +25,7 @@ class SendAutomatiskPurringUtfører(
             return
         }
         kandidater.forEach {
-            bestillingService.sendAutomatiskPurringHvisBestillingFinnes(it)
+            bestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(it)
         }
     }
 

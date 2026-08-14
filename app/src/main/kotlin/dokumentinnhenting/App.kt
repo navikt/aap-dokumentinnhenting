@@ -8,6 +8,7 @@ import dokumentinnhenting.api.actuator
 import dokumentinnhenting.api.dialogmeldingApi
 import dokumentinnhenting.api.dokumentApi
 import dokumentinnhenting.api.driftApi
+import dokumentinnhenting.api.påminnelseApi
 import dokumentinnhenting.api.syfoApi
 import dokumentinnhenting.api.testApi
 import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
@@ -114,6 +115,7 @@ fun Application.server(
                 syfoApi(dataSource, brevGateway, syfoGateway)
                 dokumentApi(dokarkivGateway)
                 dialogmeldingApi(dataSource)
+                påminnelseApi(dataSource)
 
                 driftApi(dataSource)
 

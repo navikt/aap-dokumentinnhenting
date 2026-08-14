@@ -42,4 +42,5 @@ data class DialogmeldingFullRecord(
     val journalpostId: String?,
     val dokumentId: String?,
     val id: Long,
+    val automatiskPåminnelse: Boolean
 )

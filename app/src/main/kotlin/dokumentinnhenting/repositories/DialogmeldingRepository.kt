@@ -8,6 +8,7 @@ import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
+import java.time.LocalDate
 import java.util.UUID
 
 class DialogmeldingRepository(private val connection: DBConnection) {
@@ -122,20 +123,6 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentPurringForBestilling(bestillingUUID: UUID): DialogmeldingFullRecord? {
-        val query = """
-            SELECT * FROM DIALOGMELDING
-            WHERE DOKUMENTASJONTYPE = '${DokumentasjonType.PURRING}' AND TIDLIGERE_BESTILLING_REFERANSE = ?
-        """.trimIndent()
-
-        return connection.queryFirstOrNull(query) {
-            setParams {
-                setString(1, bestillingUUID.toString())
-            }
-            setRowMapper(::mapDialogmeldingFullRecord)
-        }
-    }
-
     fun hentBySaksnummer(saksnummer: String): List<DialogmeldingFullRecord> {
         val query = """
             SELECT * FROM DIALOGMELDING
@@ -229,6 +216,48 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
+    fun hentBestillingerSomSkalPåminnes(
+        behandlingReferanse: BehandlingReferanse,
+        dokumentasjonstyper: List<DokumentasjonType>,
+        opprettetDato: LocalDate
+    ): List<DialogmeldingFullRecord> {
+        val query = """
+        SELECT d.* FROM DIALOGMELDING d
+        WHERE d.behandlingsReferanse = ?
+          AND d.DOKUMENTASJONTYPE = ANY(?::text[])
+          AND d.OPPRETTET_TID::date = ?
+          AND d.AUTOMATISK_PAAMINNELSE
+          AND NOT EXISTS (
+              SELECT 1 FROM DIALOGMELDING p
+              WHERE p.DOKUMENTASJONTYPE = '${DokumentasjonType.PURRING}'
+                AND p.TIDLIGERE_BESTILLING_REFERANSE = d.DIALOGMELDING_UUID::text
+          )
+    """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setUUID(1, behandlingReferanse.referanse)
+                setArray(2, dokumentasjonstyper.map { it.name })
+                setLocalDate(3, opprettetDato)
+            }
+            setRowMapper {
+                mapDialogmeldingFullRecord(it)
+            }
+        }
+    }
+
+    fun settAutomatiskPåminnelse(automatiskPåminnelse: Boolean, dialogmeldingUuid: UUID) {
+        val query = """
+            UPDATE DIALOGMELDING SET AUTOMATISK_PAAMINNELSE = ? WHERE DIALOGMELDING_UUID = ?
+        """.trimIndent()
+        connection.execute(query) {
+            setParams {
+                setBoolean(1, automatiskPåminnelse)
+                setUUID(2, dialogmeldingUuid)
+            }
+        }
+    }
+
     fun låsBestilling(dialogmeldingUuid: UUID): UUID {
         val query = """SELECT DIALOGMELDING_UUID FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ? FOR UPDATE"""
 
@@ -263,7 +292,8 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             tidligereBestillingReferanse = row.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
             journalpostId = row.getStringOrNull("JOURNALPOST_ID"),
             dokumentId = row.getStringOrNull("DOKUMENT_ID"),
-            id = row.getLong("ID")
+            id = row.getLong("ID"),
+            automatiskPåminnelse = row.getBoolean("AUTOMATISK_PAAMINNELSE"),
         )
     }
 

@@ -6,7 +6,6 @@ import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
-import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -30,8 +29,8 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    fun dialogmeldingPurring(dto: LegeerklæringPurringDto): UUID {
-        val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(requireNotNull(dto.dialogmeldingUuid))
+    fun sendPåminnelseForBestilling(dialogmeldingUuid: UUID): UUID {
+        val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(dialogmeldingUuid)
             ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
 
         return dialogmeldingBestilling(
@@ -51,25 +50,37 @@ class BehandlerDialogmeldingBestillingService(
         )
     }
 
-    fun sendAutomatiskPurringHvisBestillingFinnes(behandlingReferanse: BehandlingReferanse) {
-        val bestillinger =
-            dialogmeldingRepository.hentBestillingerForDokumentasjonstyper(
-                behandlingReferanse, listOf(
-                    DokumentasjonType.L40,
-                    DokumentasjonType.L8
-                )
-            )
+    fun avbrytPåminnelseForBestilling(dialogmeldingUuid: UUID) {
+        val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
+            ?: throw IllegalArgumentException("Fant ikke bestilling med dialogmeldingUuid $dialogmeldingUuid")
 
-        val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1)
+        require(bestilling.dokumentasjonType == DokumentasjonType.L40 || bestilling.dokumentasjonType == DokumentasjonType.L8) {
+            "Kan ikke avbryte påminnelse på en bestilling som ikke er forespørsel om L8 eller L40. Dialogmelding-UUID: $dialogmeldingUuid"
+        }
+        dialogmeldingRepository.settAutomatiskPåminnelse(
+            automatiskPåminnelse = false,
+            dialogmeldingUuid = dialogmeldingUuid
+        )
+    }
 
-        // TODO: må også ta hensyn til om påminnelse er manuelt avbrutt
-        val bestillingerSomSkalPurresPå =
-            bestillinger.filter { it.opprettet.toLocalDate() == treUkerOgEnDagSiden }.ifEmpty {
-                log.error("Fant ingen bestillinger som skal purres på for behandlingsreferanse $behandlingReferanse")
-                return
-            }.filter { dialogmeldingRepository.hentPurringForBestilling(it.dialogmeldingUuid) == null }
 
-        bestillingerSomSkalPurresPå.forEach {
+    fun gjenopptaPåminnelseForBestilling(dialogmeldingUuid: UUID) {
+        val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
+            ?: throw IllegalArgumentException("Fant ikke bestilling med dialogmeldingUuid $dialogmeldingUuid")
+
+        require(bestilling.dokumentasjonType == DokumentasjonType.L40 || bestilling.dokumentasjonType == DokumentasjonType.L8) {
+            "Kan ikke gjenoppta påminnelse på en bestilling som ikke er forespørsel om L8 eller L40. Dialogmelding-UUID: $dialogmeldingUuid"
+        }
+        dialogmeldingRepository.settAutomatiskPåminnelse(
+            automatiskPåminnelse = true,
+            dialogmeldingUuid = dialogmeldingUuid
+        )
+    }
+
+
+    fun sendAutomatiskPåminnelseHvisBestillingFinnes(behandlingReferanse: BehandlingReferanse) {
+        val bestillingerSomSkalPåminnes = finnBestillingerSomSkalPåminnes(behandlingReferanse)
+        bestillingerSomSkalPåminnes.forEach {
             log.info("Sender purring på behandling $behandlingReferanse på sak ${it.saksnummer} for opprinnelig bestilling med id ${it.dialogmeldingUuid}")
             dialogmeldingBestilling(
                 BehandlingsflytToDokumentInnhentingBestillingDto(
@@ -88,6 +99,17 @@ class BehandlerDialogmeldingBestillingService(
             )
             connection.markerSavepoint()
         }
+    }
+
+    private fun finnBestillingerSomSkalPåminnes(behandlingsreferanse: BehandlingReferanse): List<DialogmeldingFullRecord> {
+        val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1)
+        val bestillinger = dialogmeldingRepository.hentBestillingerSomSkalPåminnes(
+            behandlingReferanse = behandlingsreferanse,
+            dokumentasjonstyper = listOf(DokumentasjonType.L8, DokumentasjonType.L40),
+            opprettetDato = treUkerOgEnDagSiden
+        )
+        log.info("Fant ${bestillinger.size} bestillinger som skal purres på for behandling $behandlingsreferanse")
+        return bestillinger
     }
 
     fun dialogmeldingBestilling(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID? = null): UUID {
