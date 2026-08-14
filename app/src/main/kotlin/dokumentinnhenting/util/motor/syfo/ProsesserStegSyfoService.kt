@@ -5,9 +5,10 @@ import dokumentinnhenting.util.motor.syfo.syfosteg.*
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.slf4j.LoggerFactory
 import java.util.*
+import org.slf4j.MDC
 
-class ProsesserStegSyfoService (
-    private val connection: DBConnection
+class ProsesserStegSyfoService(
+    private val connection: DBConnection,
 ) {
 
     private val log = LoggerFactory.getLogger(ProsesserStegSyfoService::class.java)
@@ -18,6 +19,7 @@ class ProsesserStegSyfoService (
             return ProsesserStegSyfoService(connection)
         }
     }
+
     private val flyt = ProsesseringSyfoFlyt.Builder()
         .med(steg = StartLegeerklæringBestillingSteg, utfall = ProsesseringSyfoStatus.STARTET)
         .med(steg = JournalførBestillingSteg, utfall = ProsesseringSyfoStatus.JOURNALFØRT)
@@ -34,16 +36,18 @@ class ProsesserStegSyfoService (
             return
         }
 
-        stegene.forEach { steg ->
-            val stegResultat = steg.konstruer(connection).utfør(SyfoSteg.Kontekst(dialogmeldingUUID))
+        MDC.putCloseable("dialogmelding_uuid", dialogmeldingUUID.toString()).use {
+            stegene.forEach { steg ->
+                val stegResultat = steg.konstruer(connection).utfør(SyfoSteg.Kontekst(dialogmeldingUUID))
 
-            if (stegResultat == SyfoSteg.Resultat.STOPP) {
-                throw RuntimeException("Stoppet i steg ${steg.javaClass.name}, $bestillingStatus")
+                if (stegResultat == SyfoSteg.Resultat.STOPP) {
+                    throw RuntimeException("Stoppet i steg ${steg.javaClass.name}, $bestillingStatus")
+                }
+
+                dialogmeldingRepository.oppdaterFlytStatus(dialogmeldingUUID, flyt.utfall(steg))
+
+                connection.markerSavepoint()
             }
-
-            dialogmeldingRepository.oppdaterFlytStatus(dialogmeldingUUID, flyt.utfall(steg))
-
-            connection.markerSavepoint()
         }
     }
 }

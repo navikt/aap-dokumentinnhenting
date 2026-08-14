@@ -100,6 +100,8 @@ fun bestillingEksisterer(datasource: DataSource,bestillingUuid: String): Boolean
 }
 
 fun opprettJobb(dataSource: DataSource, dto: DialogmeldingMottakDTO) {
+  log.info("Mottok dialogmelding (msgId=${dto.msgId}, conversationRef=${dto.conversationRef}, journalpostId=${dto.journalpostId})")
+
   dataSource.transaction { connection ->
     val flytJobbRepository = FlytJobbRepository(connection)
 
