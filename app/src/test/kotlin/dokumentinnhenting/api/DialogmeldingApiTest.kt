@@ -7,6 +7,7 @@ import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FellesDialogmeldingDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -30,6 +31,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
 
 @WithFakes
@@ -49,7 +52,7 @@ class DialogmeldingApiTest {
     }
 
     @Test
-    fun `GET eksisterer returnerer 200 OK når dialogmelding finnes`() = testApplication {
+    fun `GET eksisterer returnerer 200 OK når dialogmelding finnes for endepunkt 'eksisterer'`() = testApplication {
         initApp()
         val client = httpClient()
 
@@ -67,6 +70,21 @@ class DialogmeldingApiTest {
     }
 
     @Test
+    fun `GET eksisterer returnerer 200 OK når dialogmelding ikke finnes for endepunkt 'dialogmeldinger'`() = testApplication {
+        initApp()
+        val client = httpClient()
+
+        val uuid = UUID.randomUUID()
+
+        val response = client.get("/dialogmelding/$uuid/dialogmeldinger") {
+            bearerAuth(bearerToken())
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertTrue(response.body<List<FellesDialogmeldingDto>>().isEmpty())
+    }
+
+    @Test
     fun `GET eksisterer returnerer 204 NoContent når dialogmelding ikke finnes`() = testApplication {
         initApp()
         val client = httpClient()
@@ -79,11 +97,12 @@ class DialogmeldingApiTest {
         assertFalse(response.body<DialogmeldingEksistererDto>().eksisterer)
     }
 
-    @Test
-    fun `GET eksisterer returnerer 401 uten gyldig token`() = testApplication {
+    @ParameterizedTest
+    @ValueSource(strings = ["eksisterer", "dialogmeldinger"])
+    fun `GET eksisterer returnerer 401 uten gyldig token`(endepunkt: String) = testApplication {
         initApp()
 
-        val response = client.get("/dialogmelding/${UUID.randomUUID()}/eksisterer")
+        val response = client.get("/dialogmelding/${UUID.randomUUID()}/${endepunkt}")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
