@@ -2,6 +2,7 @@ package dokumentinnhenting.api
 
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingLeveringStatus
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
 
@@ -30,6 +31,16 @@ fun MeldingStatusType.mapStatus(): DialogmeldingStatusTilBehandslingsflytDto.Mel
     }
 }
 
+fun MeldingStatusType.mapLeveringStatus(): DialogmeldingLeveringStatus {
+    return when (this) {
+        MeldingStatusType.BESTILT -> DialogmeldingLeveringStatus.SENDT
+        MeldingStatusType.SENDT -> DialogmeldingLeveringStatus.SENDT
+        MeldingStatusType.OK -> DialogmeldingLeveringStatus.LEVERT
+        MeldingStatusType.AVVIST -> DialogmeldingLeveringStatus.FEILET
+        MeldingStatusType.MOTTATT -> DialogmeldingLeveringStatus.LEVERT
+    }
+}
+
 fun no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.fraDto(): DokumentasjonType {
     return when (this) {
         no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L40 -> DokumentasjonType.L40
@@ -38,5 +49,16 @@ fun no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.fraDto(): Dokumenta
         no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.MELDING_FRA_NAV -> DokumentasjonType.MELDING_FRA_NAV
         no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.RETUR_LEGEERKLÆRING -> DokumentasjonType.RETUR_LEGEERKLÆRING
         no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING -> DokumentasjonType.PURRING
+    }
+}
+
+fun DokumentasjonType.tilDto(): no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType {
+    return when (this) {
+        DokumentasjonType.L40 -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L40
+        DokumentasjonType.L8 -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L8
+        DokumentasjonType.L120 -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L120
+        DokumentasjonType.MELDING_FRA_NAV -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.MELDING_FRA_NAV
+        DokumentasjonType.RETUR_LEGEERKLÆRING -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.RETUR_LEGEERKLÆRING
+        DokumentasjonType.PURRING -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING
     }
 }
