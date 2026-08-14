@@ -79,8 +79,8 @@ class BehandlerDialogmeldingBestillingService(
 
 
     fun sendAutomatiskPåminnelseHvisBestillingFinnes(behandlingReferanse: BehandlingReferanse) {
-        val bestillingerSomSkalPurresPå = finnBestillingerSomSkalPåminnes(behandlingReferanse)
-        bestillingerSomSkalPurresPå.forEach {
+        val bestillingerSomSkalPåminnes = finnBestillingerSomSkalPåminnes(behandlingReferanse)
+        bestillingerSomSkalPåminnes.forEach {
             log.info("Sender purring på behandling $behandlingReferanse på sak ${it.saksnummer} for opprinnelig bestilling med id ${it.dialogmeldingUuid}")
             dialogmeldingBestilling(
                 BehandlingsflytToDokumentInnhentingBestillingDto(
