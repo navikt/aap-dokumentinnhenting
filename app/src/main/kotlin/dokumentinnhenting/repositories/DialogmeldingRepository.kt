@@ -226,7 +226,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         WHERE d.behandlingsReferanse = ?
           AND d.DOKUMENTASJONTYPE = ANY(?::text[])
           AND d.OPPRETTET_TID::date = ?
-          AND d.PAAMINNELSE_MANUELT_AVBRUTT IS NOT TRUE
+          AND d.AUTOMATISK_PAAMINNELSE
           AND NOT EXISTS (
               SELECT 1 FROM DIALOGMELDING p
               WHERE p.DOKUMENTASJONTYPE = '${DokumentasjonType.PURRING}'
@@ -246,13 +246,13 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun settPåminnelseManueltAvbrutt(avbrytPåminnelse: Boolean, dialogmeldingUuid: UUID) {
+    fun settAutomatiskPåminnelse(automatiskPåminnelse: Boolean, dialogmeldingUuid: UUID) {
         val query = """
-            UPDATE DIALOGMELDING SET PAAMINNELSE_MANUELT_AVBRUTT = ? WHERE DIALOGMELDING_UUID = ?
+            UPDATE DIALOGMELDING SET AUTOMATISK_PAAMINNELSE = ? WHERE DIALOGMELDING_UUID = ?
         """.trimIndent()
         connection.execute(query) {
             setParams {
-                setBoolean(1, avbrytPåminnelse)
+                setBoolean(1, automatiskPåminnelse)
                 setUUID(2, dialogmeldingUuid)
             }
         }
@@ -293,7 +293,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
             journalpostId = row.getStringOrNull("JOURNALPOST_ID"),
             dokumentId = row.getStringOrNull("DOKUMENT_ID"),
             id = row.getLong("ID"),
-            paaminnelseManueltAvbrutt = row.getBoolean("PAAMINNELSE_MANUELT_AVBRUTT")
+            automatiskPåminnelse = row.getBoolean("AUTOMATISK_PAAMINNELSE"),
         )
     }
 

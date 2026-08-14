@@ -17,46 +17,48 @@ fun NormalOpenAPIRoute.påminnelseApi(
     dataSource: DataSource
 ) {
     val paaminnelseApiRolle = "paaminnelse-api"
-    route("/paaminnelse").authorizedPost<Unit, UUID, PåminnelseDto>(
-        AuthorizationBodyPathConfig(
-            operasjon = Operasjon.SAKSBEHANDLE,
-            applicationRole = paaminnelseApiRolle,
-            applicationsOnly = true
-        )
-    ) { _, req ->
-        val response = dataSource.transaction { connection ->
-            val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
-            service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
+    route("/dialogmelding/paaminnelse") {
+        route("/send").authorizedPost<Unit, UUID, PåminnelseDto>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                applicationRole = paaminnelseApiRolle,
+                applicationsOnly = true
+            )
+        ) { _, req ->
+            val response = dataSource.transaction { connection ->
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
+            }
+            respond(response)
         }
-        respond(response)
-    }
 
 
-    route("/avbryt-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseDto>(
-        AuthorizationBodyPathConfig(
-            operasjon = Operasjon.SAKSBEHANDLE,
-            applicationRole = paaminnelseApiRolle,
-            applicationsOnly = true
-        )
-    ) { _, req ->
-        dataSource.transaction { connection ->
-            val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
-            service.avbrytPåminnelseForBestilling(req.dialogmeldingUuid)
+        route("/avbryt-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseDto>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                applicationRole = paaminnelseApiRolle,
+                applicationsOnly = true
+            )
+        ) { _, req ->
+            dataSource.transaction { connection ->
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                service.avbrytPåminnelseForBestilling(req.dialogmeldingUuid)
+            }
+            respond(HttpStatusCode.NoContent)
         }
-        respond(HttpStatusCode.NoContent)
-    }
 
-    route("/gjenoppta-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseDto>(
-        AuthorizationBodyPathConfig(
-            operasjon = Operasjon.SAKSBEHANDLE,
-            applicationRole = paaminnelseApiRolle,
-            applicationsOnly = true
-        )
-    ) { _, req ->
-        dataSource.transaction { connection ->
-            val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
-            service.gjenopptaPåminnelseForBestilling(req.dialogmeldingUuid)
+        route("/gjenoppta-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseDto>(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SAKSBEHANDLE,
+                applicationRole = paaminnelseApiRolle,
+                applicationsOnly = true
+            )
+        ) { _, req ->
+            dataSource.transaction { connection ->
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                service.gjenopptaPåminnelseForBestilling(req.dialogmeldingUuid)
+            }
+            respond(HttpStatusCode.NoContent)
         }
-        respond(HttpStatusCode.NoContent)
     }
 }

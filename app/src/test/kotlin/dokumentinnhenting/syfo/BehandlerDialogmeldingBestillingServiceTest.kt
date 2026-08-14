@@ -62,7 +62,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             dialogmeldingTekst = "tekst",
             dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.L8,
             behandlerNavn = "behandlerNavn",
-            behandlingsReferanse = UUID.randomUUID(),
+            behandlingsReferanse = randomUUID(),
             behandlerHprNr = "12344321"
         )
 
@@ -182,7 +182,6 @@ class BehandlerDialogmeldingBestillingServiceTest {
     @Test
     fun `sender ikke automatisk påminnelse når det allerede finnes en påminnelse for bestilling`() {
         val (behandlingsReferanse, saksnummer, dialogmeldingUuid) = opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden()
-
 
         dataSource.transaction { connection ->
             // lager manuell påminnelse
