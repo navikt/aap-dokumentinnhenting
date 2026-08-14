@@ -46,7 +46,7 @@ object BehandlingsflytGateway {
     fun finnKandidaterForAutomatiskPurring(): List<BehandlingReferanse> =
         runBlocking {
             try {
-                defaultHttpClient.get("$uri/api/dokumentinnhenting/purring") {
+                defaultHttpClient.get("$uri/api/dokumentinnhenting/paaminnelse") {
                     bearerAuth(SystemTokenProvider.getToken(scope, null))
                 }.body<List<BehandlingReferanse>>()
             } catch (e: Exception) {
