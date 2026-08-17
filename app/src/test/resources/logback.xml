@@ -18,5 +18,6 @@
     <logger name="io.netty" level="INFO" />
     <logger name="no.nav" level="INFO" />
     <logger name="io.micrometer.prometheusmetrics.PrometheusMeterRegistry" level="DEBUG" />
+    <logger name="org.apache.kafka.streams.processor.internals" level="WARN" />
 
 </configuration>
