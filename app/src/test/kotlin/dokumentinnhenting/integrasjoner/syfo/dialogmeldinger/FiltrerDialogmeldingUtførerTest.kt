@@ -9,7 +9,9 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMo
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.randomPersonIdent
+import dokumentinnhenting.randomSaksnummer
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
@@ -26,6 +28,7 @@ import no.nav.aap.motor.JobbInput
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
@@ -38,6 +41,17 @@ class FiltrerDialogmeldingUtførerTest {
     @BeforeAll
     fun setup() {
         dataSource = TestDataSource()
+    }
+
+    @BeforeEach
+    fun leggTilRandomData() {
+        // Lagrer tilfeldig data for bedre treffsikkerhet på asserts i testene
+        opprettDialogmelding()
+        opprettDialogmelding()
+        opprettDialogmelding()
+        lagreMottattDialogmelding()
+        lagreMottattDialogmelding()
+        lagreMottattDialogmelding()
     }
 
     @AfterAll
@@ -58,12 +72,27 @@ class FiltrerDialogmeldingUtførerTest {
 
     @Test
     fun `skal ikke legge til jobb når ingen åpen sak finnes`() {
-        val dto = lagDialogmeldingMottakDTO()
+        val personIdent = randomPersonIdent()
+        val annenPersonIdent = randomPersonIdent()
+
+        // Sendt og mottatt dialogmelding finnes — men for en annen person
+        val samtaleRef = randomUUID()
+        opprettDialogmelding(samtaleRef = samtaleRef, personIdent = annenPersonIdent, saksnummer = randomSaksnummer())
+        lagreMottattDialogmelding(
+            conversationRef = samtaleRef.toString(),
+            personIdentPasient = annenPersonIdent,
+        )
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = samtaleRef.toString(),
+            parentRef = randomUUID().toString(),
+            personIdentPasient = personIdent,
+        )
         behandlingsflytSakResponses.remove(dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate())
 
         utfør(dto)
 
-        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
+        assertThat(hentJobber(personIdent)).isEmpty()
     }
 
     @Test
@@ -125,7 +154,53 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `skal ikke legge til jobb via conversationRef når samtaleRef tilhører annen bruker`() {
+    fun `skal legge til jobb basert på tidligere mottatt dialogmelding med samme conversationRef når conversationRef og parentRef ikke gir treff på sendte dialogmeldinger`() {
+        val saksnummer = randomSaksnummer()
+        val conversationRef = randomUUID()
+        val personIdent = randomPersonIdent()
+
+        lagreMottattDialogmelding(
+            conversationRef = conversationRef.toString(),
+            personIdentPasient = personIdent,
+            saksnummer,
+        )
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = conversationRef.toString(),
+            parentRef = null,
+            personIdentPasient = personIdent,
+        )
+
+        utfør(dto)
+
+        assertThat(hentJobber(saksnummer)).hasSize(1)
+    }
+
+    @Test
+    fun `skal ikke legge til jobb via tidligere mottatt dialogmelding når ingen mottatt melding finnes med conversationRef`() {
+        val personIdent = randomPersonIdent()
+        val saksnummer = randomSaksnummer()
+
+        lagreMottattDialogmelding(
+            conversationRef = randomUUID().toString(),
+            personIdentPasient = personIdent,
+            saksnummer,
+        )
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = randomUUID().toString(),
+            parentRef = null,
+            foresporselSvar = null,
+            personIdentPasient = personIdent,
+        )
+
+        utfør(dto)
+
+        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
+    }
+
+    @Test
+    fun `skal ikke legge til jobb via conversationRef når samtaleRef tilhører annen person`() {
         val saksnummer = randomSaksnummer()
         val samtaleRef = randomUUID()
         val personA = randomPersonIdent()
@@ -145,7 +220,7 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `skal ikke legge til jobb via parentRef når parentRef tilhører annen bruker`() {
+    fun `skal ikke legge til jobb via parentRef når parentRef tilhører annen person`() {
         val saksnummer = randomSaksnummer()
         val dialogmeldingUuid = randomUUID()
         val personA = randomPersonIdent()
@@ -156,6 +231,31 @@ class FiltrerDialogmeldingUtførerTest {
         val dto = lagDialogmeldingMottakDTO(
             conversationRef = randomUUID().toString(),
             parentRef = dialogmeldingUuid.toString(),
+            personIdentPasient = personB,
+            foresporselSvar = null,
+        )
+
+        utfør(dto)
+
+        assertThat(hentJobber(saksnummer)).isEmpty()
+    }
+
+    @Test
+    fun `skal ikke legge til jobb via tidligere mottatt dialogmelding når mottatt melding tilhører annen person`() {
+        val saksnummer = randomSaksnummer()
+        val conversationRef = randomUUID()
+        val personA = randomPersonIdent()
+        val personB = randomPersonIdent()
+
+        lagreMottattDialogmelding(
+            conversationRef = conversationRef.toString(),
+            personIdentPasient = personA,
+            saksnummer,
+        )
+
+        val dto = lagDialogmeldingMottakDTO(
+            conversationRef = conversationRef.toString(),
+            parentRef = null,
             personIdentPasient = personB,
             foresporselSvar = null,
         )
@@ -220,7 +320,11 @@ class FiltrerDialogmeldingUtførerTest {
 
     private fun utfør(dto: DialogmeldingMottakDTO) {
         dataSource.transaction { connection ->
-            FiltrerDialogmeldingUtfører(FlytJobbRepository(connection), DialogmeldingRepository(connection))
+            FiltrerDialogmeldingUtfører(
+                FlytJobbRepository(connection),
+                DialogmeldingRepository(connection),
+                MottattDialogmeldingRepository(connection),
+            )
                 .utfør(lagJobbInput(dto))
         }
     }
@@ -242,8 +346,8 @@ class FiltrerDialogmeldingUtførerTest {
     private fun lagDialogmeldingMottakDTO(
         journalpostId: String = randomUUID().toString(),
         foresporselSvar: ForesporselFraSaksbehandlerForesporselSvar? = lagForesporselSvar(),
-        conversationRef: String? = null,
-        parentRef: String? = null,
+        conversationRef: String? = randomUUID().toString(),
+        parentRef: String? = randomUUID().toString(),
         personIdentPasient: String = randomPersonIdent(),
     ) = DialogmeldingMottakDTO(
         msgId = randomUUID().toString(),
@@ -324,6 +428,17 @@ class FiltrerDialogmeldingUtførerTest {
         samtaleRef = samtaleRef,
     )
 
-    private fun randomSaksnummer(): String = "SAK${nextInt(1111, 9999)}"
-
+    private fun lagreMottattDialogmelding(
+        conversationRef: String? = randomUUID().toString(),
+        personIdentPasient: String = randomPersonIdent(),
+        saksnummer: String = randomSaksnummer(),
+    ) {
+        val tidligereMottatt = lagDialogmeldingMottakDTO(
+            conversationRef = conversationRef,
+            personIdentPasient = personIdentPasient,
+        )
+        dataSource.transaction { connection ->
+            MottattDialogmeldingRepository(connection).lagre(tidligereMottatt, saksnummer)
+        }
+    }
 }

@@ -6,17 +6,20 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMo
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.randomPersonIdent
+import dokumentinnhenting.randomSaksnummer
 import io.mockk.clearAllMocks
 import io.mockk.mockk
 import java.time.LocalDateTime
 import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -48,9 +51,11 @@ class MottattDialogmeldingRepositoryTest {
         val saksnummer = UUID.randomUUID().toString()
         val tekstNotatInnhold = "tekst notat innhold"
         val dialogmeldingDn = "dialogmelding dn"
+        val navnHelsepersonell = "navn helsepersonell"
         val dialogmeldingMottatt = lagMottattDialogmelding(
             tekstNotatInnhold = tekstNotatInnhold,
-            dn = dialogmeldingDn
+            dn = dialogmeldingDn,
+            navnHelsepersonell = navnHelsepersonell,
         )
         val msgId = UUID.fromString(dialogmeldingMottatt.msgId)
 
@@ -72,6 +77,10 @@ class MottattDialogmeldingRepositoryTest {
         assertEquals(DialogmeldingType.FORESPORSEL_SVAR, lagret.dialogmeldingType)
         assertEquals(tekstNotatInnhold, lagret.tekstNotatInnhold)
         assertEquals(dialogmeldingDn, lagret.dn)
+        assertEquals(dialogmeldingMottatt.mottattTidspunkt.withNano(0), lagret.mottattTidspunkt.withNano(0))
+        assertEquals(dialogmeldingMottatt.conversationRef, lagret.conversationRef?.toString())
+        assertEquals(dialogmeldingMottatt.parentRef, lagret.parentRef?.toString())
+        assertEquals(navnHelsepersonell, lagret.navnHelsepersonell)
     }
 
     @Test
@@ -171,11 +180,104 @@ class MottattDialogmeldingRepositoryTest {
         assertNull(resultat)
     }
 
+    @Test
+    fun `hentForSamtale returnerer tom liste når ingen meldinger finnes`() {
+        val resultat = dataSource.transaction { connection ->
+            MottattDialogmeldingRepository(connection).hentForSamtale(UUID.randomUUID(), randomPersonIdent())
+        }
+
+        assertTrue(resultat.isEmpty())
+    }
+
+    @Test
+    fun `hentForSamtale returnerer alle meldinger med matchende samtaleRef og personIdent`() {
+        val samtaleRef = UUID.randomUUID()
+        val personIdent = randomPersonIdent()
+        val melding1 =
+            lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+        val melding2 =
+            lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+
+
+        dataSource.transaction { connection ->
+            val repo = MottattDialogmeldingRepository(connection)
+            repo.lagre(melding1, randomSaksnummer())
+            repo.lagre(melding2, randomSaksnummer())
+
+            // andre
+            repo.lagre(
+                lagMottattDialogmelding(
+                    conversationRef = UUID.randomUUID().toString(),
+                    personIdentPasient = randomPersonIdent()
+                ), randomSaksnummer()
+            )
+            repo.lagre(
+                lagMottattDialogmelding(
+                    conversationRef = UUID.randomUUID().toString(),
+                    personIdentPasient = randomPersonIdent()
+                ), randomSaksnummer()
+            )
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            MottattDialogmeldingRepository(connection).hentForSamtale(samtaleRef, personIdent)
+        }
+
+        assertThat(resultat.map { it.msgId }).containsExactlyInAnyOrder(
+            UUID.fromString(melding1.msgId),
+            UUID.fromString(melding2.msgId)
+        )
+    }
+
+    @Test
+    fun `hentForSamtale filtrerer ut meldinger med annen samtaleRef`() {
+        val samtaleRef = UUID.randomUUID()
+        val personIdent = randomPersonIdent()
+        val melding = lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+        val annenMelding =
+            lagMottattDialogmelding(conversationRef = UUID.randomUUID().toString(), personIdentPasient = personIdent)
+
+        dataSource.transaction { connection ->
+            val repo = MottattDialogmeldingRepository(connection)
+            repo.lagre(melding, randomSaksnummer())
+            repo.lagre(annenMelding, randomSaksnummer())
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            MottattDialogmeldingRepository(connection).hentForSamtale(samtaleRef, personIdent)
+        }
+
+        assertThat(resultat.map { it.msgId }).containsExactly(UUID.fromString(melding.msgId))
+    }
+
+    @Test
+    fun `hentForSamtale filtrerer ut meldinger med annen personIdent`() {
+        val samtaleRef = UUID.randomUUID()
+        val personIdentA = randomPersonIdent()
+        val personIdentB = randomPersonIdent()
+        val meldingA =
+            lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdentA)
+        val meldingB =
+            lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdentB)
+
+        dataSource.transaction { connection ->
+            val repo = MottattDialogmeldingRepository(connection)
+            repo.lagre(meldingA, randomSaksnummer())
+            repo.lagre(meldingB, randomSaksnummer())
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            MottattDialogmeldingRepository(connection).hentForSamtale(samtaleRef, personIdentA)
+        }
+
+        assertThat(resultat.map { it.msgId }).containsExactly(UUID.fromString(meldingA.msgId))
+    }
+
     private fun lagMottattDialogmelding(
         msgId: String = UUID.randomUUID().toString(),
         personIdentPasient: String = randomPersonIdent(),
         conversationRef: String? = UUID.randomUUID().toString(),
-        parentRef: String? = null,
+        parentRef: String? = UUID.randomUUID().toString(),
         legehpr: String? = "12345678",
         tekstNotatInnhold: String? = "tekstNotatInnhold",
         dn: String? = "dn",
