@@ -7,6 +7,7 @@ import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomNavIdent
+import dokumentinnhenting.randomSaksnummer
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import java.time.OffsetDateTime
@@ -137,7 +138,7 @@ class DialogmeldingRepositoryTest {
         }
 
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).hentBySaksnummer(saksnummer)
+            DialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
         }
 
         assertEquals(2, resultat.size)
@@ -148,7 +149,7 @@ class DialogmeldingRepositoryTest {
     @Test
     fun `hentBySaksnummer returnerer tom liste for ukjent saksnummer`() {
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).hentBySaksnummer("UKJENT-SAK")
+            DialogmeldingRepository(connection).hentForSaksnummer("UKJENT-SAK")
         }
 
         assertTrue(resultat.isEmpty())
@@ -429,5 +430,57 @@ class DialogmeldingRepositoryTest {
         assertThat(bestillingerBareL40).hasSize(1)
         assertThat(bestillingerBareL40.first().dokumentasjonType).isEqualTo(DokumentasjonType.L40)
 
+    }
+
+    @Test
+    fun `hentForSaksnummer returnerer tom liste når ingen meldinger finnes`() {
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForSaksnummer(randomSaksnummer())
+        }
+
+        assertTrue(resultat.isEmpty())
+    }
+
+    @Test
+    fun `hentForSaksnummer returnerer alle meldinger med matchende samtaleRef og personIdent`() {
+        val behandlingsreferanse = BehandlingReferanse(UUID.randomUUID())
+        val saksnummer = randomSaksnummer()
+        val melding1 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+        val melding2 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+
+        dataSource.transaction { connection ->
+            val repo = DialogmeldingRepository(connection)
+            repo.opprettDialogmelding(melding1)
+            repo.opprettDialogmelding(melding2)
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
+        }
+
+        assertThat(resultat.map { it.saksnummer }).containsExactlyInAnyOrder(
+            melding1.saksnummer,
+            melding2.saksnummer
+        )
+    }
+
+    @Test
+    fun `hentForSaksnummer filtrerer ut meldinger med et annet saksnummer`() {
+        val behandlingsreferanse = BehandlingReferanse(UUID.randomUUID())
+        val forsteSaksnummer = randomSaksnummer()
+        val melding1 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = forsteSaksnummer)
+        val melding2 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = randomSaksnummer())
+
+        dataSource.transaction { connection ->
+            val repo = DialogmeldingRepository(connection)
+            repo.opprettDialogmelding(melding1)
+            repo.opprettDialogmelding(melding2)
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentForSaksnummer(forsteSaksnummer)
+        }
+
+        assertThat(resultat.map { it.saksnummer }).containsExactly(melding1.saksnummer)
     }
 }

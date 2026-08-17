@@ -12,7 +12,6 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FellesDialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.InnkommendeUtgaaende
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
-import no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType
 import java.util.UUID
 import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -58,15 +57,18 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
         // TODO: Map til nytt format med nødvendig data
         // TODO: Flytte denne til DialogmeldingApi?
         route("/{saksnummer}/dialogmeldinger") {
-            authorizedGet<HentDialogmeldingOversiktFagsakParams, List<FellesDialogmeldingDto>>(
+            /*authorizedGet<HentDialogmeldingOversiktFagsakParams, List<FellesDialogmeldingDto>>(
                 AuthorizationMachineToMachineConfig(
                     authorizedAzps = listOf(Azp.ApiIntern)
                 )
-            ) { params ->
+            )*/
+            get<HentDialogmeldingOversiktFagsakParams, List<FellesDialogmeldingDto>> { params ->
+                val saksnummer = "TEST_4X4VH0G"
+                //val saksnummer = params.saksnummer
                 val dialogmeldingerDtos = mutableListOf<FellesDialogmeldingDto>()
 
                 val sendteDialogmeldinger = dataSource.transaction { connection ->
-                    DialogmeldingRepository(connection).hentBySaksnummer(params.saksnummer)
+                    DialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
                 }
 
                 sendteDialogmeldinger.forEach { dialogmelding ->
@@ -83,7 +85,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                 }
 
                 val mottatteDialogmeldinger = dataSource.transaction { connection ->
-                    MottattDialogmeldingRepository(connection).hentBySaksnummer(params.saksnummer)
+                    MottattDialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
                 }
 
                 mottatteDialogmeldinger.forEach { dialogmelding ->
@@ -101,7 +103,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                 }
 
                 if (dialogmeldingerDtos.isNotEmpty()) {
-                    val dokumenterForSak = SafGateway.hentDokumenterForSak(Saksnummer(params.saksnummer), token())
+                    val dokumenterForSak = SafGateway.hentDokumenterForSak(Saksnummer(saksnummer), token())
                     dokumenterForSak.map { dokument ->
                         val dialogmelding =
                             dialogmeldingerDtos.firstOrNull { dto -> dto.journalpostId == dokument.journalpostId }

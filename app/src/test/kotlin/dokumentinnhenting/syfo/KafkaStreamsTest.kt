@@ -199,7 +199,7 @@ class KafkaStreamsTest {
     ): List<DialogmeldingStatusTilBehandslingsflytDto> {
         return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
-            dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            dialogmeldingRepository.hentForSaksnummer(saksnummer)
                 .map(DialogmeldingFullRecord::tilDto)
         }
     }
@@ -217,7 +217,7 @@ class KafkaStreamsTest {
     ): List<DialogmeldingStatusTilBehandslingsflytDto> {
         return dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepository(connection)
-            dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            dialogmeldingRepository.hentForSaksnummer(saksnummer)
                 .map(DialogmeldingFullRecord::tilDto)
         }
     }

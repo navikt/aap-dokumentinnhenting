@@ -92,7 +92,7 @@ fun NormalOpenAPIRoute.syfoApi(
         ) { req ->
             val response = dataSource.transaction { connection ->
                 val repository = DialogmeldingRepository(connection)
-                repository.hentBySaksnummer(req.saksnummer)
+                repository.hentForSaksnummer(req.saksnummer)
                     .map(DialogmeldingFullRecord::tilDto)
             }
             respond(response)

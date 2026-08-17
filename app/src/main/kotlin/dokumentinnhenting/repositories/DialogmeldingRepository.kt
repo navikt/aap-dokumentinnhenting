@@ -123,7 +123,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentBySaksnummer(saksnummer: String): List<DialogmeldingFullRecord> {
+    fun hentForSaksnummer(saksnummer: String): List<DialogmeldingFullRecord> {
         val query = """
             SELECT * FROM DIALOGMELDING
             WHERE SAKSNUMMER = ?

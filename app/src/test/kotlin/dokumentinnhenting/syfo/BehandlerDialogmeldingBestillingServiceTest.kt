@@ -1,11 +1,14 @@
 package dokumentinnhenting.syfo
 
 import dokumentinnhenting.WithFakes
+import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
@@ -18,6 +21,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.UUID.randomUUID
+import javax.sql.DataSource
 import kotlin.random.Random
 
 @WithFakes
@@ -113,7 +117,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 bestillingOpprettetDato = treUkerOgEnDagSiden,
             )
 
-            val lagretBestillinger = dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            val lagretBestillinger = dialogmeldingRepository.hentForSaksnummer(saksnummer)
 
             val purring = lagretBestillinger.find {
                 it.dokumentasjonType == DokumentasjonType.PURRING
@@ -135,7 +139,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 dialogmeldingUuid
             )
 
-            val påminnelserFørAutomatisk = dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            val påminnelserFørAutomatisk = dialogmeldingRepository.hentForSaksnummer(saksnummer)
                 .filter { it.dokumentasjonType == DokumentasjonType.PURRING }
             assertThat(påminnelserFørAutomatisk).hasSize(1)
 
@@ -147,7 +151,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
 
             // skal ikke opprette ny påminnelse hvis det allerede finnes en
-            val lagretBestillinger = dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            val lagretBestillinger = dialogmeldingRepository.hentForSaksnummer(saksnummer)
             val påminnelserEtterAutomatisk = lagretBestillinger.filter {
                 it.dokumentasjonType == DokumentasjonType.PURRING
             }
@@ -178,7 +182,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
 
             // skal ikke opprette ny påminnelse hvis manuelt avbrutt
-            val lagretBestillinger = dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            val lagretBestillinger = dialogmeldingRepository.hentForSaksnummer(saksnummer)
             val påminnelserEtterAutomatisk = lagretBestillinger.filter {
                 it.dokumentasjonType == DokumentasjonType.PURRING
             }
@@ -213,12 +217,23 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
 
             // skal opprette ny purring hvis manuelt avbrutt og så gjenopptatt
-            val lagretBestillinger = dialogmeldingRepository.hentBySaksnummer(saksnummer)
+            val lagretBestillinger = dialogmeldingRepository.hentForSaksnummer(saksnummer)
             val påminnelserEtterAutomatisk = lagretBestillinger.filter {
                 it.dokumentasjonType == DokumentasjonType.PURRING
             }
             assertThat(påminnelserEtterAutomatisk).isNotEmpty()
             assertThat(påminnelserEtterAutomatisk.first().tidligereBestillingReferanse).isEqualTo(bestillingUuid)
+        }
+    }
+
+    private fun hentRepositoryData(
+        dataSource: DataSource,
+        saksnummer: String
+    ): List<DialogmeldingStatusTilBehandslingsflytDto> {
+        return dataSource.transaction { connection ->
+            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository.hentForSaksnummer(saksnummer)
+                .map(DialogmeldingFullRecord::tilDto)
         }
     }
 

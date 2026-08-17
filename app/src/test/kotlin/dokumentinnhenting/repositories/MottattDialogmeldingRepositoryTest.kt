@@ -273,6 +273,74 @@ class MottattDialogmeldingRepositoryTest {
         assertThat(resultat.map { it.msgId }).containsExactly(UUID.fromString(meldingA.msgId))
     }
 
+    @Test
+    fun `hentForSaksnummer returnerer tom liste når ingen meldinger finnes`() {
+        val resultat = dataSource.transaction { connection ->
+            MottattDialogmeldingRepository(connection).hentForSaksnummer(randomSaksnummer())
+        }
+
+        assertTrue(resultat.isEmpty())
+    }
+
+    @Test
+    fun `hentForSaksnummer returnerer alle meldinger med matchende samtaleRef og personIdent`() {
+        val samtaleRef = UUID.randomUUID()
+        val personIdent = randomPersonIdent()
+        val saksnummer = randomSaksnummer()
+        val melding1 = lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+        val melding2 = lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+
+        dataSource.transaction { connection ->
+            val repo = MottattDialogmeldingRepository(connection)
+            repo.lagre(melding1, saksnummer)
+            repo.lagre(melding2, saksnummer)
+
+            // andre
+            repo.lagre(
+                lagMottattDialogmelding(
+                    conversationRef = UUID.randomUUID().toString(),
+                    personIdentPasient = randomPersonIdent()
+                ), randomSaksnummer()
+            )
+            repo.lagre(
+                lagMottattDialogmelding(
+                    conversationRef = UUID.randomUUID().toString(),
+                    personIdentPasient = randomPersonIdent()
+                ), randomSaksnummer()
+            )
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            MottattDialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
+        }
+
+        assertThat(resultat.map { it.msgId }).containsExactlyInAnyOrder(
+            UUID.fromString(melding1.msgId),
+            UUID.fromString(melding2.msgId)
+        )
+    }
+
+    @Test
+    fun `hentForSaksnummer filtrerer ut meldinger med et annet saksnummer`() {
+        val samtaleRef = UUID.randomUUID()
+        val personIdent = randomPersonIdent()
+        val forsteSaksnummer = randomSaksnummer()
+        val melding = lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+        val annenMelding = lagMottattDialogmelding(conversationRef = UUID.randomUUID().toString(), personIdentPasient = personIdent)
+
+        dataSource.transaction { connection ->
+            val repo = MottattDialogmeldingRepository(connection)
+            repo.lagre(melding, forsteSaksnummer)
+            repo.lagre(annenMelding, randomSaksnummer())
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            MottattDialogmeldingRepository(connection).hentForSaksnummer(forsteSaksnummer)
+        }
+
+        assertThat(resultat.map { it.msgId }).containsExactly(UUID.fromString(melding.msgId))
+    }
+
     private fun lagMottattDialogmelding(
         msgId: String = UUID.randomUUID().toString(),
         personIdentPasient: String = randomPersonIdent(),
