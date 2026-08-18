@@ -8,14 +8,14 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.cron.CronExpression
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 
 private val log = LoggerFactory.getLogger(SendAutomatiskPurringUtfører::class.java)
 private val bestillingOpprettetDatoForPurringIDag = if (Miljø.erProd()) {
-    LocalDateTime.now().minusWeeks(3).minusDays(1).toLocalDate()
+    LocalDate.now().minusWeeks(3).minusDays(1)
 } else {
-    LocalDateTime.now().minusDays(1).toLocalDate()
+    LocalDate.now().minusDays(1)
 }
 
 class SendAutomatiskPurringUtfører(
