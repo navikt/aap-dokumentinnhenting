@@ -39,6 +39,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
     private lateinit var dialogmeldingRepository: DialogmeldingRepository
 
     private lateinit var dataSource: TestDataSource
+    private val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1)
 
     @BeforeAll
     fun setup() {
@@ -166,7 +167,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
-                BehandlingReferanse(behandlingsReferanse)
+                BehandlingReferanse(behandlingsReferanse),
+                bestillingOpprettetDato = treUkerOgEnDagSiden,
             )
 
             val lagretBestillinger = dialogmeldingRepository.hentBySaksnummer(saksnummer)
@@ -198,7 +200,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
-                BehandlingReferanse(behandlingsReferanse)
+                BehandlingReferanse(behandlingsReferanse),
+                bestillingOpprettetDato = treUkerOgEnDagSiden,
             )
 
             // skal ikke opprette ny påminnelse hvis det allerede finnes en
@@ -228,7 +231,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
-                BehandlingReferanse(behandlingsReferanse)
+                BehandlingReferanse(behandlingsReferanse),
+                bestillingOpprettetDato = treUkerOgEnDagSiden,
             )
 
             // skal ikke opprette ny påminnelse hvis manuelt avbrutt
@@ -262,7 +266,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
-                BehandlingReferanse(behandlingsReferanse)
+                BehandlingReferanse(behandlingsReferanse),
+                bestillingOpprettetDato = treUkerOgEnDagSiden
             )
 
             // skal opprette ny purring hvis manuelt avbrutt og så gjenopptatt

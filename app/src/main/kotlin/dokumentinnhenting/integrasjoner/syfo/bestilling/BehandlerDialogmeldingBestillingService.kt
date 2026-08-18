@@ -78,8 +78,8 @@ class BehandlerDialogmeldingBestillingService(
     }
 
 
-    fun sendAutomatiskPåminnelseHvisBestillingFinnes(behandlingReferanse: BehandlingReferanse) {
-        val bestillingerSomSkalPåminnes = finnBestillingerSomSkalPåminnes(behandlingReferanse)
+    fun sendAutomatiskPåminnelseHvisBestillingFinnes(behandlingReferanse: BehandlingReferanse, bestillingOpprettetDato: LocalDate) {
+        val bestillingerSomSkalPåminnes = finnBestillingerSomSkalPåminnes(behandlingReferanse, bestillingOpprettetDato)
         bestillingerSomSkalPåminnes.forEach {
             log.info("Sender purring på behandling $behandlingReferanse på sak ${it.saksnummer} for opprinnelig bestilling med id ${it.dialogmeldingUuid}")
             dialogmeldingBestilling(
@@ -101,12 +101,11 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    private fun finnBestillingerSomSkalPåminnes(behandlingsreferanse: BehandlingReferanse): List<DialogmeldingFullRecord> {
-        val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1)
+    private fun finnBestillingerSomSkalPåminnes(behandlingsreferanse: BehandlingReferanse, bestillingOpprettetDato: LocalDate): List<DialogmeldingFullRecord> {
         val bestillinger = dialogmeldingRepository.hentBestillingerSomSkalPåminnes(
             behandlingReferanse = behandlingsreferanse,
             dokumentasjonstyper = listOf(DokumentasjonType.L8, DokumentasjonType.L40),
-            opprettetDato = treUkerOgEnDagSiden
+            opprettetDato = bestillingOpprettetDato
         )
         log.info("Fant ${bestillinger.size} bestillinger som skal purres på for behandling $behandlingsreferanse")
         return bestillinger
