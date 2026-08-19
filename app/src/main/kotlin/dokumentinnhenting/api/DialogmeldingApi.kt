@@ -2,7 +2,6 @@ package dokumentinnhenting.api
 
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.Azp
@@ -12,13 +11,13 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FellesDialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.InnkommendeUtgaaende
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
-import java.util.UUID
-import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.authorizedGet
 import org.slf4j.LoggerFactory
+import java.util.*
+import javax.sql.DataSource
 
 data class DialogmeldingIdParameter(@param:PathParam("dialogmeldingId") val dialogmeldingId: UUID)
 
@@ -53,18 +52,14 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
             }
         }
 
-
-        // TODO: Map til nytt format med nødvendig data
-        // TODO: Flytte denne til DialogmeldingApi?
         route("/{saksnummer}/dialogmeldinger") {
-            /*authorizedGet<HentDialogmeldingOversiktFagsakParams, List<FellesDialogmeldingDto>>(
+            // TODO: get eller authorizedGet? Ser at authorizedGet er brukt i denne fila, men har det noe særlig å si her?
+            authorizedGet<HentDialogmeldingOversiktFagsakParams, List<FellesDialogmeldingDto>>(
                 AuthorizationMachineToMachineConfig(
                     authorizedAzps = listOf(Azp.ApiIntern)
                 )
-            )*/
-            get<HentDialogmeldingOversiktFagsakParams, List<FellesDialogmeldingDto>> { params ->
-                val saksnummer = "TEST_4X4VH0G"
-                //val saksnummer = params.saksnummer
+            ) { params ->
+                val saksnummer = params.saksnummer
                 val dialogmeldingerDtos = mutableListOf<FellesDialogmeldingDto>()
 
                 val sendteDialogmeldinger = dataSource.transaction { connection ->
@@ -95,7 +90,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                         opprettetTidspunkt = dialogmelding.opprettetTid,
                         dokumentasjonsType = null,
                         tekst = dialogmelding.dn,
-                        // TODO: TekstNotatInnhold er navnet på lenka, ha som eget felt eller funker tittel?
+                        // TODO: TekstNotatInnhold er navnet på lenka, ha som eget felt eller bruke dokumentasjonstype som nå?
                         meldingStatus = null,
                         journalpostId = dialogmelding.journalpostId,
                         dokumentIdListe = mutableListOf()
