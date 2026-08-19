@@ -3,18 +3,24 @@ package dokumentinnhenting.util.motor.syfo.syfosteg
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.saf.SafRestGateway
-import dokumentinnhenting.integrasjoner.syfo.bestilling.*
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKode
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKodeverk
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
-import java.time.LocalDateTime
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
-import java.util.*
-import kotlinx.coroutines.runBlocking
+import java.time.LocalDateTime
+import java.util.UUID
 
 const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-behandler-dialogmelding-bestilling"
 const val KILDE = "AAP"
@@ -23,7 +29,7 @@ class BestillLegeerklæringSteg(
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val brevGeneratorService: DialogmeldingBrevGeneratorService,
     private val producer: KafkaProducer<String, String>,
-    ) : SyfoSteg.Utfører {
+) : SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
     private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
 
@@ -43,9 +49,11 @@ class BestillLegeerklæringSteg(
     }
 
     private fun sendBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
-        val funnetBestilling = requireNotNull(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid))
+        val funnetBestilling = requireNotNull(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)) {
+            "Fant ingen bestilling for dialogmelding $dialogmeldingUuid"
+        }
         val tidligereTilhørendeBestillingsdato = funnetBestilling.tidligereBestillingReferanse?.let {
-            dialogmeldingRepository.hentBestillingEldreEnn14Dager(it)?.opprettet
+            dialogmeldingRepository.hentByDialogId(it)?.opprettet
         }
         val mappedBestilling = mapToDialogMeldingBestilling(
             dialogmeldingUuid = dialogmeldingUuid,

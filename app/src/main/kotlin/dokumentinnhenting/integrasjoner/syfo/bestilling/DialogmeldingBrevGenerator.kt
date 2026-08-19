@@ -1,7 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
-import java.time.LocalDateTime
 import no.nav.aap.brev.kontrakt.Signatur
+import java.time.LocalDateTime
 
 fun genererDialogmelding(dto: BrevGenerering): String {
     return buildString {
@@ -119,7 +119,9 @@ private fun brev120(): String {
 }
 
 private fun brevPurring(navn: String, fnr: String, tidligereBestillingDato: LocalDateTime?): String {
-    val tidligereDato = requireNotNull(tidligereBestillingDato).toLocalDate()
+    val tidligereDato = requireNotNull(tidligereBestillingDato) {
+        "Tidligere bestillingsdato var null for purring."
+    }.toLocalDate()
     return """
         |Påminnelse.
         |
