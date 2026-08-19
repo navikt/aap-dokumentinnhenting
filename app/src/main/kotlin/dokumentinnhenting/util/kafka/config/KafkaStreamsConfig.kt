@@ -9,6 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 
 import java.util.*
+import kotlin.time.Duration.Companion.minutes
 
 data class ProducerConfig(
     val brokers: String = requiredConfigForKey("KAFKA_BROKERS"),
@@ -75,6 +76,9 @@ data class StreamsConfig(
          */
         this[StreamsConfig.PROCESSING_GUARANTEE_CONFIG] = StreamsConfig.EXACTLY_ONCE_V2
         this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
+
+        // Reduce the frequency of log messages
+        this[StreamsConfig.LOG_SUMMARY_INTERVAL_MS_CONFIG] = 30.minutes.inWholeMilliseconds
     }
 }
 
