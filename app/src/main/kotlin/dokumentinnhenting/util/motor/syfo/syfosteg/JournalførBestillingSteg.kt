@@ -34,7 +34,7 @@ class JournalførBestillingSteg(
     fun journalførBestilling(dialogmeldingUuid: UUID): SyfoSteg.Resultat {
         val bestilling = requireNotNull(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid))
         val tidligereTilhørendeBestillingsdato =
-            bestilling.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentByDialogId(it)?.opprettet } // blæ
+            bestilling.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentByDialogId(it)?.opprettet }
 
         try {
             val journalpostResponse = runBlocking {
