@@ -16,12 +16,12 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import java.time.LocalDateTime
 import no.nav.aap.brev.kontrakt.HentSignaturDokumentinnhentingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
 import no.nav.aap.brev.kontrakt.Signatur
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import java.time.LocalDateTime
 
 class BrevGateway {
     private val baseUri = requiredConfigForKey("INTEGRASJON_BREV_BASE_URL")
@@ -67,7 +67,7 @@ class BrevGateway {
             DokumentasjonType.L120 -> "Forespørsel om spesialisterklæring"
             DokumentasjonType.MELDING_FRA_NAV -> "Melding fra Nav"
             DokumentasjonType.RETUR_LEGEERKLÆRING -> "Retur til lege"
-            DokumentasjonType.PURRING -> "Purring på forespørsel om legeerklæring ved arbeidsuførhet"
+            DokumentasjonType.PURRING -> "Påminnelse om forespørsel om legeerklæring ved arbeidsuførhet"
         }
         val pdfBrevIAvsnitt = mapPdfBrev(bestilling, tidligereBestillingDato)
 
@@ -77,7 +77,7 @@ class BrevGateway {
             mottakerHprnr = bestilling.behandlerHprNr,
             mottakerNavn = bestilling.behandlerNavn,
             eksternReferanseId = bestilling.dialogmeldingUuid,
-            brevkode = bestilling.dokumentasjonType.toString(),
+            brevkode = bestilling.dokumentasjonType.utledBrevkode(),
             tittel = tittel,
             brevAvsnitt = pdfBrevIAvsnitt,
             dato = bestilling.opprettet.toLocalDate(),
@@ -85,6 +85,13 @@ class BrevGateway {
             overstyrInnsynsregel = bestilling.dokumentasjonType.skalVarsleBruker()
         )
         return request
+    }
+
+    private fun DokumentasjonType.utledBrevkode(): String {
+        return when (this) {
+            DokumentasjonType.PURRING -> "PÅMINNELSE"
+            else -> this.toString()
+        }
     }
 
     suspend fun hentSignaturForhåndsvisning(brukerFnr: String, bestillerNavIdent: String): Signatur? {
