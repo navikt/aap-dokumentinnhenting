@@ -6,6 +6,7 @@ metadata:
   labels:
     team: aap
     sub: dokumentinnhenting
+    systemkatalog.nav.no/system: TE-496
 
 spec:
   image: {{image}}
