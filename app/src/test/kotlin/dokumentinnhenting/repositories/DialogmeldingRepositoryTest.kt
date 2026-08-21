@@ -442,45 +442,27 @@ class DialogmeldingRepositoryTest {
     }
 
     @Test
-    fun `hentForSaksnummer returnerer alle meldinger med matchende samtaleRef og personIdent`() {
-        val behandlingsreferanse = BehandlingReferanse(UUID.randomUUID())
-        val saksnummer = randomSaksnummer()
-        val melding1 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-        val melding2 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-
-        dataSource.transaction { connection ->
-            val repo = DialogmeldingRepository(connection)
-            repo.opprettDialogmelding(melding1)
-            repo.opprettDialogmelding(melding2)
-        }
-
-        val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
-        }
-
-        assertThat(resultat.map { it.saksnummer }).containsExactlyInAnyOrder(
-            melding1.saksnummer,
-            melding2.saksnummer
-        )
-    }
-
-    @Test
     fun `hentForSaksnummer filtrerer ut meldinger med et annet saksnummer`() {
         val behandlingsreferanse = BehandlingReferanse(UUID.randomUUID())
         val forsteSaksnummer = randomSaksnummer()
         val melding1 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = forsteSaksnummer)
         val melding2 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = randomSaksnummer())
+        val melding3 = lagRecord(behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L8, saksnummer = forsteSaksnummer)
 
         dataSource.transaction { connection ->
             val repo = DialogmeldingRepository(connection)
             repo.opprettDialogmelding(melding1)
             repo.opprettDialogmelding(melding2)
+            repo.opprettDialogmelding(melding3)
         }
 
         val resultat = dataSource.transaction { connection ->
             DialogmeldingRepository(connection).hentForSaksnummer(forsteSaksnummer)
         }
 
-        assertThat(resultat.map { it.saksnummer }).containsExactly(melding1.saksnummer)
+        assertThat(resultat.map { it.saksnummer }).containsExactlyInAnyOrder(
+            melding1.saksnummer,
+            melding3.saksnummer
+        )
     }
 }

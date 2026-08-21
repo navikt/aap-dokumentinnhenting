@@ -14,6 +14,8 @@ import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.SakPathParam
 import no.nav.aap.tilgang.authorizedGet
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -27,6 +29,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
     dataSource: DataSource,
 ) {
     val logger = LoggerFactory.getLogger("DialogmeldingApi")
+    val dialogmeldingApiRolle = "dialogmelding-api"
 
     route("/dialogmelding") {
         route("/{dialogmeldingId}/eksisterer") {
@@ -53,10 +56,11 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
         }
 
         route("/{saksnummer}/dialogmeldinger") {
-            // TODO: get eller authorizedGet? Ser at authorizedGet er brukt i denne fila, men har det noe særlig å si her?
             authorizedGet<HentDialogmeldingOversiktFagsakParams, List<FellesDialogmeldingDto>>(
-                AuthorizationMachineToMachineConfig(
-                    authorizedAzps = listOf(Azp.ApiIntern)
+                AuthorizationParamPathConfig(
+                    applicationRole = dialogmeldingApiRolle,
+                    sakPathParam = SakPathParam("saksnummer"),
+                    applicationsOnly = true
                 )
             ) { params ->
                 val saksnummer = params.saksnummer
@@ -89,22 +93,19 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                         meldingFraNavn = dialogmelding.navnHelsepersonell,
                         opprettetTidspunkt = dialogmelding.opprettetTid,
                         dokumentasjonsType = null,
-                        tekst = dialogmelding.dn,
-                        // TODO: TekstNotatInnhold er navnet på lenka, ha som eget felt eller bruke dokumentasjonstype som nå?
+                        tekst = dialogmelding.tekstNotatInnhold,
                         meldingStatus = null,
                         journalpostId = dialogmelding.journalpostId,
                         dokumentIdListe = mutableListOf()
                     ))
                 }
 
-                if (dialogmeldingerDtos.isNotEmpty()) {
-                    val dokumenterForSak = SafGateway.hentDokumenterForSak(Saksnummer(saksnummer), token())
-                    dokumenterForSak.map { dokument ->
-                        val dialogmelding =
-                            dialogmeldingerDtos.firstOrNull { dto -> dto.journalpostId == dokument.journalpostId }
-                        if (dialogmelding != null) {
-                            dialogmelding.dokumentIdListe.addAll(dokument.dokumenter)
-                        }
+                val dokumenterForSak = SafGateway.hentDokumenterForSak(Saksnummer(saksnummer), token())
+                dokumenterForSak.map { dokument ->
+                    val dialogmelding =
+                        dialogmeldingerDtos.firstOrNull { dto -> dto.journalpostId == dokument.journalpostId }
+                    if (dialogmelding != null) {
+                        dialogmelding.dokumentIdListe.addAll(dokument.dokumenter)
                     }
                 }
 

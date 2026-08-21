@@ -105,6 +105,7 @@ spec:
             roles:
               - "syfo-api"
               - "paaminnelse-api"
+              - "dialogmelding-api"
         - application: paw-patrol
         - application: saksbehandling
         - application: api-intern

@@ -4,7 +4,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMo
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class MottattDialogmeldingRepository(private val connection: DBConnection) {
 
