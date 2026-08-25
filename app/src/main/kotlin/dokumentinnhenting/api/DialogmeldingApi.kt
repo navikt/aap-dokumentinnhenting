@@ -5,14 +5,11 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import dokumentinnhenting.Azp
-import dokumentinnhenting.integrasjoner.saf.SafGateway
-import dokumentinnhenting.integrasjoner.saf.Saksnummer
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FellesDialogmeldingDto
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.InnkommendeUtgaaende
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.SakPathParam
@@ -56,7 +53,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
         }
 
         route("/{saksnummer}/dialogmeldinger") {
-            authorizedGet<HentDialogmeldingOversiktFagsakParams, List<FellesDialogmeldingDto>>(
+            authorizedGet<HentDialogmeldingerForSakParams, List<FellesDialogmeldingDto>>(
                 AuthorizationParamPathConfig(
                     applicationRole = dialogmeldingApiRolle,
                     sakPathParam = SakPathParam("saksnummer"),
@@ -78,8 +75,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                         dokumentasjonsType = dialogmelding.dokumentasjonType.tilDto(),
                         tekst = dialogmelding.fritekst,
                         meldingStatus = dialogmelding.status?.mapLeveringStatus(),
-                        journalpostId = dialogmelding.journalpostId,
-                        dokumentIdListe = mutableListOf()
+                        journalpostId = dialogmelding.journalpostId
                     ))
                 }
 
@@ -95,18 +91,8 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                         dokumentasjonsType = null,
                         tekst = dialogmelding.tekstNotatInnhold,
                         meldingStatus = null,
-                        journalpostId = dialogmelding.journalpostId,
-                        dokumentIdListe = mutableListOf()
+                        journalpostId = dialogmelding.journalpostId
                     ))
-                }
-
-                val dokumenterForSak = SafGateway.hentDokumenterForSak(Saksnummer(saksnummer), token())
-                dokumenterForSak.map { dokument ->
-                    val dialogmelding =
-                        dialogmeldingerDtos.firstOrNull { dto -> dto.journalpostId == dokument.journalpostId }
-                    if (dialogmelding != null) {
-                        dialogmelding.dokumentIdListe.addAll(dokument.dokumenter)
-                    }
                 }
 
                 respond(dialogmeldingerDtos)
@@ -115,7 +101,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
     }
 }
 
-data class HentDialogmeldingOversiktFagsakParams(
+data class HentDialogmeldingerForSakParams(
     @param:PathParam(description = "Saksnummer") val saksnummer: String,
 )
 

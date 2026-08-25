@@ -1,0 +1,19 @@
+query ($journalpostId: String!) {
+    dokumentoversiktJournalposter(
+        journalpostId: $journalpostId
+    ) {
+        begrensetJournalpost {
+            journalpostId
+            dokumenter {
+                dokumentInfoId
+                tittel
+            }
+        }
+        sideInfo {
+            sluttpeker
+            finnesNesteSide
+            antall
+            totaltAntall
+        }
+    }
+}

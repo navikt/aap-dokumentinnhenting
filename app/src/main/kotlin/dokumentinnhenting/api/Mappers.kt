@@ -1,7 +1,9 @@
 package dokumentinnhenting.api
 
+import dokumentinnhenting.integrasjoner.saf.DokumentInfo
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.BegrensetDokumentInfoDto
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.DialogmeldingLeveringStatus
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
@@ -61,4 +63,11 @@ fun DokumentasjonType.tilDto(): no.nav.aap.dokumentinnhenting.kontrakt.Dokumenta
         DokumentasjonType.RETUR_LEGEERKLÆRING -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.RETUR_LEGEERKLÆRING
         DokumentasjonType.PURRING -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING
     }
+}
+
+fun DokumentInfo.tilBegrensetDto(): BegrensetDokumentInfoDto {
+    return BegrensetDokumentInfoDto(
+        dokumentInfoId = this.dokumentInfoId,
+        tittel = this.tittel
+    )
 }
