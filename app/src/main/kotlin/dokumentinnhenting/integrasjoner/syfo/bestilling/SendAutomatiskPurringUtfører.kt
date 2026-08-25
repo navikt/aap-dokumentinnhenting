@@ -8,25 +8,26 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.cron.CronExpression
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 
 
 private val log = LoggerFactory.getLogger(SendAutomatiskPurringUtfører::class.java)
-private val bestillingOpprettetDatoForPurringIDag = if (Miljø.erProd()) {
-    LocalDate.now().minusWeeks(3).minusDays(1)
-} else {
-    LocalDate.now().minusDays(1)
-}
 
 class SendAutomatiskPurringUtfører(
     private val bestillingService: BehandlerDialogmeldingBestillingService,
     private val behandlingsflytGateway: BehandlingsflytGateway
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
+        val kjøredatoForJobb = input.opprettetTidspunkt().toLocalDate()
+        val bestillingOpprettetDatoForPåminnelse = if (Miljø.erProd()) {
+            kjøredatoForJobb.minusWeeks(3).minusDays(1)
+        } else {
+            kjøredatoForJobb.minusDays(1)
+        }
 
-        val kandidater = behandlingsflytGateway.finnKandidaterForAutomatiskPurring()
+        val kandidater =
+            behandlingsflytGateway.finnKandidaterForAutomatiskPåminnelse(bestillingDatoForPåminnelse = bestillingOpprettetDatoForPåminnelse)
         log.info(
-            "Fikk ${kandidater.size} kandidater for purring fra behandlingsflyt: ${
+            "Fikk ${kandidater.size} kandidater for påminnelse fra behandlingsflyt: ${
                 kandidater.map { it.referanse }.joinToString(", ")
             }"
         )
@@ -37,7 +38,7 @@ class SendAutomatiskPurringUtfører(
         kandidater.forEach {
             bestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                 it,
-                bestillingOpprettetDato = bestillingOpprettetDatoForPurringIDag
+                bestillingOpprettetDato = bestillingOpprettetDatoForPåminnelse
             )
         }
     }

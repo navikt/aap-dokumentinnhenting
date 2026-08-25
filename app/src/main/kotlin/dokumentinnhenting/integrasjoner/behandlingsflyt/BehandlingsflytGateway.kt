@@ -4,16 +4,16 @@ import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.kontrakt.dokumentinnhenting.påminnelse.KandidatForPåminnelseRequest
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Innsending
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import java.time.LocalDate
 
 object BehandlingsflytGateway {
     private val uri = requiredConfigForKey("BEHANDLINGSFLYT_BASE_URL")
@@ -43,14 +43,20 @@ object BehandlingsflytGateway {
         }
     }
 
-    fun finnKandidaterForAutomatiskPurring(): List<BehandlingReferanse> =
+    fun finnKandidaterForAutomatiskPåminnelse(bestillingDatoForPåminnelse: LocalDate): List<BehandlingReferanse> =
         runBlocking {
             try {
-                defaultHttpClient.get("$uri/api/dokumentinnhenting/paaminnelse") {
+                defaultHttpClient.post("$uri/api/dokumentinnhenting/paaminnelse") {
                     bearerAuth(SystemTokenProvider.getToken(scope, null))
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        KandidatForPåminnelseRequest(
+                            bestillingOpprettetDato = bestillingDatoForPåminnelse
+                        )
+                    )
                 }.body<List<BehandlingReferanse>>()
             } catch (e: Exception) {
-                throw BehandlingsflytException("Feilet ved henting av kandidater for purring: ${e.message}")
+                throw BehandlingsflytException("Feilet ved henting av kandidater for påminnelse: ${e.message}")
             }
         }
 
