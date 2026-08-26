@@ -2,7 +2,7 @@ query ($journalpostId: String!) {
     dokumentoversiktJournalposter(
         journalpostId: $journalpostId
     ) {
-        begrensetJournalpost {
+        journalposter {
             journalpostId
             dokumenter {
                 dokumentInfoId
