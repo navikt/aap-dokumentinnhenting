@@ -1,6 +1,6 @@
 package no.nav.aap.dokumentinnhenting.kontrakt
 
-public data class AvsenderMottaker(
+public data class AvsenderMottakerDto(
     val id: String?,
     val type: AvsenderMottakerIdType?,
     val navn: String?,

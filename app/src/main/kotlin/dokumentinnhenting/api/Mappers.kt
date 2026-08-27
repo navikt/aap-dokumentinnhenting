@@ -3,7 +3,7 @@ package dokumentinnhenting.api
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
-import no.nav.aap.dokumentinnhenting.kontrakt.AvsenderMottaker
+import no.nav.aap.dokumentinnhenting.kontrakt.AvsenderMottakerDto
 import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
 import no.nav.aap.dokumentinnhenting.kontrakt.MeldingStatusDto
 
@@ -42,14 +42,14 @@ fun MeldingStatusType.mapLeveringStatus(): MeldingStatusDto {
     }
 }
 
-fun dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.tilKontrakt(): AvsenderMottaker.AvsenderMottakerIdType {
+fun dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.tilKontrakt(): AvsenderMottakerDto.AvsenderMottakerIdType {
     return when (this) {
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.FNR -> AvsenderMottaker.AvsenderMottakerIdType.FNR
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.ORGNR -> AvsenderMottaker.AvsenderMottakerIdType.ORGNR
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.HPRNR -> AvsenderMottaker.AvsenderMottakerIdType.HPRNR
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.UTL_ORG -> AvsenderMottaker.AvsenderMottakerIdType.UTL_ORG
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.NULL -> AvsenderMottaker.AvsenderMottakerIdType.NULL
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.UKJENT -> AvsenderMottaker.AvsenderMottakerIdType.UKJENT
+        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.FNR -> AvsenderMottakerDto.AvsenderMottakerIdType.FNR
+        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.ORGNR -> AvsenderMottakerDto.AvsenderMottakerIdType.ORGNR
+        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.HPRNR -> AvsenderMottakerDto.AvsenderMottakerIdType.HPRNR
+        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.UTL_ORG -> AvsenderMottakerDto.AvsenderMottakerIdType.UTL_ORG
+        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.NULL -> AvsenderMottakerDto.AvsenderMottakerIdType.NULL
+        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.UKJENT -> AvsenderMottakerDto.AvsenderMottakerIdType.UKJENT
     }
 }
 

@@ -8,7 +8,7 @@ import dokumentinnhenting.integrasjoner.saf.Journalpost
 import dokumentinnhenting.integrasjoner.saf.Journalposttype
 import dokumentinnhenting.integrasjoner.saf.RelevantDato
 import dokumentinnhenting.integrasjoner.saf.Variantformat
-import no.nav.aap.dokumentinnhenting.kontrakt.AvsenderMottaker
+import no.nav.aap.dokumentinnhenting.kontrakt.AvsenderMottakerDto
 import no.nav.aap.dokumentinnhenting.kontrakt.BegrensetDokumentInfoDto
 
 fun mapTilDokumentliste(journalpost: Journalpost): List<Doc> = journalpost.dokumenter.flatMap { dok ->
@@ -50,7 +50,7 @@ fun List<BegrensetJournalpostDto>.tilApi(): List<no.nav.aap.dokumentinnhenting.k
                     tittel = dokumentDto.tittel,
                 )
             },
-            avsenderMottaker = AvsenderMottaker(
+            avsenderMottakerDto = AvsenderMottakerDto(
                 id = journalpost.avsenderMottaker?.id,
                 type = journalpost.avsenderMottaker?.type?.tilKontrakt(),
                 navn = journalpost.avsenderMottaker?.navn
