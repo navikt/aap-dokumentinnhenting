@@ -9,7 +9,7 @@ import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FellesDialogmeldingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar

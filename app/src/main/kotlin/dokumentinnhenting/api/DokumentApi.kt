@@ -11,7 +11,6 @@ import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakResponse
-import dokumentinnhenting.integrasjoner.saf.BegrensetDokumentInfoDto
 import dokumentinnhenting.integrasjoner.saf.Doc
 import dokumentinnhenting.integrasjoner.saf.Journalpost
 import dokumentinnhenting.integrasjoner.saf.Journalposttype
@@ -23,7 +22,9 @@ import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
 import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
+import dokumentinnhenting.util.dokument.tilApi
 import io.ktor.http.HttpStatusCode
+import no.nav.aap.dokumentinnhenting.kontrakt.BegrensetJournalpostDto
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.verdityper.dokument.JournalpostId
 import java.io.InputStream
@@ -65,10 +66,10 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
             respond(journalposter)
         }
 
-        route("/{journalpostId}/dokumentliste").get<HentDokumentoversiktJournalpostParams, List<BegrensetDokumentInfoDto>> { params ->
+        route("/{journalpostId}/dokumentliste").get<HentDokumentoversiktJournalpostParams, List<BegrensetJournalpostDto>> { params ->
             val dokumenter = SafGateway.hentDokumenterForJournalpost(JournalpostId(params.journalpostId), token())
 
-            respond(dokumenter)
+            respond(dokumenter.tilApi())
         }
 
         route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentParams, HentDokumentResponse> { req ->

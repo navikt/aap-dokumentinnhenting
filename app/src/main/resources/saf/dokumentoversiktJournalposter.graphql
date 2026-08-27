@@ -8,12 +8,12 @@ query ($journalpostId: String!) {
                 dokumentInfoId
                 tittel
             }
-        }
-        sideInfo {
-            sluttpeker
-            finnesNesteSide
-            antall
-            totaltAntall
+            avsenderMottaker {
+                id
+                navn
+                type
+                erLikBruker
+            }
         }
     }
 }

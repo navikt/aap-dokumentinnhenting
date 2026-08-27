@@ -1,14 +1,13 @@
-package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
+package no.nav.aap.dokumentinnhenting.kontrakt
 
-import no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType
 import java.time.LocalDateTime
 
-data class FellesDialogmeldingDto(
+public data class FellesDialogmeldingDto(
     val innkommendeUtgaaende: InnkommendeUtgaaende,
     val meldingFraNavn: String,
     val opprettetTidspunkt: LocalDateTime,
     val dokumentasjonsType: DokumentasjonType?,
     val tekst: String?,
-    val meldingStatus: DialogmeldingLeveringStatus?,
+    val meldingStatus: MeldingStatusDto?,
     val journalpostId: String?
 )
