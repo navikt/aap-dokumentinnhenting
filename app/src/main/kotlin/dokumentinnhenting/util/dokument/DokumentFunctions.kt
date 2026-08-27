@@ -40,21 +40,19 @@ fun List<Journalpost>.mapKunVariantformatArkiv() = this
 private fun DokumentInfo.harVariantformatArkiv(): Boolean =
     this.dokumentvarianter.any { variant -> variant.variantformat == Variantformat.ARKIV }
 
-fun List<BegrensetJournalpostDto>.tilApi(): List<no.nav.aap.dokumentinnhenting.kontrakt.BegrensetJournalpostDto> {
-    return this.map { journalpost ->
-        no.nav.aap.dokumentinnhenting.kontrakt.BegrensetJournalpostDto(
-            journalpostId = journalpost.journalpostId,
-            dokumenter = journalpost.dokumenter.map {
-                dokumentDto -> BegrensetDokumentInfoDto(
-                    dokumentInfoId = dokumentDto.dokumentInfoId,
-                    tittel = dokumentDto.tittel,
-                )
-            },
-            avsenderMottakerDto = AvsenderMottakerDto(
-                id = journalpost.avsenderMottaker?.id,
-                type = journalpost.avsenderMottaker?.type?.tilKontrakt(),
-                navn = journalpost.avsenderMottaker?.navn
+fun BegrensetJournalpostDto.tilApi(): no.nav.aap.dokumentinnhenting.kontrakt.BegrensetJournalpostDto {
+    return no.nav.aap.dokumentinnhenting.kontrakt.BegrensetJournalpostDto(
+        journalpostId = this.journalpostId,
+        dokumenter = this.dokumenter.map {
+            dokumentDto -> BegrensetDokumentInfoDto(
+                dokumentInfoId = dokumentDto.dokumentInfoId,
+                tittel = dokumentDto.tittel,
             )
+        },
+        avsenderMottakerDto = AvsenderMottakerDto(
+            id = this.avsenderMottaker?.id,
+            type = this.avsenderMottaker?.type?.tilKontrakt(),
+            navn = this.avsenderMottaker?.navn
         )
-    }
+    )
 }

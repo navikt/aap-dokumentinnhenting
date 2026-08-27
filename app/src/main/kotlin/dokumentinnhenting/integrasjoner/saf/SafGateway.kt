@@ -43,7 +43,7 @@ object SafGateway {
         return response.data?.dokumentoversiktFagsak?.journalposter.orEmpty()
     }
 
-    suspend fun hentDokumenterForJournalpost(journalpostId: JournalpostId, token: OidcToken): List<BegrensetJournalpostDto> {
+    suspend fun hentDokumenterForJournalpost(journalpostId: JournalpostId, token: OidcToken): BegrensetJournalpostDto? {
         val request = SafRequest(
             query = getQuery("/saf/dokumentoversiktJournalposter.graphql"),
             variables = DokumentoversiktJournalpostVariables(journalpostId.toString())
@@ -59,7 +59,7 @@ object SafGateway {
             throw mapSafException(response.errors)
         }
 
-        return response.data?.dokumentoversiktJournalposter?.journalposter.orEmpty()
+        return response.data?.journalpost
     }
 
     suspend fun hentDokumenterForBruker(

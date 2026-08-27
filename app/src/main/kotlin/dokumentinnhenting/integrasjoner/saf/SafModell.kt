@@ -141,8 +141,7 @@ data class SafDokumentversiktFagsakData(val dokumentoversiktFagsak: Dokumentover
 data class DokumentoversiktBruker(val journalposter: List<Journalpost>)
 data class SafDokumentversiktBrukerData(val dokumentoversiktBruker: DokumentoversiktBruker?)
 
-data class DokumentoversiktJournalpost(val journalposter: List<BegrensetJournalpostDto>)
-data class SafDokumentversiktJournalpostData(val dokumentoversiktJournalposter: DokumentoversiktJournalpost?)
+data class SafDokumentversiktJournalpostData(val journalpost: BegrensetJournalpostDto)
 
 enum class Variantformat {
     ARKIV,

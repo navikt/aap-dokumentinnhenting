@@ -24,7 +24,7 @@ import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
 import dokumentinnhenting.util.dokument.tilApi
 import io.ktor.http.HttpStatusCode
-import no.nav.aap.dokumentinnhenting.kontrakt.BegrensetJournalpostDto
+import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostResponse
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.verdityper.dokument.JournalpostId
 import java.io.InputStream
@@ -66,10 +66,10 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
             respond(journalposter)
         }
 
-        route("/{journalpostId}/dokumentliste").get<HentDokumentoversiktJournalpostParams, List<BegrensetJournalpostDto>> { params ->
-            val dokumenter = SafGateway.hentDokumenterForJournalpost(JournalpostId(params.journalpostId), token())
+        route("/{journalpostId}/dokumentliste").get<HentDokumentoversiktJournalpostParams, HentDokumentoversiktJournalpostResponse> { params ->
+            val journalpost = SafGateway.hentDokumenterForJournalpost(JournalpostId(params.journalpostId), token())
 
-            respond(dokumenter.tilApi())
+            respond(HentDokumentoversiktJournalpostResponse(journalpost?.tilApi()))
         }
 
         route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentParams, HentDokumentResponse> { req ->
