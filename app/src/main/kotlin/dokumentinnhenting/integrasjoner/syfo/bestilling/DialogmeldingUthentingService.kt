@@ -17,7 +17,7 @@ class DialogmeldingUthentingService(
         val sendteDialogmeldinger = hentSendteDialogmeldinger(saksnummer)
         val mottatteDialogmeldinger = hentMottatteDialogmeldinger(saksnummer)
 
-        return listOf(sendteDialogmeldinger, mottatteDialogmeldinger).flatten()
+        return sendteDialogmeldinger + mottatteDialogmeldinger
     }
 
     private fun hentSendteDialogmeldinger(saksnummer: String): List<FellesDialogmeldingDto> {

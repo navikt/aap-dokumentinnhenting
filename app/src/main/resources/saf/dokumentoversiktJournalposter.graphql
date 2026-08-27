@@ -1,19 +1,16 @@
 query ($journalpostId: String!) {
-    dokumentoversiktJournalposter(
+    $journalpost(
         journalpostId: $journalpostId
     ) {
-        journalposter {
-            journalpostId
-            dokumenter {
-                dokumentInfoId
-                tittel
-            }
-            avsenderMottaker {
-                id
-                navn
-                type
-                erLikBruker
-            }
+        journalpostId
+        dokumenter {
+            dokumentInfoId
+            tittel
+        }
+        avsenderMottaker {
+            id
+            navn
+            type
         }
     }
 }
