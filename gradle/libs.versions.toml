@@ -17,11 +17,11 @@ postgresql = "42.7.13"
 
 [libraries]
 # Ktor client
-ktorClientCio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
-ktorClientJackson = { module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
-ktorClientLogging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
+ktor-client-jackson = { module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 
 # Kelvin / felleskomponenter
 json = { module = "no.nav.aap.kelvin:json", version.ref = "kelvin" }
@@ -30,41 +30,41 @@ dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "kelvin" }
 dbmigrering = { module = "no.nav.aap.kelvin:dbmigrering", version.ref = "kelvin" }
 dbtest = { module = "no.nav.aap.kelvin:dbtest", version.ref = "kelvin" }
 motor = { module = "no.nav.aap.kelvin:motor", version.ref = "kelvin" }
-motorApi = { module = "no.nav.aap.kelvin:motor-api", version.ref = "kelvin" }
+motor-api = { module = "no.nav.aap.kelvin:motor-api", version.ref = "kelvin" }
 server = { module = "no.nav.aap.kelvin:server", version.ref = "kelvin" }
-ktorOpenApiGenerator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "kelvin" }
+ktor-openapi-generator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "kelvin" }
 
 # Nav-kontrakter
-behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }
-brevKontrakt = { module = "no.nav.aap.brev:kontrakt", version.ref = "aapBrev" }
-tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
+behandlingsflyt-kontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }
+brev-kontrakt = { module = "no.nav.aap.brev:kontrakt", version.ref = "aapBrev" }
+tilgang-plugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
 
 # Kafka
-kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
-kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
-kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
+kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
+kafka-streams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
+kafka-streams-test-utils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
 # Database
-hikariCp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 
 # Logging
-logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash" }
+logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash" }
 
 # Diverse
-nimbusJoseJwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbusJoseJwt" }
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbusJoseJwt" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 
 # Test
-junitJupiterParams = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
-assertJ = { module = "org.assertj:assertj-core", version.ref = "assertJ" }
-ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
-testcontainersPostgres = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
-motorTestUtils = { module = "no.nav.aap.kelvin:motor-test-utils", version.ref = "kelvin" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertJ" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+testcontainers-postgres = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+motor-test-utils = { module = "no.nav.aap.kelvin:motor-test-utils", version.ref = "kelvin" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 [bundles]
-test = ["junitJupiterParams", "assertJ", "mockk", "ktorServerTestHost", "testcontainersPostgres", "motorTestUtils"]
+test = ["junit-jupiter-params", "assertj", "mockk", "ktor-server-test-host", "testcontainers-postgres", "motor-test-utils"]
 
 [plugins]
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
