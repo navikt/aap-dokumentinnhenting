@@ -22,9 +22,12 @@ import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
 import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
+import dokumentinnhenting.util.dokument.tilApi
 import io.ktor.http.HttpStatusCode
-import java.io.InputStream
+import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostResponse
 import no.nav.aap.komponenter.server.auth.token
+import no.nav.aap.verdityper.dokument.JournalpostId
+import java.io.InputStream
 
 fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
     route("/api/dokumenter").tag(Tags.Dokumenter) {
@@ -61,6 +64,12 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
                 .mapKunVariantformatArkiv()
 
             respond(journalposter)
+        }
+
+        route("/{journalpostId}/dokumentliste").get<HentDokumentoversiktJournalpostParams, HentDokumentoversiktJournalpostResponse> { params ->
+            val journalpost = SafGateway.hentDokumenterForJournalpost(JournalpostId(params.journalpostId), token())
+
+            respond(HentDokumentoversiktJournalpostResponse(journalpost?.tilApi()))
         }
 
         route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentParams, HentDokumentResponse> { req ->
@@ -100,6 +109,10 @@ data class HentDokumentoversiktBrukerRequest(
 
 class HentDokumentoversiktFagsakParams(
     @param:PathParam(description = "Saksnummer") val saksnummer: String,
+)
+
+data class HentDokumentoversiktJournalpostParams(
+    @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
 )
 
 data class HentDokumentParams(

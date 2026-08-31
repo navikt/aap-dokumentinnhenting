@@ -1,10 +1,10 @@
 package dokumentinnhenting.repositories
 
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
-import java.time.LocalDateTime
-import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
+import java.time.LocalDateTime
+import java.util.UUID
 
 class MottattDialogmeldingRepository(private val connection: DBConnection) {
 
@@ -69,6 +69,22 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
                 setString(2, personIdent)
             }
             setRowMapper(::mapMottattDialogmeldingRecord)
+        }
+    }
+
+    fun hentForSaksnummer(saksnummer: String): List<MottattDialogmeldingRecord> {
+        val query = """
+            SELECT * FROM MOTTATT_DIALOGMELDING
+            WHERE SAKSNUMMER = ?
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setString(1, saksnummer)
+            }
+            setRowMapper {
+                mapMottattDialogmeldingRecord(it)
+            }
         }
     }
 

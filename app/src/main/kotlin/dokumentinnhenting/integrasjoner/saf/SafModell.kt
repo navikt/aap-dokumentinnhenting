@@ -19,6 +19,8 @@ data class DokumentoversiktBrukerVariables(
     val etter: String? = null,
 ) : Variables
 
+data class DokumentoversiktJournalpostVariables(val journalpostId: String) : Variables
+
 data class BrukerId(
     val id: String,
     val type: BrukerIdType,
@@ -49,6 +51,12 @@ class SafDokumentoversiktFagsakDataResponse(
 
 class SafDokumentoversiktBrukerDataResponse(
     val data: SafDokumentversiktBrukerData?,
+    errors: List<GraphQLError>?,
+    extensions: GraphQLExtensions?,
+) : SafResponse(errors, extensions)
+
+class SafDokumentoversiktJournalpostDokumenterResponse(
+    val data: SafDokumentversiktJournalpostData?,
     errors: List<GraphQLError>?,
     extensions: GraphQLExtensions?,
 ) : SafResponse(errors, extensions)
@@ -133,6 +141,8 @@ data class SafDokumentversiktFagsakData(val dokumentoversiktFagsak: Dokumentover
 data class DokumentoversiktBruker(val journalposter: List<Journalpost>)
 data class SafDokumentversiktBrukerData(val dokumentoversiktBruker: DokumentoversiktBruker?)
 
+data class SafDokumentversiktJournalpostData(val journalpost: BegrensetJournalpostDto)
+
 enum class Variantformat {
     ARKIV,
     FULLVERSJON,
@@ -160,3 +170,14 @@ enum class Journalstatus {
     OPPLASTING_DOKUMENT,
     UKJENT
 }
+
+data class BegrensetJournalpostDto(
+    val journalpostId: String?,
+    val dokumenter: List<BegrensetDokumentInfoDto>,
+    val avsenderMottaker: AvsenderMottaker?,
+)
+
+data class BegrensetDokumentInfoDto(
+    val dokumentInfoId: String,
+    val tittel: String?
+)

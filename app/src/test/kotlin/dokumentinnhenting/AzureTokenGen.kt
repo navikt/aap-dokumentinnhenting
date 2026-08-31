@@ -11,7 +11,7 @@ import com.nimbusds.jwt.SignedJWT
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.Date
 
 internal class AzureTokenGen(private val issuer: String, private val audience: String) {
     private val rsaKey: RSAKey = JWKSet.parse(AZURE_JWKS).getKeyByKeyId("localhost-signer") as RSAKey
@@ -24,7 +24,7 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
         return signedJWT
     }
 
-    private fun claims(isApp: Boolean, azp: String?, navIdent: String?): JWTClaimsSet {
+    private fun claims(isApp: Boolean, azp: String?, navIdent: String?, roles: List<String>?): JWTClaimsSet {
         val builder = JWTClaimsSet
             .Builder()
             .issuer(issuer)
@@ -35,7 +35,7 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
             builder
                 .claim("idtyp", "app")
                 .claim("azp", azp)
-                .claim("roles", listOf("syfo-api"))
+                .claim("roles", roles ?: listOf("syfo-api"))
         } else {
             builder
                 .claim("NAVident", navIdent ?: "Lokalsaksbehandler")
@@ -50,8 +50,8 @@ internal class AzureTokenGen(private val issuer: String, private val audience: S
         return Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
     }
 
-    fun generate(isApp: Boolean = false, azp: String? = null, navIdent: String? = null): String {
-        return signed(claims(isApp, azp, navIdent)).serialize()
+    fun generate(isApp: Boolean = false, azp: String? = null, navIdent: String? = null, roles: List<String>? = null): String {
+        return signed(claims(isApp, azp, navIdent, roles)).serialize()
     }
 }
 

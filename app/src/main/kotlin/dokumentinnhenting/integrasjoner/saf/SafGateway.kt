@@ -10,7 +10,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import java.time.LocalDateTime
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
@@ -18,6 +17,8 @@ import no.nav.aap.komponenter.httpklient.exception.InternfeilException
 import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
+import no.nav.aap.verdityper.dokument.JournalpostId
+import java.time.LocalDateTime
 
 object SafGateway {
     private val graphqlUrl = requiredConfigForKey("INTEGRASJON_SAF_URL_GRAPHQL")
@@ -40,6 +41,25 @@ object SafGateway {
         }
 
         return response.data?.dokumentoversiktFagsak?.journalposter.orEmpty()
+    }
+
+    suspend fun hentDokumenterForJournalpost(journalpostId: JournalpostId, token: OidcToken): BegrensetJournalpostDto? {
+        val request = SafRequest(
+            query = getQuery("/saf/dokumentoversiktJournalposter.graphql"),
+            variables = DokumentoversiktJournalpostVariables(journalpostId.toString())
+        )
+
+        val response = defaultHttpClient.post(graphqlUrl) {
+            bearerAuth(OboTokenProvider.getToken(scope, token))
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body<SafDokumentoversiktJournalpostDokumenterResponse>()
+
+        if (response.errors != null) {
+            throw mapSafException(response.errors)
+        }
+
+        return response.data?.journalpost
     }
 
     suspend fun hentDokumenterForBruker(

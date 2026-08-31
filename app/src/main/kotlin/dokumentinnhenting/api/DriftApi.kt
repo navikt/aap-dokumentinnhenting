@@ -41,7 +41,7 @@ fun NormalOpenAPIRoute.driftApi(dataSource: DataSource) {
         ) { params, _ ->
             val response = dataSource.transaction { connection ->
                 DialogmeldingRepository(connection)
-                    .hentBySaksnummer(params.saksnummer)
+                    .hentForSaksnummer(params.saksnummer)
                     .map {
                         DialogmeldingDriftinfoDTO(
                             bestillerNavIdent = it.bestillerNavIdent,

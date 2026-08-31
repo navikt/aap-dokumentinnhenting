@@ -1,11 +1,15 @@
 package dokumentinnhenting.util.dokument
 
+import dokumentinnhenting.api.tilKontrakt
+import dokumentinnhenting.integrasjoner.saf.BegrensetJournalpostDto
 import dokumentinnhenting.integrasjoner.saf.Doc
 import dokumentinnhenting.integrasjoner.saf.DokumentInfo
 import dokumentinnhenting.integrasjoner.saf.Journalpost
 import dokumentinnhenting.integrasjoner.saf.Journalposttype
 import dokumentinnhenting.integrasjoner.saf.RelevantDato
 import dokumentinnhenting.integrasjoner.saf.Variantformat
+import no.nav.aap.dokumentinnhenting.kontrakt.AvsenderMottakerDto
+import no.nav.aap.dokumentinnhenting.kontrakt.BegrensetDokumentInfoDto
 
 fun mapTilDokumentliste(journalpost: Journalpost): List<Doc> = journalpost.dokumenter.flatMap { dok ->
     dok.dokumentvarianter
@@ -35,3 +39,20 @@ fun List<Journalpost>.mapKunVariantformatArkiv() = this
 
 private fun DokumentInfo.harVariantformatArkiv(): Boolean =
     this.dokumentvarianter.any { variant -> variant.variantformat == Variantformat.ARKIV }
+
+fun BegrensetJournalpostDto.tilApi(): no.nav.aap.dokumentinnhenting.kontrakt.BegrensetJournalpostDto {
+    return no.nav.aap.dokumentinnhenting.kontrakt.BegrensetJournalpostDto(
+        journalpostId = this.journalpostId,
+        dokumenter = this.dokumenter.map {
+            dokumentDto -> BegrensetDokumentInfoDto(
+                dokumentInfoId = dokumentDto.dokumentInfoId,
+                tittel = dokumentDto.tittel,
+            )
+        },
+        avsenderMottakerDto = AvsenderMottakerDto(
+            id = this.avsenderMottaker?.id,
+            type = this.avsenderMottaker?.type?.tilKontrakt(),
+            navn = this.avsenderMottaker?.navn
+        )
+    )
+}
