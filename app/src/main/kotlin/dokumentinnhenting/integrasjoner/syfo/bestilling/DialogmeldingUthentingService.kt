@@ -9,7 +9,6 @@ import no.nav.aap.dokumentinnhenting.kontrakt.InnkommendeUtgaaende
 import no.nav.aap.komponenter.dbconnect.transaction
 import javax.sql.DataSource
 
-// TODO: Så ikke noe åpenbart sted å legge denne, så gi gjerne tilbakemelding på hvor den bør ligge hvis du er uenig
 class DialogmeldingUthentingService(
     private val dataSource: DataSource,
 ) {
