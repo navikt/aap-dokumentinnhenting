@@ -24,6 +24,7 @@ import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
 import dokumentinnhenting.util.dokument.tilApi
 import io.ktor.http.HttpStatusCode
+import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostListeResponse
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostResponse
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.verdityper.dokument.JournalpostId
@@ -64,6 +65,14 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
                 .mapKunVariantformatArkiv()
 
             respond(journalposter)
+        }
+
+        route("/dokumentliste").post<Unit, HentDokumentoversiktJournalpostListeResponse, HentDokumentoversiktJournalpostListeParams> { _, params ->
+            val journalposter = params.journalpostIdListe.map { journalpostId ->
+                SafGateway.hentDokumenterForJournalpost(JournalpostId(journalpostId), token())
+            }
+
+            respond(HentDokumentoversiktJournalpostListeResponse(journalposter.mapNotNull { it?.tilApi() }))
         }
 
         route("/{journalpostId}/dokumentliste").get<HentDokumentoversiktJournalpostParams, HentDokumentoversiktJournalpostResponse> { params ->
@@ -111,14 +120,14 @@ class HentDokumentoversiktFagsakParams(
     @param:PathParam(description = "Saksnummer") val saksnummer: String,
 )
 
-data class HentDokumentoversiktJournalpostParams(
-    @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
-)
-
 data class HentDokumentParams(
     @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
     @param:PathParam(description = "Dokumentinfo-ID") val dokumentinfoId: String,
 )
+
+data class HentDokumentoversiktJournalpostParams(@param:PathParam(description = "Journalpost-ID") val journalpostId: String)
+
+data class HentDokumentoversiktJournalpostListeParams(val journalpostIdListe: List<String>)
 
 @BinaryResponse(contentTypes = ["application/pdf"])
 class HentDokumentResponse(val dokument: InputStream)
