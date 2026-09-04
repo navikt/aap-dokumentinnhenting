@@ -80,7 +80,7 @@ class DialogmeldingApiTest {
     }
 
     @Test
-    fun `GET eksisterer returnerer 200 OK når dialogmelding ikke finnes for endepunkt 'dialogmeldinger'`() = testApplication {
+    fun `GET 'dialogmeldinger' returnerer 200 OK når dialogmelding ikke finnes`() = testApplication {
         initApp()
 
         val client = httpClient()
@@ -95,7 +95,7 @@ class DialogmeldingApiTest {
     }
 
     @Test
-    fun `GET eksisterer returnerer 200 OK når dialogmelding finnes for endepunkt 'dialogmeldinger'`() = testApplication {
+    fun `GET 'dialogmeldinger' returnerer 200 OK når dialogmelding finnes`() = testApplication {
         initApp()
 
         val client = httpClient()
@@ -117,7 +117,7 @@ class DialogmeldingApiTest {
     }
 
     @Test
-    fun `GET eksisterer returnerer riktig antall dialogmeldinger for saksnummer i endepunkt 'dialogmeldinger'`() = testApplication {
+    fun `GET 'dialogmeldinger' returnerer riktig antall dialogmeldinger for saksnummer`() = testApplication {
         initApp()
 
         val client = httpClient()
@@ -161,7 +161,7 @@ class DialogmeldingApiTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["eksisterer", "dialogmeldinger"])
-    fun `GET eksisterer returnerer 401 uten gyldig token`(endepunkt: String) = testApplication {
+    fun `GET eksisterer og dialogmeldinger returnerer 401 uten gyldig token`(endepunkt: String) = testApplication {
         initApp()
 
         val response = client.get("/dialogmelding/${UUID.randomUUID()}/${endepunkt}")

@@ -5,7 +5,7 @@ import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
-import no.nav.aap.dokumentinnhenting.kontrakt.InnkommendeUtgaaende
+import no.nav.aap.dokumentinnhenting.kontrakt.InnkommendeUtgående
 import no.nav.aap.komponenter.dbconnect.transaction
 import javax.sql.DataSource
 
@@ -26,7 +26,7 @@ class DialogmeldingUthentingService(
 
         return sendteDialogmeldinger.map { dialogmelding ->
             FellesDialogmeldingDto(
-                innkommendeUtgaaende = InnkommendeUtgaaende.UTGÅENDE,
+                innkommendeUtgående = InnkommendeUtgående.UTGÅENDE,
                 meldingFraNavn = dialogmelding.behandlerNavn,
                 opprettetTidspunkt = dialogmelding.opprettet,
                 dokumentasjonsType = dialogmelding.dokumentasjonType.tilDto(),
@@ -44,7 +44,7 @@ class DialogmeldingUthentingService(
 
         return mottatteDialogmeldinger.map { dialogmelding ->
             FellesDialogmeldingDto(
-                innkommendeUtgaaende = InnkommendeUtgaaende.INNKOMMENDE,
+                innkommendeUtgående = InnkommendeUtgående.INNKOMMENDE,
                 meldingFraNavn = dialogmelding.navnHelsepersonell,
                 opprettetTidspunkt = dialogmelding.opprettetTid,
                 dokumentasjonsType = null,

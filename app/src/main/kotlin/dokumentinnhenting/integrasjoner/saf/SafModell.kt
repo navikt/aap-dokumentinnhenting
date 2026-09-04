@@ -172,7 +172,7 @@ enum class Journalstatus {
 }
 
 data class BegrensetJournalpostDto(
-    val journalpostId: String?,
+    val journalpostId: String,
     val dokumenter: List<BegrensetDokumentInfoDto>,
     val avsenderMottaker: AvsenderMottaker?,
 )
