@@ -36,10 +36,10 @@ fun NormalOpenAPIRoute.driftApi(dataSource: DataSource) {
         route("/sak/{saksnummer}/dialogmelding").authorizedPost<SaksnummerParameter, List<DialogmeldingDriftinfoDTO>, Unit>(
             AuthorizationParamPathConfig(
                 sakPathParam = SakPathParam("saksnummer"),
-                operasjon = Operasjon.DRIFTE,
+                operasjon = Operasjon.DRIFT_LES,
             ),
         ) { params, _ ->
-            val response = dataSource.transaction { connection ->
+            val response = dataSource.transaction(readOnly = true) { connection ->
                 DialogmeldingRepository(connection)
                     .hentForSaksnummer(params.saksnummer)
                     .map {
