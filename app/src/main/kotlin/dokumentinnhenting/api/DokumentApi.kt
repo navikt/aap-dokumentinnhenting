@@ -22,7 +22,7 @@ import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
 import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
-import dokumentinnhenting.util.dokument.tilApi
+import dokumentinnhenting.util.dokument.tilBegrensetDto
 import io.ktor.http.HttpStatusCode
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostListeResponse
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostResponse
@@ -72,13 +72,17 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
                 SafGateway.hentDokumenterForJournalpost(JournalpostId(journalpostId), token())
             }
 
-            respond(HentDokumentoversiktJournalpostListeResponse(journalposter.mapNotNull { it?.tilApi() }))
+            val journalposterBegrenset = journalposter.flatten().map { it.tilBegrensetDto() }
+
+            respond(HentDokumentoversiktJournalpostListeResponse(journalposterBegrenset))
         }
 
         route("/{journalpostId}/dokumentliste").get<HentDokumentoversiktJournalpostParams, HentDokumentoversiktJournalpostResponse> { params ->
-            val journalpost = SafGateway.hentDokumenterForJournalpost(JournalpostId(params.journalpostId), token())
+            val journalposter = SafGateway.hentDokumenterForJournalpost(JournalpostId(params.journalpostId), token())
 
-            respond(HentDokumentoversiktJournalpostResponse(journalpost?.tilApi()))
+            val journalposterBegrenset = journalposter.map { it.tilBegrensetDto() }
+
+            respond(HentDokumentoversiktJournalpostResponse(journalposterBegrenset))
         }
 
         route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentParams, HentDokumentResponse> { req ->

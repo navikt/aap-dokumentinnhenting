@@ -20,6 +20,7 @@ data class DokumentoversiktBrukerVariables(
 ) : Variables
 
 data class DokumentoversiktJournalpostVariables(val journalpostId: String) : Variables
+data class DokumentoversiktJournalpostListeVariables(val journalpostId: List<String>) : Variables
 
 data class BrukerId(
     val id: String,
@@ -141,7 +142,8 @@ data class SafDokumentversiktFagsakData(val dokumentoversiktFagsak: Dokumentover
 data class DokumentoversiktBruker(val journalposter: List<Journalpost>)
 data class SafDokumentversiktBrukerData(val dokumentoversiktBruker: DokumentoversiktBruker?)
 
-data class SafDokumentversiktJournalpostData(val journalpost: BegrensetJournalpostDto)
+data class DokumentoversiktJournalpostData(val journalposter: List<Journalpost>)
+data class SafDokumentversiktJournalpostData(val dokumentoversiktFagsak: DokumentoversiktJournalpostData?)
 
 enum class Variantformat {
     ARKIV,
