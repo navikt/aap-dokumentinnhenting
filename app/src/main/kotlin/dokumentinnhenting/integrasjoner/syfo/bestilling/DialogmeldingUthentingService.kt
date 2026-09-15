@@ -26,13 +26,21 @@ class DialogmeldingUthentingService(
 
         return sendteDialogmeldinger.map { dialogmelding ->
             FellesDialogmeldingDto(
+                dialogmeldingReferanse = requireNotNull(dialogmelding.dialogmeldingUuid) {
+                    "Utgående dialogmelding må ha en referanse"
+                },
                 innkommendeUtgående = InnkommendeUtgående.UTGÅENDE,
                 meldingFraNavn = dialogmelding.behandlerNavn,
                 opprettetTidspunkt = dialogmelding.opprettet,
                 dokumentasjonsType = dialogmelding.dokumentasjonType.tilDto(),
                 tekst = dialogmelding.fritekst,
                 meldingStatus = dialogmelding.status?.mapLeveringStatus(),
-                journalpostId = dialogmelding.journalpostId
+                journalpostId = dialogmelding.journalpostId,
+                automatiskPåminnelse = if (dialogmelding.dokumentasjonType == DokumentasjonType.L40) {
+                    dialogmelding.automatiskPåminnelse
+                } else {
+                    null
+                }
             )
         }
     }
@@ -44,6 +52,7 @@ class DialogmeldingUthentingService(
 
         return mottatteDialogmeldinger.map { dialogmelding ->
             FellesDialogmeldingDto(
+                dialogmeldingReferanse = null,
                 innkommendeUtgående = InnkommendeUtgående.INNKOMMENDE,
                 meldingFraNavn = dialogmelding.navnHelsepersonell,
                 opprettetTidspunkt = dialogmelding.opprettetTid,
