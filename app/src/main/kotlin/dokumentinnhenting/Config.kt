@@ -1,12 +1,10 @@
 package dokumentinnhenting
 
-import java.util.UUID
 import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import java.util.*
 
 data class Config(
     val dbConfig: DbConfig = DbConfig(),
-    val azureConfig: AzureConfig = AzureConfig(),
 )
 
 data class DbConfig(
