@@ -72,17 +72,15 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
                 SafGateway.hentDokumenterForJournalpost(JournalpostId(journalpostId), token())
             }
 
-            val journalposterBegrenset = journalposter.flatten().map { it.tilBegrensetDto() }
+            val journalposterBegrenset = journalposter.filterNotNull().map { it.tilBegrensetDto() }
 
             respond(HentDokumentoversiktJournalpostListeResponse(journalposterBegrenset))
         }
 
         route("/{journalpostId}/dokumentliste").get<HentDokumentoversiktJournalpostParams, HentDokumentoversiktJournalpostResponse> { params ->
-            val journalposter = SafGateway.hentDokumenterForJournalpost(JournalpostId(params.journalpostId), token())
+            val journalpost = SafGateway.hentDokumenterForJournalpost(JournalpostId(params.journalpostId), token())
 
-            val journalposterBegrenset = journalposter.map { it.tilBegrensetDto() }
-
-            respond(HentDokumentoversiktJournalpostResponse(journalposterBegrenset))
+            respond(HentDokumentoversiktJournalpostResponse(journalpost?.tilBegrensetDto()))
         }
 
         route("/{journalpostId}/{dokumentinfoId}").get<HentDokumentParams, HentDokumentResponse> { req ->

@@ -1,16 +1,39 @@
 query ($journalpostId: String!) {
-    $journalpost(
-        journalpostId: [JournalpostId!]
+    journalpost(
+        journalpostId: $journalpostId
     ) {
         journalpostId
+        journalposttype
+        journalstatus
+        tema
+        behandlingstema
+        relevanteDatoer {
+            dato
+            datotype
+        }
+        antallRetur
+        kanal
+        innsynsregelBeskrivelse
+        behandlingstema
+        datoOpprettet
+        tittel
         dokumenter {
             dokumentInfoId
             tittel
-        }
-        avsenderMottaker {
-            id
-            navn
-            type
+            brevkode
+            dokumentstatus
+            datoFerdigstilt
+            originalJournalpostId
+            skjerming
+            logiskeVedlegg {
+                logiskVedleggId
+                tittel
+            }
+            dokumentvarianter {
+                variantformat
+                saksbehandlerHarTilgang
+                skjerming
+            }
         }
     }
 }
