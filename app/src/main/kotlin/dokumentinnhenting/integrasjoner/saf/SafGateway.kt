@@ -43,9 +43,9 @@ object SafGateway {
         return response.data?.dokumentoversiktFagsak?.journalposter.orEmpty()
     }
 
-    suspend fun hentDokumenterForJournalpost(journalpostId: JournalpostId, token: OidcToken): BegrensetJournalpostDto? {
+    suspend fun hentDokumenterForJournalpost(journalpostId: JournalpostId, token: OidcToken): Journalpost? {
         val request = SafRequest(
-            query = getQuery("/saf/dokumentoversiktJournalposter.graphql"),
+            query = getQuery("/saf/dokumentoversiktJournalpost.graphql"),
             variables = DokumentoversiktJournalpostVariables(journalpostId.toString())
         )
 
