@@ -46,7 +46,7 @@ object SafGateway {
     suspend fun hentDokumenterForJournalpost(journalpostId: JournalpostId, token: OidcToken): Journalpost? {
         val request = SafRequest(
             query = getQuery("/saf/dokumentoversiktJournalpost.graphql"),
-            variables = DokumentoversiktJournalpostVariables(journalpostId.toString())
+            variables = DokumentoversiktJournalpostVariables(journalpostId.identifikator)
         )
 
         val response = defaultHttpClient.post(graphqlUrl) {
