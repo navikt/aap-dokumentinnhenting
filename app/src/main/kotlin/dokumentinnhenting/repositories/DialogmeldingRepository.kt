@@ -218,13 +218,13 @@ class DialogmeldingRepository(private val connection: DBConnection) {
 
     fun hentBestillingerSomSkalPåminnes(
         behandlingReferanse: BehandlingReferanse,
-        dokumentasjonstyper: List<DokumentasjonType>,
+        dokumentasjonstype: DokumentasjonType,
         opprettetDato: LocalDate
     ): List<DialogmeldingFullRecord> {
         val query = """
         SELECT d.* FROM DIALOGMELDING d
         WHERE d.behandlingsReferanse = ?
-          AND d.DOKUMENTASJONTYPE = ANY(?::text[])
+          AND d.DOKUMENTASJONTYPE = ?
           AND d.OPPRETTET_TID::date = ?
           AND d.AUTOMATISK_PAAMINNELSE
           AND NOT EXISTS (
@@ -237,7 +237,7 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         return connection.queryList(query) {
             setParams {
                 setUUID(1, behandlingReferanse.referanse)
-                setArray(2, dokumentasjonstyper.map { it.name })
+                setString(2, dokumentasjonstype.name)
                 setLocalDate(3, opprettetDato)
             }
             setRowMapper {
