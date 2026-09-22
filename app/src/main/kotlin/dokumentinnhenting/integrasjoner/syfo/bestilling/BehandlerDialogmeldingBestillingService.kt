@@ -104,7 +104,7 @@ class BehandlerDialogmeldingBestillingService(
     private fun finnBestillingerSomSkalPåminnes(behandlingsreferanse: BehandlingReferanse, bestillingOpprettetDato: LocalDate): List<DialogmeldingFullRecord> {
         val bestillinger = dialogmeldingRepository.hentBestillingerSomSkalPåminnes(
             behandlingReferanse = behandlingsreferanse,
-            dokumentasjonstyper = listOf(DokumentasjonType.L8, DokumentasjonType.L40),
+            dokumentasjonstype = DokumentasjonType.L40,
             opprettetDato = bestillingOpprettetDato
         )
         log.info("Fant ${bestillinger.size} bestillinger som skal purres på for behandling $behandlingsreferanse")
