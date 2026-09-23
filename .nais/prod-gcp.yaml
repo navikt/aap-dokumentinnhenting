@@ -78,6 +78,10 @@ spec:
       value: https://saf.prod-fss-pub.nais.io/rest
     - name: INTEGRASJON_SAF_SCOPE
       value: api://prod-fss.teamdokumenthandtering.saf/.default
+    - name: INTEGRASJON_PDL_URL
+      value: https://pdl-api.prod-fss-pub.nais.io/graphql
+    - name: INTEGRASJON_PDL_SCOPE
+      value: api://prod-fss.pdl.pdl-api/.default
     - name: INTEGRASJON_DOKARKIV_URL
       value: https://dokarkiv.prod-fss-pub.nais.io
     - name: INTEGRASJON_DOKARKIV_SCOPE

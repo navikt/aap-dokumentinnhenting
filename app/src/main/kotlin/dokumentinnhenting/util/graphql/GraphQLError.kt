@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GraphQLError(
     val message: String,
+    val locations: List<GraphQLErrorLocation>,
     val path: List<String>? = emptyList(),
     val extensions: GraphQLErrorExtension
 )
@@ -13,6 +14,11 @@ data class GraphQLError(
 data class GraphQLErrorExtension(
     val code: ErrorCode?,
     val classification: String
+)
+
+data class GraphQLErrorLocation(
+    val line: Int?,
+    val column: Int?
 )
 
 enum class ErrorCode {
