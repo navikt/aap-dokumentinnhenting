@@ -57,6 +57,8 @@ class BehandlerDialogmeldingBestillingService(
         require(bestilling.dokumentasjonType == DokumentasjonType.L40 || bestilling.dokumentasjonType == DokumentasjonType.L8) {
             "Kan ikke avbryte påminnelse på en bestilling som ikke er forespørsel om L8 eller L40. Dialogmelding-UUID: $dialogmeldingUuid"
         }
+
+        log.info("Avbryter automatisk påminnelse for bestilling med dialogmeldingUuid $dialogmeldingUuid")
         dialogmeldingRepository.settAutomatiskPåminnelse(
             automatiskPåminnelse = false,
             dialogmeldingUuid = dialogmeldingUuid
@@ -71,6 +73,7 @@ class BehandlerDialogmeldingBestillingService(
         require(bestilling.dokumentasjonType == DokumentasjonType.L40 || bestilling.dokumentasjonType == DokumentasjonType.L8) {
             "Kan ikke gjenoppta påminnelse på en bestilling som ikke er forespørsel om L8 eller L40. Dialogmelding-UUID: $dialogmeldingUuid"
         }
+        log.info("Gjenopptar automatisk påminnelse for bestilling med dialogmeldingUuid $dialogmeldingUuid")
         dialogmeldingRepository.settAutomatiskPåminnelse(
             automatiskPåminnelse = true,
             dialogmeldingUuid = dialogmeldingUuid
@@ -78,7 +81,10 @@ class BehandlerDialogmeldingBestillingService(
     }
 
 
-    fun sendAutomatiskPåminnelseHvisBestillingFinnes(behandlingReferanse: BehandlingReferanse, bestillingOpprettetDato: LocalDate) {
+    fun sendAutomatiskPåminnelseHvisBestillingFinnes(
+        behandlingReferanse: BehandlingReferanse,
+        bestillingOpprettetDato: LocalDate
+    ) {
         val bestillingerSomSkalPåminnes = finnBestillingerSomSkalPåminnes(behandlingReferanse, bestillingOpprettetDato)
         bestillingerSomSkalPåminnes.forEach {
             log.info("Sender purring på behandling $behandlingReferanse på sak ${it.saksnummer} for opprinnelig bestilling med id ${it.dialogmeldingUuid}")
@@ -101,7 +107,10 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    private fun finnBestillingerSomSkalPåminnes(behandlingsreferanse: BehandlingReferanse, bestillingOpprettetDato: LocalDate): List<DialogmeldingFullRecord> {
+    private fun finnBestillingerSomSkalPåminnes(
+        behandlingsreferanse: BehandlingReferanse,
+        bestillingOpprettetDato: LocalDate
+    ): List<DialogmeldingFullRecord> {
         val bestillinger = dialogmeldingRepository.hentBestillingerSomSkalPåminnes(
             behandlingReferanse = behandlingsreferanse,
             dokumentasjonstype = DokumentasjonType.L40,
