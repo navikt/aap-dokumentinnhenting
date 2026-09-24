@@ -37,8 +37,6 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.MeterRegistry
-import javax.sql.DataSource
-import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -53,6 +51,8 @@ import no.nav.aap.tilgang.TeamAap
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import javax.sql.DataSource
+import kotlin.time.Duration.Companion.seconds
 
 internal val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 internal val logger: Logger = LoggerFactory.getLogger("app")
