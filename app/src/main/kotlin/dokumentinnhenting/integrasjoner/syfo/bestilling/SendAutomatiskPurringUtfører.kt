@@ -17,13 +17,16 @@ class SendAutomatiskPurringUtfører(
     private val behandlingsflytGateway: BehandlingsflytGateway
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val kjøredatoForJobb = input.opprettetTidspunkt().toLocalDate()
+        // Jobben opprettes dagen før den sendes.
+        // Bestilling-dato for påminnelse som sendes i dag er derfor tre uker og én dag siden.
+        val jobbOpprettetDato = input.opprettetTidspunkt().toLocalDate()
         val bestillingOpprettetDatoForPåminnelse = if (Miljø.erProd()) {
-            kjøredatoForJobb.minusWeeks(3).minusDays(1)
+            jobbOpprettetDato.minusWeeks(3)
         } else {
-            kjøredatoForJobb.minusDays(1)
+            jobbOpprettetDato
         }
 
+        log.info("Spør behandlingsflyt om kandidater for påminnelse med bestilling opprettet $bestillingOpprettetDatoForPåminnelse")
         val kandidater =
             behandlingsflytGateway.finnKandidaterForAutomatiskPåminnelse(bestillingDatoForPåminnelse = bestillingOpprettetDatoForPåminnelse)
         log.info(
