@@ -15,10 +15,6 @@ import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import java.time.LocalDateTime
-import java.util.UUID
-import java.util.UUID.randomUUID
-import kotlin.random.Random.Default.nextInt
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -31,6 +27,10 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDateTime
+import java.util.UUID
+import java.util.UUID.randomUUID
+import kotlin.random.Random.Default.nextInt
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -64,6 +64,21 @@ class FiltrerDialogmeldingUtførerTest {
         val dto = lagDialogmeldingMottakDTO()
         behandlingsflytSakResponses[dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate()] =
             randomUUID().toString()
+
+        utfør(dto)
+
+        assertThat(hentJobber(dto.personIdentPasient)).hasSize(1)
+    }
+
+    @Test
+    fun `skal legge til ny jobb når person har identhistorikk og treff på tidligere ident`() {
+        val dto = lagDialogmeldingMottakDTO()
+
+        opprettDialogmelding(
+            samtaleRef = UUID.fromString(dto.conversationRef),
+            personIdent = "70078749472",
+            saksnummer = randomSaksnummer()
+        )
 
         utfør(dto)
 

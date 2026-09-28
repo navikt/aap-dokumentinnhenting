@@ -7,6 +7,7 @@ import com.nimbusds.jwt.JWTParser
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.FinnBehandlingForIdentDTO
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.NullableSakOgBehandlingDTO
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.SakOgBehandling
+import dokumentinnhenting.integrasjoner.pdl.PdlRequest
 import dokumentinnhenting.integrasjoner.saf.AvsenderMottaker
 import dokumentinnhenting.integrasjoner.saf.DokumentInfo
 import dokumentinnhenting.integrasjoner.saf.DokumentoversiktFagsak
@@ -342,20 +343,42 @@ object Fakes : AutoCloseable {
             }
         }
         routing {
-            get("/api/v1/behandler/personident") {
+            post {
+                val req = call.receive<PdlRequest>()
+                val aktivPersonIdent = req.variables.ident
+                val inaktivPersonIdent = randomPersonIdent()
+
                 call.respond(
-                    listOf(
-                        behandler("FASTLEGE"),
-                        behandler("SYKMELDER")
-                    )
-                )
-            }
-            post("/api/v1/behandler/search") {
-                call.respond(
-                    listOf(
-                        behandler("FASTLEGE"),
-                        behandler("SYKMELDER")
-                    )
+                    """
+                        {
+                          "data": {
+                            "hentIdenter": {
+                              "identer": [
+                                {
+                                  "ident": "2305469522806",
+                                  "historisk": false,
+                                  "gruppe": "AKTORID"
+                                },
+                                {
+                                  "ident": $aktivPersonIdent,
+                                  "historisk": false,
+                                  "gruppe": "FOLKEREGISTERIDENT"
+                                },
+                                {
+                                  "ident": $inaktivPersonIdent,
+                                  "historisk": true,
+                                  "gruppe": "FOLKEREGISTERIDENT"
+                                },
+                                {
+                                  "ident": "70078749472",
+                                  "historisk": true,
+                                  "gruppe": "FOLKEREGISTERIDENT"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                    """.trimIndent()
                 )
             }
         }
