@@ -123,3 +123,4 @@ spec:
         - host: saf.prod-fss-pub.nais.io
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: aap-unleash-api.nav.cloud.nais.io
+        - host: pdl-api.prod-fss-pub.nais.io

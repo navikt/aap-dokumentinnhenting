@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GraphQLError(
     val message: String,
-    val locations: List<GraphQLErrorLocation>,
+    val locations: List<GraphQLErrorLocation>? = null,
     val path: List<String>? = emptyList(),
     val extensions: GraphQLErrorExtension
 )
