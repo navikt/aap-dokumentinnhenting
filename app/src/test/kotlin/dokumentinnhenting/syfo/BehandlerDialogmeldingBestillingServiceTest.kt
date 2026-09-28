@@ -1,14 +1,11 @@
 package dokumentinnhenting.syfo
 
 import dokumentinnhenting.WithFakes
-import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
-import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
@@ -21,7 +18,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.UUID.randomUUID
-import javax.sql.DataSource
 import kotlin.random.Random
 
 @WithFakes
@@ -223,17 +219,6 @@ class BehandlerDialogmeldingBestillingServiceTest {
             }
             assertThat(påminnelserEtterAutomatisk).isNotEmpty()
             assertThat(påminnelserEtterAutomatisk.first().tidligereBestillingReferanse).isEqualTo(bestillingUuid)
-        }
-    }
-
-    private fun hentRepositoryData(
-        dataSource: DataSource,
-        saksnummer: String
-    ): List<DialogmeldingStatusTilBehandslingsflytDto> {
-        return dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
-            dialogmeldingRepository.hentForSaksnummer(saksnummer)
-                .map(DialogmeldingFullRecord::tilDto)
         }
     }
 

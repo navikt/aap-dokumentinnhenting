@@ -1,6 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
+import dokumentinnhenting.repositories.PåminnelseKjøringRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.Jobb
@@ -8,38 +9,54 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.cron.CronExpression
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 
 private val log = LoggerFactory.getLogger(SendAutomatiskPurringUtfører::class.java)
 
+private val dagerÅTrekkeFra = if (Miljø.erProd()) 22L else 0L
+
 class SendAutomatiskPurringUtfører(
     private val bestillingService: BehandlerDialogmeldingBestillingService,
-    private val behandlingsflytGateway: BehandlingsflytGateway
+    private val behandlingsflytGateway: BehandlingsflytGateway,
+    private val påminnelseKjøringRepository: PåminnelseKjøringRepository
 ) : JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val kjøredatoForJobb = input.opprettetTidspunkt().toLocalDate()
-        val bestillingOpprettetDatoForPåminnelse = if (Miljø.erProd()) {
-            kjøredatoForJobb.minusWeeks(3).minusDays(1)
+        val sistKjørtForBestillingsdato = påminnelseKjøringRepository.hentSistKjørtForDato()
+        val datoerSomMåSendesPåminnelseFor = if (sistKjørtForBestillingsdato == null) {
+            log.info("Ingen tidligere kjøring funnet, sender påminnelse for bestillinger opprettet for tre uker og en dag siden.")
+            listOf(LocalDate.now().minusDays(dagerÅTrekkeFra))
         } else {
-            kjøredatoForJobb.minusDays(1)
-        }
-
-        val kandidater =
-            behandlingsflytGateway.finnKandidaterForAutomatiskPåminnelse(bestillingDatoForPåminnelse = bestillingOpprettetDatoForPåminnelse)
-        log.info(
-            "Fikk ${kandidater.size} kandidater for påminnelse fra behandlingsflyt: ${
-                kandidater.map { it.referanse }.joinToString(", ")
-            }"
-        )
-        // skru på bare i dev foreløpig
-        if (Miljø.erProd()) {
-            return
-        }
-        kandidater.forEach {
-            bestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
-                it,
-                bestillingOpprettetDato = bestillingOpprettetDatoForPåminnelse
+            log.info(
+                "Sist kjørt for bestillingsdato: $sistKjørtForBestillingsdato, sender påminnelse for alle bestillinger opprettet mellom $sistKjørtForBestillingsdato og ${
+                    LocalDate.now().minusDays(dagerÅTrekkeFra)
+                }"
             )
+            val startDatoForKjøring = sistKjørtForBestillingsdato.plusDays(1)
+            val sluttDatoForKjøring = LocalDate.now().minusDays(dagerÅTrekkeFra)
+            startDatoForKjøring.datesUntil(sluttDatoForKjøring.plusDays(1))
+                .toList()
+        }
+        datoerSomMåSendesPåminnelseFor.forEach { bestillingOpprettetDatoForPåminnelse ->
+            val kandidater =
+                behandlingsflytGateway.finnKandidaterForAutomatiskPåminnelse(bestillingDatoForPåminnelse = bestillingOpprettetDatoForPåminnelse)
+            log.info(
+                "Fikk ${kandidater.size} kandidater for påminnelse fra behandlingsflyt for dato $bestillingOpprettetDatoForPåminnelse: ${
+                    kandidater.map { it.referanse }.joinToString(", ")
+                }"
+            )
+
+            // ikke send eller lagre noe i prod inntil videre
+            if (Miljø.erProd()) {
+                return@forEach
+            }
+            kandidater.forEach {
+                bestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
+                    it,
+                    bestillingOpprettetDato = bestillingOpprettetDatoForPåminnelse
+                )
+            }
+            påminnelseKjøringRepository.lagreKjøringForDato(bestillingOpprettetDatoForPåminnelse)
         }
     }
 
@@ -47,7 +64,8 @@ class SendAutomatiskPurringUtfører(
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return SendAutomatiskPurringUtfører(
                 bestillingService = BehandlerDialogmeldingBestillingService.konstruer(connection),
-                behandlingsflytGateway = BehandlingsflytGateway
+                behandlingsflytGateway = BehandlingsflytGateway,
+                påminnelseKjøringRepository = PåminnelseKjøringRepository(connection)
             )
         }
 
