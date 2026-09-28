@@ -38,11 +38,7 @@ class FiltrerDialogmeldingUtfører(
         }
 
         val personIdentMelding = payload.personIdentPasient
-        var saksnummer = finnSaksnummerPåIdentViaDialogmelding(payload, personIdentMelding)
-
-        if (saksnummer == null) {
-            saksnummer = finnSaksnummerGjennomIdentHistorikk(payload)
-        }
+        val saksnummer = finnSaksnummerPåIdentViaDialogmelding(payload, personIdentMelding) ?: finnSaksnummerGjennomIdentHistorikk(payload)
 
         if (saksnummer != null) {
             opprettJobb(payload, saksnummer, skalLagreMottatDialogmelding = true)
