@@ -15,7 +15,7 @@ object PdlGateway {
     val url: URI = URI.create(requiredConfigForKey("INTEGRASJON_PDL_URL"))
     val config = ClientConfig(
         scope = requiredConfigForKey("INTEGRASJON_PDL_SCOPE"),
-        // TOOO: Kopiert fra behandlingsflyt - hvordan er denne verdien hardkodet?
+        // https://behandlingskatalog.ansatt.nav.no/process/system/KELVIN/0ae77024-b2c8-4316-ad36-a04cde0e49d3
         additionalHeaders = listOf(Header("Behandlingsnummer", "B287"))
     )
     val client = RestClient(
