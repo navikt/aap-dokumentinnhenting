@@ -73,7 +73,7 @@ class FiltrerDialogmeldingUtfører(
         val personIdentMelding = dialogmelding.personIdentPasient
         val identHistorikk = PdlIdentGateway().hentAlleIdenterForPerson(Ident(personIdentMelding))
 
-        identHistorikk.filter {it.identifikator !== personIdentMelding}.forEach {
+        identHistorikk.filter {it.identifikator != personIdentMelding}.forEach {
             val saksnummer = finnSaksnummerPåIdentViaDialogmelding(dialogmelding, it.identifikator)
             if (saksnummer !== null) {
                 return saksnummer

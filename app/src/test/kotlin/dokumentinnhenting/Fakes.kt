@@ -360,12 +360,12 @@ object Fakes : AutoCloseable {
                                   "gruppe": "AKTORID"
                                 },
                                 {
-                                  "ident": $aktivPersonIdent,
+                                  "ident": "$aktivPersonIdent",
                                   "historisk": false,
                                   "gruppe": "FOLKEREGISTERIDENT"
                                 },
                                 {
-                                  "ident": $inaktivPersonIdent,
+                                  "ident": "$inaktivPersonIdent",
                                   "historisk": true,
                                   "gruppe": "FOLKEREGISTERIDENT"
                                 },
