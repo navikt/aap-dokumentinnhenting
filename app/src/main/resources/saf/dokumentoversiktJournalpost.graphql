@@ -8,10 +8,10 @@ query ($journalpostId: String!) {
         tema
         behandlingstema
         avsenderMottaker {
-          id
-          navn
-          type
-          erLikBruker
+            id
+            navn
+            type
+            erLikBruker
         }
         relevanteDatoer {
             dato
