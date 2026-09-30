@@ -22,6 +22,8 @@ Appen har ulike run-konfigurasjoner i IntelliJ.
 
 Konfigurasjonsfilene finner du i mappen `.run/`
 
+Swagger-spec: https://aap-dokumentinnhenting.intern.dev.nav.no/swagger-ui/index.html
+
 #### TestApp
 
 I IntelliJ skal det være plug-n-play med to ulike run-konfigurasjoner for TestApp.
