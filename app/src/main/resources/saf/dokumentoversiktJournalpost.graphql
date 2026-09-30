@@ -7,6 +7,12 @@ query ($journalpostId: String!) {
         journalstatus
         tema
         behandlingstema
+        avsenderMottaker {
+          id
+          navn
+          type
+          erLikBruker
+        }
         relevanteDatoer {
             dato
             datotype
