@@ -61,6 +61,8 @@ spec:
       destinations:
         - id: elastic
         - id: loki
+  envFrom:
+    - secret: kelvin-unleash-api-token
   env:
     - name: BEHANDLINGSFLYT_BASE_URL
       value: http://behandlingsflyt
@@ -116,3 +118,4 @@ spec:
       external:
         - host: saf.prod-fss-pub.nais.io
         - host: dokarkiv.prod-fss-pub.nais.io
+        - host: aap-unleash-api.nav.cloud.nais.io

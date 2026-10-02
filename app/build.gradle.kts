@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.nimbus.jose.jwt)
     implementation(libs.hikari.cp)
     implementation(libs.caffeine)
+    implementation(libs.unleash.client.java)
 
     // Felleskomponenter
     implementation(libs.json)
