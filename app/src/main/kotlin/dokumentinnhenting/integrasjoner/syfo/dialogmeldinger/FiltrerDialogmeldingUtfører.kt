@@ -10,6 +10,7 @@ import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRecord
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.FlytJobbRepository
@@ -38,7 +39,7 @@ class FiltrerDialogmeldingUtfører(
         }
 
         val personIdentMelding = payload.personIdentPasient
-        val saksnummer = finnSaksnummerPåIdentViaDialogmelding(payload, personIdentMelding) ?: finnSaksnummerGjennomIdentHistorikk(payload)
+        val saksnummer = finnSaksnummer(payload, personIdentMelding)
 
         if (saksnummer != null) {
             opprettJobb(payload, saksnummer, skalLagreMottatDialogmelding = true)
@@ -82,6 +83,10 @@ class FiltrerDialogmeldingUtfører(
         return null
     }
 
+    private fun finnSaksnummer(payload: DialogmeldingMottakDTO, personIdentMelding: String): String? {
+        return finnSaksnummerPåIdentViaDialogmelding(payload, personIdentMelding) ?: finnSaksnummerGjennomIdentHistorikk(payload)
+    }
+
     private fun finnKoblingViaSendtDialogmelding(
         mottattDialogmelding: DialogmeldingMottakDTO, personIdent: String
     ): DialogmeldingFullRecord? {
@@ -122,8 +127,7 @@ class FiltrerDialogmeldingUtfører(
     private fun oppdaterIdentPåDialogmeldinger(identHistorikk: List<Ident>, dialogmelding: DialogmeldingMottakDTO) {
         val aktivIdent = identHistorikk.firstOrNull { it.aktivIdent }?.identifikator
         if (aktivIdent == null) {
-            log.warn("Det fantes ingen aktiv ident i identhistorikken!")
-            return
+            throw VerdiIkkeFunnetException("Det fantes ingen aktiv ident i identhistorikken!")
         }
 
         dialogmelding.conversationRef?.toUUIDOrNull()
