@@ -12,6 +12,7 @@ import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomSaksnummer
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import dokumentinnhenting.unleash.FakeUnleashGateway
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
@@ -339,6 +340,7 @@ class FiltrerDialogmeldingUtførerTest {
                 FlytJobbRepository(connection),
                 DialogmeldingRepository(connection),
                 MottattDialogmeldingRepository(connection),
+                FakeUnleashGateway(enabled = true),
             )
                 .utfør(lagJobbInput(dto))
         }

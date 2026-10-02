@@ -9,6 +9,9 @@ import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRecord
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import dokumentinnhenting.unleash.FeatureToggles
+import dokumentinnhenting.unleash.UnleashGateway
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -24,6 +27,7 @@ class FiltrerDialogmeldingUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val mottattDialogmeldingRepository: MottattDialogmeldingRepository,
+    private val unleash: UnleashGateway,
 ) : JobbUtfører {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -74,7 +78,7 @@ class FiltrerDialogmeldingUtfører(
 
         identHistorikk.filter {it.identifikator != personIdentMelding}.forEach {
             val saksnummer = finnSaksnummerPåIdentViaDialogmelding(dialogmelding, it.identifikator)
-            if (saksnummer !== null) {
+            if (saksnummer != null) {
                 oppdaterIdentPåDialogmeldinger(identHistorikk, dialogmelding)
                 return saksnummer
             }
@@ -84,7 +88,13 @@ class FiltrerDialogmeldingUtfører(
     }
 
     private fun finnSaksnummer(payload: DialogmeldingMottakDTO, personIdentMelding: String): String? {
-        return finnSaksnummerPåIdentViaDialogmelding(payload, personIdentMelding) ?: finnSaksnummerGjennomIdentHistorikk(payload)
+        val saksnummer = finnSaksnummerPåIdentViaDialogmelding(payload, personIdentMelding)
+
+        if (!unleash.isEnabled(FeatureToggles.HaandterEndringAvIdentIDialogmelding)) {
+            return saksnummer
+        }
+
+        return saksnummer ?: finnSaksnummerGjennomIdentHistorikk(payload)
     }
 
     private fun finnKoblingViaSendtDialogmelding(
@@ -192,6 +202,7 @@ class FiltrerDialogmeldingUtfører(
                 flytJobbRepository = FlytJobbRepository(connection),
                 dialogmeldingRepository = DialogmeldingRepository(connection),
                 mottattDialogmeldingRepository = MottattDialogmeldingRepository(connection),
+                unleash = UnleashGatewayImpl
             )
         }
 
