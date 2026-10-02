@@ -72,6 +72,21 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
+    fun hentForParent(parentRef: UUID, personIdent: String): List<MottattDialogmeldingRecord> {
+        val query = """
+            SELECT * FROM MOTTATT_DIALOGMELDING
+            WHERE MSG_ID = ? AND PERSON_IDENT_PASIENT = ?
+        """.trimIndent()
+
+        return connection.queryList(query) {
+            setParams {
+                setUUID(1, parentRef)
+                setString(2, personIdent)
+            }
+            setRowMapper(::mapMottattDialogmeldingRecord)
+        }
+    }
+
     fun hentForSaksnummer(saksnummer: String): List<MottattDialogmeldingRecord> {
         val query = """
             SELECT * FROM MOTTATT_DIALOGMELDING
@@ -84,6 +99,38 @@ class MottattDialogmeldingRepository(private val connection: DBConnection) {
             }
             setRowMapper {
                 mapMottattDialogmeldingRecord(it)
+            }
+        }
+    }
+
+    fun oppdaterPersonIdentPåSamtaleRef(samtaleRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
+        val query = """
+            UPDATE MOTTATT_DIALOGMELDING
+            SET PERSON_IDENT_PASIENT = ?
+            WHERE CONVERSATION_REF = ? AND PERSON_IDENT_PASIENT = ANY(?::text[])
+        """.trimIndent()
+
+        return connection.execute(query) {
+            setParams {
+                setString(1, nyIdent)
+                setUUID(2, samtaleRef)
+                setArray(3, muligeIdenter)
+            }
+        }
+    }
+
+    fun oppdaterPersonIdentPåParentRef(parentRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
+        val query = """
+            UPDATE MOTTATT_DIALOGMELDING
+            SET PERSON_IDENT_PASIENT = ?
+            WHERE MSG_ID = ? AND PERSON_IDENT_PASIENT = ANY(?::text[])
+        """.trimIndent()
+
+        return connection.execute(query) {
+            setParams {
+                setString(1, nyIdent)
+                setUUID(2, parentRef)
+                setArray(3, muligeIdenter)
             }
         }
     }

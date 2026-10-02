@@ -45,8 +45,6 @@ class FiltrerDialogmeldingUtfører(
             return
         }
 
-        // TODO: Skal vi prøve å bruke identHistorikken her også i tilfelle vi ikke får treff på første,
-        //  eller blir det litt overkill?
         if (payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
             log.info("Fant ikke kobling fra mottatt til sendt dialogmelding. Henter saksinfo fra behandlingsflyt for dialogmelding med journalpostId ${payload.journalpostId}")
             val saksInfo = BehandlingsflytGateway.finnÅpenSakForIdentPåDato(
@@ -76,6 +74,7 @@ class FiltrerDialogmeldingUtfører(
         identHistorikk.filter {it.identifikator != personIdentMelding}.forEach {
             val saksnummer = finnSaksnummerPåIdentViaDialogmelding(dialogmelding, it.identifikator)
             if (saksnummer !== null) {
+                oppdaterIdentPåDialogmeldinger(identHistorikk, dialogmelding)
                 return saksnummer
             }
         }
@@ -118,6 +117,41 @@ class FiltrerDialogmeldingUtfører(
                     .firstOrNull()
             }
             ?.also { log.info("Fant kobling fra mottatt til tidligere mottatt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
+    }
+
+    private fun oppdaterIdentPåDialogmeldinger(identHistorikk: List<Ident>, dialogmelding: DialogmeldingMottakDTO) {
+        val aktivIdent = identHistorikk.firstOrNull { it.aktivIdent }?.identifikator
+        if (aktivIdent == null) {
+            log.warn("Det fantes ingen aktiv ident i identhistorikken!")
+            return
+        }
+
+        dialogmelding.conversationRef?.toUUIDOrNull()
+            ?.let { conversationRef ->
+                dialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
+                    conversationRef,
+                    identHistorikk.map { it.identifikator },
+                    aktivIdent
+                )
+                mottattDialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
+                    conversationRef,
+                    identHistorikk.map { it.identifikator },
+                    aktivIdent
+                )
+            }
+        dialogmelding.parentRef?.toUUIDOrNull()
+            ?.let { parentRef ->
+                dialogmeldingRepository.oppdaterPersonIdentPåParentRef(
+                    parentRef,
+                    identHistorikk.map { it.identifikator },
+                    aktivIdent
+                )
+                mottattDialogmeldingRepository.oppdaterPersonIdentPåParentRef(
+                    parentRef,
+                    identHistorikk.map { it.identifikator },
+                    aktivIdent
+                )
+            }
     }
 
     private fun opprettJobb(

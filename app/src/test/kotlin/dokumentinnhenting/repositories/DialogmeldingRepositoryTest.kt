@@ -5,13 +5,11 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
-import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomNavIdent
+import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomSaksnummer
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
-import java.time.OffsetDateTime
-import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
@@ -23,6 +21,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.OffsetDateTime
+import java.util.UUID
+import java.util.UUID.randomUUID
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -464,5 +465,92 @@ class DialogmeldingRepositoryTest {
             melding1.saksnummer,
             melding3.saksnummer
         )
+    }
+
+    @Test
+    fun `oppdaterPersonIdentPåSamtaleRef oppdaterer kun gammel ident på alle i samme samtale`() {
+        val behandlingsreferanse = BehandlingReferanse(randomUUID())
+        val saksnummer = randomSaksnummer()
+        val samtaleRef = randomUUID()
+        val annenSamtaleRef = randomUUID()
+        val nyPersonIdent = randomPersonIdent()
+        val gammelIdent = randomPersonIdent()
+        val annenPersonIdent = randomPersonIdent()
+        val identHistorikk = listOf(nyPersonIdent, gammelIdent)
+
+        val meldingNyIdent = lagRecord(personIdent = nyPersonIdent, samtaleRef = samtaleRef,
+            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+        val meldingGammelIdent = lagRecord(personIdent = gammelIdent, samtaleRef = samtaleRef,
+            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+        val meldingAnnenPerson = lagRecord(personIdent = annenPersonIdent, samtaleRef = samtaleRef,
+            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+        val meldingAnnenSamtale = lagRecord(personIdent = gammelIdent, samtaleRef = annenSamtaleRef,
+            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+
+        val meldingerNyIdentFørEndring = dataSource.transaction { connection ->
+            val repo = DialogmeldingRepository(connection)
+            repo.opprettDialogmelding(meldingNyIdent)
+            repo.opprettDialogmelding(meldingGammelIdent)
+            repo.opprettDialogmelding(meldingAnnenPerson)
+            repo.opprettDialogmelding(meldingAnnenSamtale)
+            repo.hentForSamtale(samtaleRef, nyPersonIdent)
+        }
+
+        dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).oppdaterPersonIdentPåSamtaleRef(samtaleRef, identHistorikk, nyPersonIdent)
+        }
+
+        val (meldingerNyIdentEtterEndring, meldingerNyIdentAnnenSamtale) = dataSource.transaction { connection ->
+            val repo = DialogmeldingRepository(connection)
+            val meldingerRiktigSamtale = repo.hentForSamtale(samtaleRef, nyPersonIdent)
+            val meldingerAnnenSamtale = repo.hentForSamtale(annenSamtaleRef, nyPersonIdent)
+            meldingerRiktigSamtale to meldingerAnnenSamtale
+        }
+
+        assertThat(meldingerNyIdentFørEndring.size).isEqualTo(1)
+        assertThat(meldingerNyIdentEtterEndring.size).isEqualTo(2)
+        assertThat(meldingerNyIdentAnnenSamtale.size).isEqualTo(0)
+    }
+
+    @Test
+    fun `oppdaterPersonIdentPåParentRef oppdaterer kun gammel ident på parent`() {
+        val behandlingsreferanse = BehandlingReferanse(randomUUID())
+        val saksnummer = randomSaksnummer()
+        val samtaleRef = randomUUID()
+        val parentRef = randomUUID()
+        val nyPersonIdent = randomPersonIdent()
+        val gammelIdent = randomPersonIdent()
+        val annenPersonIdent = randomPersonIdent()
+        val identHistorikk = listOf(nyPersonIdent, gammelIdent)
+
+        val meldingParent = lagRecord(personIdent = gammelIdent, uuid = parentRef,
+            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+        val meldingSamtaleGammelIdent = lagRecord(personIdent = gammelIdent, samtaleRef = samtaleRef,
+            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+        val meldingSamtaleAnnenPerson = lagRecord(personIdent = annenPersonIdent, samtaleRef = samtaleRef,
+            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
+
+        val meldingerParentNyIdentFørEndring = dataSource.transaction { connection ->
+            val repo = DialogmeldingRepository(connection)
+            repo.opprettDialogmelding(meldingParent)
+            repo.opprettDialogmelding(meldingSamtaleGammelIdent)
+            repo.opprettDialogmelding(meldingSamtaleAnnenPerson)
+            repo.hentForParent(parentRef, nyPersonIdent)
+        }
+
+        dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).oppdaterPersonIdentPåParentRef(parentRef, identHistorikk, nyPersonIdent)
+        }
+
+        val (meldingerParentNyIdentEtterEndring, meldingerSamtaleNyIdentEtterEndring) = dataSource.transaction { connection ->
+            val repo = DialogmeldingRepository(connection)
+            val meldingerParent = repo.hentForParent(parentRef, nyPersonIdent)
+            val meldingerSamtale = repo.hentForSamtale(samtaleRef, nyPersonIdent)
+            meldingerParent to meldingerSamtale
+        }
+
+        assertThat(meldingerParentNyIdentFørEndring == null)
+        assertThat(meldingerParentNyIdentEtterEndring != null)
+        assertThat(meldingerSamtaleNyIdentEtterEndring.size).isEqualTo(0)
     }
 }
