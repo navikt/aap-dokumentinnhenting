@@ -4,5 +4,5 @@ plugins {
 
 dependencies {
     implementation(libs.dbmigrering)
-    runtimeOnly(libs.postgresql)
+    runtimeOnly(kelvinLibs.postgresql)
 }
