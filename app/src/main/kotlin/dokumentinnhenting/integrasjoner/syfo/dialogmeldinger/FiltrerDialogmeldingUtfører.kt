@@ -140,46 +140,21 @@ class FiltrerDialogmeldingUtfører(
             throw VerdiIkkeFunnetException("Det fantes ingen aktiv ident i identhistorikken!")
         }
 
-        dialogmelding.conversationRef?.toUUIDOrNull()
-            ?.let { conversationRef ->
-                dialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
-                    conversationRef,
-                    identHistorikk.map { it.identifikator },
-                    aktivIdent
-                )
-                mottattDialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
-                    conversationRef,
-                    identHistorikk.map { it.identifikator },
-                    aktivIdent
-                )
-            }
-        dialogmelding.parentRef?.toUUIDOrNull()
-            ?.let { parentRef ->
-                dialogmeldingRepository.oppdaterPersonIdentPåParentRef(
-                    parentRef,
-                    identHistorikk.map { it.identifikator },
-                    aktivIdent
-                )
-                mottattDialogmeldingRepository.oppdaterPersonIdentPåParentRef(
-                    parentRef,
-                    identHistorikk.map { it.identifikator },
-                    aktivIdent
-                )
-            }
         listOfNotNull(dialogmelding.conversationRef, dialogmelding.parentRef)
-          .map(UUID::fromString)
-          .map { ref -> 
+            .map(UUID::fromString)
+            .forEach { ref ->
                 dialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
-                    it,
+                    ref,
                     identHistorikk.map { it.identifikator },
                     aktivIdent
                 )
                 mottattDialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
-                    it,
+                    ref,
                     identHistorikk.map { it.identifikator },
                     aktivIdent
                 )
-          }
+            }
+    }
 
     private fun opprettJobb(
         mottattDialogmelding: DialogmeldingMottakDTO,
