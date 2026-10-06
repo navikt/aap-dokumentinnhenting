@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     kotlin("jvm")
-    alias(libs.plugins.ktor)
+    alias(kelvinLibs.plugins.ktor)
     application
 }
 
@@ -12,22 +12,22 @@ application {
 }
 
 dependencies {
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.jackson)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
+    implementation(kelvinLibs.ktor.client.auth)
+    implementation(kelvinLibs.ktor.client.jackson)
+    implementation(kelvinLibs.ktor.client.logging)
+    implementation(kelvinLibs.ktor.client.cio)
+    implementation(kelvinLibs.ktor.client.content.negotiation)
 
     implementation(libs.brev.kontrakt)
 
     implementation(project(":dbflyway"))
     implementation(project(":kontrakt"))
     implementation(libs.ktor.openapi.generator)
-    implementation(libs.logstash.logback.encoder)
-    implementation(libs.nimbus.jose.jwt)
-    implementation(libs.hikari.cp)
-    implementation(libs.caffeine)
-    implementation(libs.unleash.client.java)
+    implementation(kelvinLibs.logstash.logback.encoder)
+    implementation(kelvinLibs.nimbus.jose.jwt)
+    implementation(kelvinLibs.hikaricp)
+    implementation(kelvinLibs.caffeine)
+    implementation(kelvinLibs.unleash.client.java)
 
     // Felleskomponenter
     implementation(libs.json)
@@ -44,12 +44,16 @@ dependencies {
     implementation(libs.tilgang.plugin)
 
     // Kafka
-    implementation(libs.kafka.clients)
-    implementation(libs.kafka.streams)
-    implementation(libs.kafka.streams.test.utils)
+    implementation(kelvinLibs.kafka.clients)
+    implementation(kelvinLibs.kafka.streams)
+    implementation(kelvinLibs.kafka.streams.test.utils)
 
     // Test
-    testImplementation(libs.bundles.test)
+    testImplementation(kelvinLibs.ktor.server.test.host)
+    testImplementation(kelvinLibs.testcontainers.postgresql)
+    testImplementation(libs.motor.test.utils)
+    testImplementation(kelvinLibs.bundles.junit)
+    testImplementation(kelvinLibs.mockk)
 }
 
 tasks {

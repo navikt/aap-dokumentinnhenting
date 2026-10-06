@@ -12,6 +12,11 @@ include(
 
 dependencyResolutionManagement {
     // Felles for alle gradle prosjekter i repoet
+    versionCatalogs {
+        create("kelvinLibs") {
+            from("no.nav.aap.kelvin:version-catalog:2.0.181")
+        }
+    }
     @Suppress("UnstableApiUsage")
     repositories {
         maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") {
@@ -19,13 +24,6 @@ dependencyResolutionManagement {
             content { includeGroupByRegex("no\\.nav\\..*") }
         }
         mavenCentral()
-        maven("https://packages.confluent.io/maven/") {
-            // Confluent Community Edition-bygg av Kafka, inkl. transitive io.confluent-avhengigheter
-            content {
-                includeGroup("org.apache.kafka")
-                includeGroupByRegex("io\\.confluent.*")
-            }
-        }
         mavenLocal()
     }
 }
