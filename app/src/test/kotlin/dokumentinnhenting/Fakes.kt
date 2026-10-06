@@ -7,6 +7,7 @@ import com.nimbusds.jwt.JWTParser
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.FinnBehandlingForIdentDTO
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.NullableSakOgBehandlingDTO
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway.SakOgBehandling
+import dokumentinnhenting.integrasjoner.pdl.PdlRequest
 import dokumentinnhenting.integrasjoner.saf.AvsenderMottaker
 import dokumentinnhenting.integrasjoner.saf.DokumentInfo
 import dokumentinnhenting.integrasjoner.saf.DokumentoversiktFagsak
@@ -39,10 +40,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.brev.kontrakt.HentSignaturDokumentinnhentingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
@@ -53,10 +51,13 @@ import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.SakTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
-import io.mockk.mockk
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
@@ -74,6 +75,7 @@ object Fakes : AutoCloseable {
         val azure = embeddedServer(Netty, port = 0, module = { azureFake() }).apply { start() }
         val saf = embeddedServer(Netty, port = 0, module = { safFake() }).apply { start() }
         val syfo = embeddedServer(Netty, port = 0, module = { syfoFake() }).apply { start() }
+        val pdl = embeddedServer(Netty, port = 0, module = { pdlFake() }).apply { start() }
         val behandlingsflyt = embeddedServer(Netty, port = 0, module = { behandlingsflytFake() }).apply { start() }
         val brev = embeddedServer(Netty, port = 0, module = { brevFake() }).apply { start() }
         val dokarkiv = embeddedServer(Netty, port = 0, module = { dokarkivFake() }).apply { start() }
@@ -85,6 +87,7 @@ object Fakes : AutoCloseable {
                 azure,
                 saf,
                 syfo,
+                pdl,
                 behandlingsflyt,
                 brev,
                 dokarkiv,
@@ -119,6 +122,10 @@ object Fakes : AutoCloseable {
         System.setProperty("KAFKA_TRUSTSTORE_PATH", "trust")
         System.setProperty("KAFKA_KEYSTORE_PATH", "store")
         System.setProperty("KAFKA_CREDSTORE_PASSWORD", "password")
+
+        // Pdl
+        System.setProperty("INTEGRASJON_PDL_URL", "http://localhost:${pdl.engine.port()}")
+        System.setProperty("INTEGRASJON_PDL_SCOPE", "pdl")
 
         //Behandlingsflyt
         if (System.getenv("INTEGRASJON_BEHANDLINGSFLYT_URL").isNullOrEmpty()) {
@@ -313,6 +320,65 @@ object Fakes : AutoCloseable {
                         behandler("FASTLEGE"),
                         behandler("SYKMELDER")
                     )
+                )
+            }
+        }
+    }
+
+    private fun Application.pdlFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                this@pdlFake.log.info(
+                    "PDL :: Ukjent feil ved kall til '{}'",
+                    call.request.local.uri,
+                    cause
+                )
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorRespons(cause.message)
+                )
+            }
+        }
+        routing {
+            post {
+                val req = call.receive<PdlRequest>()
+                val aktivPersonIdent = req.variables.ident
+                val inaktivPersonIdent = randomPersonIdent()
+
+                call.respond(
+                    """
+                        {
+                          "data": {
+                            "hentIdenter": {
+                              "identer": [
+                                {
+                                  "ident": "2305469522806",
+                                  "historisk": false,
+                                  "gruppe": "AKTORID"
+                                },
+                                {
+                                  "ident": "$aktivPersonIdent",
+                                  "historisk": false,
+                                  "gruppe": "FOLKEREGISTERIDENT"
+                                },
+                                {
+                                  "ident": "$inaktivPersonIdent",
+                                  "historisk": true,
+                                  "gruppe": "FOLKEREGISTERIDENT"
+                                },
+                                {
+                                  "ident": "70078749472",
+                                  "historisk": true,
+                                  "gruppe": "FOLKEREGISTERIDENT"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                    """.trimIndent()
                 )
             }
         }

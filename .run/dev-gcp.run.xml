@@ -10,6 +10,8 @@
       <env name="INTEGRASJON_SAF_URL_GRAPHQL" value="https://saf-q2.dev-fss-pub.nais.io/graphql" />
       <env name="INTEGRASJON_SAF_URL_REST" value="https://saf-q2.dev-fss-pub.nais.io/rest" />
       <env name="INTEGRASJON_SAF_SCOPE" value="api://dev-fss.teamdokumenthandtering.saf/.default" />
+      <env name="INTEGRASJON_PDL_URL" value="https://pdl-api.dev-fss-pub.nais.io/graphql" />
+      <env name="INTEGRASJON_PDL_SCOPE" value="api://dev-fss.pdl.pdl-api/.default" />
       <env name="INTEGRASJON_DOKARKIV_URL" value="https://dokarkiv-q2.dev-fss-pub.nais.io" />
       <env name="INTEGRASJON_DOKARKIV_SCOPE" value="api://dev-fss.teamdokumenthandtering.dokarkiv/.default" />
       <env name="INTEGRASJON_TILGANG_URL" value="https://aap-tilgang.intern.dev.nav.no" />

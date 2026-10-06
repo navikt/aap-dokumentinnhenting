@@ -183,6 +183,38 @@ class DialogmeldingRepository(private val connection: DBConnection) {
         }
     }
 
+    fun oppdaterPersonIdentPåSamtaleRef(samtaleRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
+        val query = """
+            UPDATE DIALOGMELDING
+            SET PERSON_ID = ?
+            WHERE SAMTALE_REF = ? AND PERSON_ID = ANY(?::text[])
+        """.trimIndent()
+
+        return connection.execute(query) {
+            setParams {
+                setString(1, nyIdent)
+                setUUID(2, samtaleRef)
+                setArray(3, muligeIdenter)
+            }
+        }
+    }
+
+    fun oppdaterPersonIdentPåParentRef(parentRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
+        val query = """
+            UPDATE DIALOGMELDING
+            SET PERSON_ID = ?
+            WHERE DIALOGMELDING_UUID = ? AND PERSON_ID = ANY(?::text[])
+        """.trimIndent()
+
+        return connection.execute(query) {
+            setParams {
+                setString(1, nyIdent)
+                setUUID(2, parentRef)
+                setArray(3, muligeIdenter)
+            }
+        }
+    }
+
     fun eksisterer(dialogmeldingUuid: UUID): Boolean {
         val query = "SELECT EXISTS(SELECT 1 FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ?)"
 
