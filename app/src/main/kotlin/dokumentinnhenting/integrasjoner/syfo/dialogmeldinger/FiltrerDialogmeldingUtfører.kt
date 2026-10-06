@@ -166,7 +166,20 @@ class FiltrerDialogmeldingUtfører(
                     aktivIdent
                 )
             }
-    }
+        listOfNotNull(dialogmelding.conversationRef, dialogmelding.parentRef)
+          .map(UUID::fromString)
+          .map { ref -> 
+                dialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
+                    it,
+                    identHistorikk.map { it.identifikator },
+                    aktivIdent
+                )
+                mottattDialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
+                    it,
+                    identHistorikk.map { it.identifikator },
+                    aktivIdent
+                )
+          }
 
     private fun opprettJobb(
         mottattDialogmelding: DialogmeldingMottakDTO,
