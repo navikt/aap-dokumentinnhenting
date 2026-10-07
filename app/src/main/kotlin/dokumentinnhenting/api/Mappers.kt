@@ -3,8 +3,11 @@ package dokumentinnhenting.api
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
+import dokumentinnhenting.repositories.MottattDialogmeldingRecord
 import no.nav.aap.dokumentinnhenting.kontrakt.AvsenderMottakerDto
 import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
+import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
+import no.nav.aap.dokumentinnhenting.kontrakt.InnkommendeUtgående
 import no.nav.aap.dokumentinnhenting.kontrakt.MeldingStatusDto
 
 fun DialogmeldingFullRecord.tilDto(): DialogmeldingStatusTilBehandslingsflytDto {
@@ -73,4 +76,37 @@ fun DokumentasjonType.tilDto(): no.nav.aap.dokumentinnhenting.kontrakt.Dokumenta
         DokumentasjonType.RETUR_LEGEERKLÆRING -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.RETUR_LEGEERKLÆRING
         DokumentasjonType.PURRING -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING
     }
+}
+
+fun DialogmeldingFullRecord.tilFellesDialogmeldingDto(): FellesDialogmeldingDto {
+    return FellesDialogmeldingDto(
+        dialogmeldingReferanse = requireNotNull(this.dialogmeldingUuid) {
+            "Utgående dialogmelding må ha en referanse"
+        },
+        innkommendeUtgående = InnkommendeUtgående.UTGÅENDE,
+        meldingFraNavn = this.behandlerNavn,
+        opprettetTidspunkt = this.opprettet,
+        dokumentasjonsType = this.dokumentasjonType.tilDto(),
+        tekst = this.fritekst,
+        meldingStatus = this.status?.mapLeveringStatus(),
+        journalpostId = this.journalpostId,
+        automatiskPåminnelse = if (this.dokumentasjonType == DokumentasjonType.L40) {
+            this.automatiskPåminnelse
+        } else {
+            null
+        }
+    )
+}
+
+fun MottattDialogmeldingRecord.tilFellesDialogmeldingDto(): FellesDialogmeldingDto {
+    return FellesDialogmeldingDto(
+        dialogmeldingReferanse = null,
+        innkommendeUtgående = InnkommendeUtgående.INNKOMMENDE,
+        meldingFraNavn = this.navnHelsepersonell,
+        opprettetTidspunkt = this.opprettetTid,
+        dokumentasjonsType = null,
+        tekst = this.tekstNotatInnhold,
+        meldingStatus = null,
+        journalpostId = this.journalpostId
+    )
 }
