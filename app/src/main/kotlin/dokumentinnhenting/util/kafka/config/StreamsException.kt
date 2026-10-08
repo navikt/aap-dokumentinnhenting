@@ -1,4 +1,5 @@
 package dokumentinnhenting.util.kafka.config
+
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler
@@ -6,8 +7,6 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext
 import org.apache.kafka.streams.errors.ProductionExceptionHandler
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler
 import org.slf4j.LoggerFactory
-import org.apache.kafka.streams.errors.DeserializationExceptionHandler.DeserializationHandlerResponse as ConsumerHandler
-import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExceptionHandlerResponse as ProducerHandler
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse as StreamHandler
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
@@ -20,23 +19,22 @@ class ReplaceThread(message: Any) : RuntimeException(message.toString())
  * Exceptions during deserialization, networks issues etc.
  */
 class EntryPointExceptionHandler : DeserializationExceptionHandler {
-    override fun handle(
+    override fun handleError(
         context: ErrorHandlerContext,
-        record: ConsumerRecord<ByteArray, ByteArray>,
-        exception: Exception,
-    ): ConsumerHandler {
+        record: ConsumerRecord<ByteArray?, ByteArray?>,
+        exception: java.lang.Exception
+    ): DeserializationExceptionHandler.Response? {
         secureLog.warn(
             """
-               Exception deserializing record
-               Topic: ${record.topic()}
-               Partition: ${record.partition()}
-               Offset: ${record.offset()}
-               TaskId: ${context.taskId()}
-            """.trimIndent(),
+           Exception deserializing record
+           Topic: ${record.topic()}
+           Partition: ${record.partition()}
+           Offset: ${record.offset()}
+           TaskId: ${context.taskId()}
+        """.trimIndent(),
             exception
         )
-
-        return ConsumerHandler.FAIL
+        return DeserializationExceptionHandler.Response.fail()
     }
 
     override fun configure(configs: MutableMap<String, *>) {}
@@ -82,13 +80,13 @@ class ProcessingExceptionHandler : StreamsUncaughtExceptionHandler {
  * Exceptions due to serialization, networking etc.
  */
 class ExitPointExceptionHandler : ProductionExceptionHandler {
-    override fun handle(
+    override fun handleError(
         context: ErrorHandlerContext,
-        record: ProducerRecord<ByteArray, ByteArray>,
-        exception: Exception,
-    ): ProducerHandler {
+        record: ProducerRecord<ByteArray?, ByteArray?>,
+        exception: java.lang.Exception
+    ): ProductionExceptionHandler.Response? {
         secureLog.error("Feil i streams, logger og leser neste record", exception)
-        return ProducerHandler.FAIL
+        return ProductionExceptionHandler.Response.fail()
     }
 
     override fun configure(configs: MutableMap<String, *>) {}
