@@ -15,7 +15,6 @@ object UnleashGatewayImpl : UnleashGateway {
                 .builder()
                 .appName("dokumentinnhenting")
                 .instanceId(System.getenv("HOSTNAME") ?: "dokumentinnhenting")
-                .environment(config.environment)
                 .unleashAPI("${config.apiUrl}/api")
                 .apiKey(config.apiToken)
                 .build()
