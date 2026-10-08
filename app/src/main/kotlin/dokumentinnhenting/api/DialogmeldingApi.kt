@@ -4,10 +4,12 @@ import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
+import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.Azp
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingUthentingService
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import dokumentinnhenting.util.Tags
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -30,7 +32,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
     val logger = LoggerFactory.getLogger("DialogmeldingApi")
     val dialogmeldingApiRolle = "dialogmelding-api"
 
-    route("/dialogmelding") {
+    route("/dialogmelding").tag(Tags.Dialogmelding) {
         route("/{dialogmeldingId}/eksisterer") {
             authorizedGet<DialogmeldingIdParameter, DialogmeldingEksistererDto>(
                 AuthorizationMachineToMachineConfig(

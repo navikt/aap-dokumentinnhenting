@@ -3,7 +3,9 @@ package dokumentinnhenting.api
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
+import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
+import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
 import no.nav.aap.dokumentinnhenting.kontrakt.PåminnelseDto
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -17,7 +19,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
     dataSource: DataSource
 ) {
     val paaminnelseApiRolle = "paaminnelse-api"
-    route("/dialogmelding/paaminnelse") {
+    route("/dialogmelding/paaminnelse").tag(Tags.Påminnelse) {
         route("/send").authorizedPost<Unit, UUID, PåminnelseDto>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
