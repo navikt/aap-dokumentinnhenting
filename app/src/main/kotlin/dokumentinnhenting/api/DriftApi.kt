@@ -7,7 +7,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import java.time.LocalDateTime
 import java.util.UUID
@@ -40,7 +40,7 @@ fun NormalOpenAPIRoute.driftApi(dataSource: DataSource) {
             ),
         ) { params, _ ->
             val response = dataSource.transaction(readOnly = true) { connection ->
-                DialogmeldingRepository(connection)
+                DialogmeldingRepositoryImpl(connection)
                     .hentForSaksnummer(params.saksnummer)
                     .map {
                         DialogmeldingDriftinfoDTO(

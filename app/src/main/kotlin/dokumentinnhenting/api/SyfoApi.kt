@@ -13,7 +13,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.HentFastlegeDtoSaksreferanse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.BestillingCache
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
@@ -93,7 +93,7 @@ fun NormalOpenAPIRoute.syfoApi(
             )
         ) { req ->
             val response = dataSource.transaction { connection ->
-                val repository = DialogmeldingRepository(connection)
+                val repository = DialogmeldingRepositoryImpl(connection)
                 repository.hentForSaksnummer(req.saksnummer)
                     .map(DialogmeldingFullRecord::tilDto)
             }
@@ -133,7 +133,7 @@ fun NormalOpenAPIRoute.syfoApi(
             )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
-                val dialogmeldingRepository = DialogmeldingRepository(connection)
+                val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
                 val tidligereBestilling =
                     req.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
 

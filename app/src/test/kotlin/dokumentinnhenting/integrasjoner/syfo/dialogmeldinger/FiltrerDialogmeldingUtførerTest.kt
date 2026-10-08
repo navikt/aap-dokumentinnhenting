@@ -10,7 +10,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraS
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomSaksnummer
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import dokumentinnhenting.unleash.FakeUnleashGateway
 import io.mockk.every
@@ -338,7 +338,7 @@ class FiltrerDialogmeldingUtførerTest {
         dataSource.transaction { connection ->
             FiltrerDialogmeldingUtfører(
                 FlytJobbRepository(connection),
-                DialogmeldingRepository(connection),
+                DialogmeldingRepositoryImpl(connection),
                 MottattDialogmeldingRepository(connection),
                 FakeUnleashGateway(enabled = true),
             )
@@ -420,7 +420,7 @@ class FiltrerDialogmeldingUtførerTest {
         )
 
         dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).opprettDialogmelding(record)
+            DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record)
         }
         return record
     }

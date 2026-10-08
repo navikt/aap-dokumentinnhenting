@@ -3,7 +3,7 @@ package dokumentinnhenting.syfo
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -17,14 +17,13 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import java.util.UUID.randomUUID
 import kotlin.random.Random
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BehandlerDialogmeldingBestillingServiceTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
-    private lateinit var dialogmeldingRepository: DialogmeldingRepository
+    private lateinit var dialogmeldingRepository: DialogmeldingRepositoryImpl
 
     private lateinit var dataSource: TestDataSource
     private val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1)
@@ -42,12 +41,12 @@ class BehandlerDialogmeldingBestillingServiceTest {
     @Test
     fun `feiler om purring mangler tilhørende legeerklæring`() {
         dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             assertThrows<RuntimeException> {
                 behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
-                    randomUUID()
+                    UUID.randomUUID()
                 )
             }
         }
@@ -71,7 +70,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
         )
 
         dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
                 connection = connection
             )
@@ -86,7 +85,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
         }
 
         dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
                 connection = connection
             )
@@ -105,7 +104,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
 
         dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
@@ -129,7 +128,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
         dataSource.transaction { connection ->
             // lager manuell påminnelse
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
             behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
                 dialogmeldingUuid
@@ -169,7 +168,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
 
         dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
@@ -204,7 +203,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
 
         dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
@@ -236,7 +235,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
     }
 
     private fun opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden(): Triple<UUID, String, UUID> {
-        val behandlingsReferanse = randomUUID()
+        val behandlingsReferanse = UUID.randomUUID()
         val saksnummer = Random.nextLong().toString()
         val legeerklæring = BehandlingsflytToDokumentInnhentingBestillingDto(
             bestillerNavIdent = "bestillerNavIdent",

@@ -6,6 +6,7 @@ import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
@@ -84,7 +85,7 @@ class OppdaterLegeerklæringStatusUtfører (
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return OppdaterLegeerklæringStatusUtfører(
-                DialogmeldingRepository(connection),
+                DialogmeldingRepositoryImpl(connection),
                 FlytJobbRepository(connection),
                 BrevGateway()
             )

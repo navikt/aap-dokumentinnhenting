@@ -6,7 +6,7 @@ import dokumentinnhenting.integrasjoner.pdl.PdlIdentGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRecord
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import dokumentinnhenting.unleash.FeatureToggles
@@ -25,7 +25,7 @@ import java.util.UUID
 
 class FiltrerDialogmeldingUtfører(
     private val flytJobbRepository: FlytJobbRepository,
-    private val dialogmeldingRepository: DialogmeldingRepository,
+    private val dialogmeldingRepository: DialogmeldingRepositoryImpl,
     private val mottattDialogmeldingRepository: MottattDialogmeldingRepository,
     private val unleash: UnleashGateway,
 ) : JobbUtfører {
@@ -188,7 +188,7 @@ class FiltrerDialogmeldingUtfører(
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return FiltrerDialogmeldingUtfører(
                 flytJobbRepository = FlytJobbRepository(connection),
-                dialogmeldingRepository = DialogmeldingRepository(connection),
+                dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
                 mottattDialogmeldingRepository = MottattDialogmeldingRepository(connection),
                 unleash = UnleashGatewayImpl
             )

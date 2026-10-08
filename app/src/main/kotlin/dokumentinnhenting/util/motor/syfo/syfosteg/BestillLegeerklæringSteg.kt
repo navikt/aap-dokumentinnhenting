@@ -11,7 +11,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandler
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.kafkaProducer
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
 import kotlinx.coroutines.runBlocking
@@ -26,7 +26,7 @@ const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-b
 const val KILDE = "AAP"
 
 class BestillLegeerklæringSteg(
-    private val dialogmeldingRepository: DialogmeldingRepository,
+    private val dialogmeldingRepository: DialogmeldingRepositoryImpl,
     private val brevGeneratorService: DialogmeldingBrevGeneratorService,
     private val producer: KafkaProducer<String, String>,
 ) : SyfoSteg.Utfører {
@@ -41,7 +41,7 @@ class BestillLegeerklæringSteg(
     companion object : SyfoSteg {
         override fun konstruer(connection: DBConnection): SyfoSteg.Utfører {
             return BestillLegeerklæringSteg(
-                dialogmeldingRepository = DialogmeldingRepository(connection),
+                dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
                 brevGeneratorService = DialogmeldingBrevGeneratorService(BrevGateway()),
                 producer = kafkaProducer
             )

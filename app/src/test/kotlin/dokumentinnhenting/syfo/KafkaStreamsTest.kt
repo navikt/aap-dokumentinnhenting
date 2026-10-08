@@ -14,7 +14,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.HenvendelseFraL
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.kafka.createGenericSerde
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -39,7 +39,7 @@ import org.junit.jupiter.api.TestInstance
 class KafkaStreamsTest {
     private lateinit var statusInputTopic: TestInputTopic<String, DialogmeldingStatusDto>
     private lateinit var mottakInputTopic: TestInputTopic<String, DialogmeldingMottakDTO>
-    private lateinit var dialogmeldingRepository: DialogmeldingRepository
+    private lateinit var dialogmeldingRepository: DialogmeldingRepositoryImpl
 
     private lateinit var testDriver: TopologyTestDriver
     private lateinit var dataSource: TestDataSource
@@ -183,7 +183,7 @@ class KafkaStreamsTest {
 
     private fun setupRepositoryDataStatus(dataSource: DataSource, record: DialogmeldingRecord) {
         dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             dialogmeldingRepository.opprettDialogmelding(record)
             dialogmeldingRepository.leggTilJournalpostPåBestilling(
                 record.dialogmeldingUuid,
@@ -198,7 +198,7 @@ class KafkaStreamsTest {
         saksnummer: String
     ): List<DialogmeldingStatusTilBehandslingsflytDto> {
         return dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             dialogmeldingRepository.hentForSaksnummer(saksnummer)
                 .map(DialogmeldingFullRecord::tilDto)
         }
@@ -206,7 +206,7 @@ class KafkaStreamsTest {
 
     private fun setupRepositoryDataMottak(dataSource: DataSource, record: DialogmeldingRecord) {
         dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             dialogmeldingRepository.opprettDialogmelding(record)
         }
     }
@@ -216,7 +216,7 @@ class KafkaStreamsTest {
         saksnummer: String,
     ): List<DialogmeldingStatusTilBehandslingsflytDto> {
         return dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             dialogmeldingRepository.hentForSaksnummer(saksnummer)
                 .map(DialogmeldingFullRecord::tilDto)
         }

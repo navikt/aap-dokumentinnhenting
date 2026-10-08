@@ -2,7 +2,7 @@ package dokumentinnhenting.integrasjoner.syfo.bestilling
 
 import dokumentinnhenting.api.fraDto
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
@@ -19,7 +19,7 @@ class BehandlerDialogmeldingBestillingService(
     private val connection: DBConnection,
 ) {
     private val jobbRepository = FlytJobbRepository(connection)
-    private val dialogmeldingRepository = DialogmeldingRepository(connection)
+    private val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
 
     companion object {
         fun konstruer(connection: DBConnection): BehandlerDialogmeldingBestillingService {

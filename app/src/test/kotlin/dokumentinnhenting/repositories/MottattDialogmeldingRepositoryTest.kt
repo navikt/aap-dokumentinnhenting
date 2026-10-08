@@ -24,7 +24,6 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
 import java.util.UUID
-import java.util.UUID.randomUUID
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -288,8 +287,10 @@ class MottattDialogmeldingRepositoryTest {
         val samtaleRef = UUID.randomUUID()
         val personIdent = randomPersonIdent()
         val saksnummer = randomSaksnummer()
-        val melding1 = lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
-        val melding2 = lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+        val melding1 =
+            lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+        val melding2 =
+            lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
 
         dataSource.transaction { connection ->
             val repo = MottattDialogmeldingRepository(connection)
@@ -327,7 +328,8 @@ class MottattDialogmeldingRepositoryTest {
         val personIdent = randomPersonIdent()
         val forsteSaksnummer = randomSaksnummer()
         val melding = lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
-        val annenMelding = lagMottattDialogmelding(conversationRef = UUID.randomUUID().toString(), personIdentPasient = personIdent)
+        val annenMelding =
+            lagMottattDialogmelding(conversationRef = UUID.randomUUID().toString(), personIdentPasient = personIdent)
 
         dataSource.transaction { connection ->
             val repo = MottattDialogmeldingRepository(connection)
@@ -345,19 +347,23 @@ class MottattDialogmeldingRepositoryTest {
     @Test
     fun `oppdaterPersonIdentPåSamtaleRef oppdaterer kun gammel ident på alle i samme samtale`() {
         val saksnummer = randomSaksnummer()
-        val samtaleRef = randomUUID()
+        val samtaleRef = UUID.randomUUID()
         val samtaleRefString = samtaleRef.toString()
-        val annenSamtaleRef = randomUUID()
+        val annenSamtaleRef = UUID.randomUUID()
         val annenSamtaleRefString = annenSamtaleRef.toString()
         val nyPersonIdent = randomPersonIdent()
         val gammelIdent = randomPersonIdent()
         val annenPersonIdent = randomPersonIdent()
         val identHistorikk = listOf(nyPersonIdent, gammelIdent)
 
-        val meldingNyIdent = lagMottattDialogmelding(personIdentPasient = nyPersonIdent, conversationRef = samtaleRefString)
-        val meldingGammelIdent = lagMottattDialogmelding(personIdentPasient = gammelIdent, conversationRef = samtaleRefString)
-        val meldingAnnenPerson = lagMottattDialogmelding(personIdentPasient = annenPersonIdent, conversationRef = samtaleRefString)
-        val meldingAnnenSamtale = lagMottattDialogmelding(personIdentPasient = gammelIdent, conversationRef = annenSamtaleRefString)
+        val meldingNyIdent =
+            lagMottattDialogmelding(personIdentPasient = nyPersonIdent, conversationRef = samtaleRefString)
+        val meldingGammelIdent =
+            lagMottattDialogmelding(personIdentPasient = gammelIdent, conversationRef = samtaleRefString)
+        val meldingAnnenPerson =
+            lagMottattDialogmelding(personIdentPasient = annenPersonIdent, conversationRef = samtaleRefString)
+        val meldingAnnenSamtale =
+            lagMottattDialogmelding(personIdentPasient = gammelIdent, conversationRef = annenSamtaleRefString)
 
         val meldingerNyIdentFørEndring = dataSource.transaction { connection ->
             val repo = MottattDialogmeldingRepository(connection)
@@ -369,7 +375,11 @@ class MottattDialogmeldingRepositoryTest {
         }
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).oppdaterPersonIdentPåSamtaleRef(samtaleRef, identHistorikk, nyPersonIdent)
+            MottattDialogmeldingRepository(connection).oppdaterPersonIdentPåSamtaleRef(
+                samtaleRef,
+                identHistorikk,
+                nyPersonIdent
+            )
         }
 
         val (meldingerNyIdentEtterEndring, meldingerAnnenSamtaleEtterEndring) = dataSource.transaction { connection ->
@@ -387,7 +397,7 @@ class MottattDialogmeldingRepositoryTest {
     @Test
     fun `oppdaterPersonIdentPåParentRef oppdaterer kun gammel ident på parent`() {
         val saksnummer = randomSaksnummer()
-        val parentRef = randomUUID()
+        val parentRef = UUID.randomUUID()
         val parentRefString = parentRef.toString()
         val nyPersonIdent = randomPersonIdent()
         val gammelIdent = randomPersonIdent()
@@ -406,7 +416,11 @@ class MottattDialogmeldingRepositoryTest {
         }
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).oppdaterPersonIdentPåParentRef(parentRef, identHistorikk, nyPersonIdent)
+            MottattDialogmeldingRepository(connection).oppdaterPersonIdentPåParentRef(
+                parentRef,
+                identHistorikk,
+                nyPersonIdent
+            )
         }
 
         val meldingerParentNyIdentEtterEndring = dataSource.transaction { connection ->

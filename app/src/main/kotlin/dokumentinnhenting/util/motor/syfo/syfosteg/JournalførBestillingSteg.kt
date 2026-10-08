@@ -2,19 +2,20 @@ package dokumentinnhenting.util.motor.syfo.syfosteg
 
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 
 class JournalførBestillingSteg(
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val brevGateway: BrevGateway
 ) : SyfoSteg.Utfører {
-    private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
+    private val log = LoggerFactory.getLogger(JournalførBestillingSteg::class.java)
 
     override fun utfør(kontekst: SyfoSteg.Kontekst): SyfoSteg.Resultat {
         log.info("JournalførBestillingSteg")
@@ -24,7 +25,7 @@ class JournalførBestillingSteg(
     companion object : SyfoSteg {
         override fun konstruer(connection: DBConnection): SyfoSteg.Utfører {
             return JournalførBestillingSteg(
-                DialogmeldingRepository(connection),
+                DialogmeldingRepositoryImpl(connection),
                 BrevGateway()
             )
         }

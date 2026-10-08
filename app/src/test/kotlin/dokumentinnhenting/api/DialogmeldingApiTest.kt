@@ -15,7 +15,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMo
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.randomPersonIdent
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -68,7 +68,7 @@ class DialogmeldingApiTest {
 
         val uuid = UUID.randomUUID()
         dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).opprettDialogmelding(lagRecord(uuid))
+            DialogmeldingRepositoryImpl(connection).opprettDialogmelding(lagRecord(uuid))
         }
 
         val response = client.get("/dialogmelding/$uuid/eksisterer") {
@@ -104,7 +104,7 @@ class DialogmeldingApiTest {
         val saksnummer = "SAK-001"
 
         dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).opprettDialogmelding(record)
+            DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record)
         }
 
         val response = client.get("/dialogmelding/$saksnummer/dialogmeldinger") {
@@ -130,9 +130,9 @@ class DialogmeldingApiTest {
         val mottattRecord2 = lagMottattDialogmelding()
 
         dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).opprettDialogmelding(record1)
-            DialogmeldingRepository(connection).opprettDialogmelding(record2)
-            DialogmeldingRepository(connection).opprettDialogmelding(record3)
+            DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record1)
+            DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record2)
+            DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record3)
             MottattDialogmeldingRepository(connection).lagre(mottattRecord1, riktigSaksnummer)
             MottattDialogmeldingRepository(connection).lagre(mottattRecord2, annetSaksnummer)
         }

@@ -7,7 +7,7 @@ import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.Azp
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingUthentingService
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import dokumentinnhenting.util.Tags
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
@@ -17,7 +17,7 @@ import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.authorizedGet
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 import javax.sql.DataSource
 
 data class DialogmeldingIdParameter(@param:PathParam("dialogmeldingId") val dialogmeldingId: UUID)
@@ -27,8 +27,6 @@ data class DialogmeldingEksistererDto(val eksisterer: Boolean)
 fun NormalOpenAPIRoute.dialogmeldingApi(
     dataSource: DataSource,
 ) {
-    val dialogmeldingUthentingService = DialogmeldingUthentingService(dataSource)
-
     val logger = LoggerFactory.getLogger("DialogmeldingApi")
     val dialogmeldingApiRolle = "dialogmelding-api"
 
@@ -41,7 +39,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
             ) { params ->
                 val dialogmeldingEksisterer = dataSource.transaction { connection ->
                     val eksistererUtsendtDialogmelding =
-                        DialogmeldingRepository(connection).eksisterer(params.dialogmeldingId)
+                        DialogmeldingRepositoryImpl(connection).eksisterer(params.dialogmeldingId)
 
                     val eksistererMottattDialogmelding by lazy {
                         MottattDialogmeldingRepository(connection).eksisterer(params.dialogmeldingId)
@@ -63,7 +61,14 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                     applicationsOnly = true
                 )
             ) { params ->
-                respond(dialogmeldingUthentingService.hentFellesDialogmeldingerForSak(params.saksnummer))
+                respond(dataSource.transaction { connection ->
+                    val dialogmeldingUthentingService = DialogmeldingUthentingService(
+                        DialogmeldingRepositoryImpl(connection),
+                        MottattDialogmeldingRepository(connection)
+                    )
+                    dialogmeldingUthentingService.hentFellesDialogmeldingerForSak(params.saksnummer)
+
+                })
             }
         }
 
@@ -74,9 +79,13 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                     applicationsOnly = true
                 )
             ) { params ->
-                respond(dialogmeldingUthentingService.hentLegeerklæringForespørslerForSak(
-                    BehandlingReferanse(params.behandlingsReferanse)
-                ))
+                respond(dataSource.transaction { connection ->
+                    val dialogmeldingUthentingService = DialogmeldingUthentingService(
+                        DialogmeldingRepositoryImpl(connection),
+                        MottattDialogmeldingRepository(connection)
+                    )
+                    dialogmeldingUthentingService.hentLegeerklæringForespørslerForSak(BehandlingReferanse(params.behandlingsReferanse))
+                })
             }
         }
     }

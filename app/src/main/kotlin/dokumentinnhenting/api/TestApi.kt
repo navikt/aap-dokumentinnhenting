@@ -7,7 +7,7 @@ import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.behandlingsflyt.VarselOmBrevbestillingDto
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
 import java.time.LocalDateTime
@@ -62,7 +62,7 @@ fun NormalOpenAPIRoute.testApi(
             )
         ) { _, req ->
             val fullRecord = dataSource.transaction { connection ->
-                val dialogmeldingRepository = DialogmeldingRepository(connection)
+                val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
                 requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
 
             }
@@ -82,7 +82,7 @@ fun NormalOpenAPIRoute.testApi(
             )
         ) { _, req ->
             val fullRecord =dataSource.transaction { connection ->
-                val dialogmeldingRepository = DialogmeldingRepository(connection)
+                val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
                 requireNotNull(dialogmeldingRepository.hentByDialogId(req.dialogid))
             }
 

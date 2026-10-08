@@ -4,334 +4,48 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl.SyfoBestillingFlytStatus
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
-import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.dbconnect.Row
+import no.nav.aap.komponenter.repository.Repository
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
-class DialogmeldingRepository(private val connection: DBConnection) {
-    fun opprettDialogmelding(melding: DialogmeldingRecord): UUID {
-        val query = """
-            INSERT INTO DIALOGMELDING (
-                dialogmelding_uuid, behandler_ref, person_id, person_navn, saksnummer, dokumentasjontype, 
-                behandler_navn, fritekst, behandlingsReferanse, tidligere_bestilling_referanse, behandler_hpr_nr, 
-                bestiller_nav_ident, samtale_ref
-            )
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent()
-        connection.executeReturnKey(query) {
-            setParams {
-                setUUID(1, melding.dialogmeldingUuid)
-                setString(2, melding.behandlerRef)
-                setString(3, melding.personIdent)
-                setString(4, melding.personNavn)
-                setString(5, melding.saksnummer)
-                setString(6, melding.dokumentasjonType.toString())
-                setString(7, melding.behandlerNavn)
-                setString(8, melding.fritekst)
-                setUUID(9, melding.behandlingsReferanse)
-                setUUID(10, melding.tidligereBestillingReferanse)
-                setString(11, melding.behandlerHprNr)
-                setString(12, melding.bestillerNavIdent)
-                setUUID(13, melding.samtaleRef)
-            }
-        }
-        return melding.dialogmeldingUuid
-    }
+interface DialogmeldingRepository : Repository {
+    fun opprettDialogmelding(melding: DialogmeldingRecord): UUID
 
-    fun oppdaterDialogmeldingStatus(melding: DialogmeldingStatusDto) {
-        val query = """
-            UPDATE DIALOGMELDING
-            SET STATUS = ?, STATUS_TEKST = ?
-            WHERE DIALOGMELDING_UUID = ?
-        """.trimIndent()
+    fun oppdaterDialogmeldingStatus(melding: DialogmeldingStatusDto)
 
-        connection.execute(query) {
-            setParams {
-                setString(1, melding.status.toString())
-                setString(2, melding.tekst)
-                setUUID(3, UUID.fromString(melding.bestillingUuid))
-            }
-        }
-    }
+    fun leggTilJournalpostPåBestilling(dialogmeldingUuid: UUID, journalpostId: String, dokumentId: String)
 
-    fun leggTilJournalpostPåBestilling(dialogmeldingUuid: UUID, journalpostId: String, dokumentId: String) {
-        val query = """
-            UPDATE DIALOGMELDING
-            SET JOURNALPOST_ID = ?, DOKUMENT_ID = ?
-            WHERE DIALOGMELDING_UUID = ?
-        """.trimIndent()
+    fun oppdaterFlytStatus(dialogmeldingUuid: UUID, flytStatus: ProsesseringSyfoStatus)
 
-        connection.execute(query) {
-            setParams {
-                setString(1, journalpostId)
-                setString(2, dokumentId)
-                setUUID(3, dialogmeldingUuid)
-            }
-        }
-    }
-
-    fun oppdaterFlytStatus(dialogmeldingUuid: UUID, flytStatus: ProsesseringSyfoStatus) {
-        val query = """
-            UPDATE DIALOGMELDING
-            SET FLYTSTATUS = ?
-            WHERE DIALOGMELDING_UUID = ?
-        """.trimIndent()
-
-        connection.execute(query) {
-            setParams {
-                setString(1, flytStatus.toString())
-                setUUID(2, dialogmeldingUuid)
-            }
-        }
-    }
-
-    fun hentBestillingEldreEnn14Dager(dialogmeldingUuid: UUID): DialogmeldingFullRecord? {
-        val query = """
-            SELECT * FROM DIALOGMELDING
-            WHERE OPPRETTET_TID < NOW() - INTERVAL '14 days' AND DIALOGMELDING_UUID = ?
-        """.trimIndent()
-
-        return connection.queryFirstOrNull(query) {
-            setParams {
-                setUUID(1, dialogmeldingUuid)
-            }
-            setRowMapper(::mapDialogmeldingFullRecord)
-        }
-    }
+    fun hentBestillingEldreEnn14Dager(dialogmeldingUuid: UUID): DialogmeldingFullRecord?
 
     fun hentBestillingerForDokumentasjonstyper(
         behandlingReferanse: BehandlingReferanse,
         dokumentasjonstyper: List<DokumentasjonType>
-    ): List<DialogmeldingFullRecord> {
-        val query = """
-            SELECT * FROM DIALOGMELDING
-            WHERE behandlingsReferanse = ?
-            AND DOKUMENTASJONTYPE = ANY(?::text[])
-        """.trimIndent()
+    ): List<DialogmeldingFullRecord>
 
-        return connection.queryList(query) {
-            setParams {
-                setUUID(1, behandlingReferanse.referanse)
-                setArray(2, dokumentasjonstyper.map { it.name })
-            }
-            setRowMapper {
-                mapDialogmeldingFullRecord(it)
-            }
-        }
-    }
+    fun hentForSaksnummer(saksnummer: String): List<DialogmeldingFullRecord>
+    fun hentByDialogId(dialogmeldingUuid: UUID): DialogmeldingFullRecord?
 
-    fun hentForSaksnummer(saksnummer: String): List<DialogmeldingFullRecord> {
-        val query = """
-            SELECT * FROM DIALOGMELDING
-            WHERE SAKSNUMMER = ?
-        """.trimIndent()
+    fun hentForParent(parentRef: UUID, personIdent: String): DialogmeldingFullRecord?
 
-        return connection.queryList(query) {
-            setParams {
-                setString(1, saksnummer)
-            }
-            setRowMapper {
-                mapDialogmeldingFullRecord(it)
-            }
-        }
-    }
+    fun oppdaterPersonIdentPåSamtaleRef(samtaleRef: UUID, muligeIdenter: List<String>, nyIdent: String)
 
-    fun hentByDialogId(dialogmeldingUuid: UUID): DialogmeldingFullRecord? {
-        val query = """
-            SELECT * FROM DIALOGMELDING
-            WHERE DIALOGMELDING_UUID = ?
-        """.trimIndent()
+    fun oppdaterPersonIdentPåParentRef(parentRef: UUID, muligeIdenter: List<String>, nyIdent: String)
 
-        return connection.queryFirstOrNull(query) {
-            setParams {
-                setUUID(1, dialogmeldingUuid)
-            }
-            setRowMapper(::mapDialogmeldingFullRecord)
-        }
-    }
+    fun eksisterer(dialogmeldingUuid: UUID): Boolean
 
-    fun hentForParent(parentRef: UUID, personIdent: String): DialogmeldingFullRecord? {
-        val query = """
-            SELECT * FROM DIALOGMELDING
-            WHERE DIALOGMELDING_UUID = ? AND PERSON_ID = ?
-        """.trimIndent()
-
-        return connection.queryFirstOrNull(query) {
-            setParams {
-                setUUID(1, parentRef)
-                setString(2, personIdent)
-            }
-            setRowMapper(::mapDialogmeldingFullRecord)
-        }
-    }
-
-    fun hentForSamtale(samtaleRef: UUID, personIdent: String): List<DialogmeldingFullRecord> {
-        val query = """
-            SELECT * FROM DIALOGMELDING
-            WHERE SAMTALE_REF = ? AND PERSON_ID = ?
-        """.trimIndent()
-
-        return connection.queryList(query) {
-            setParams {
-                setUUID(1, samtaleRef)
-                setString(2, personIdent)
-            }
-            setRowMapper(::mapDialogmeldingFullRecord)
-        }
-    }
-
-    fun oppdaterPersonIdentPåSamtaleRef(samtaleRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
-        val query = """
-            UPDATE DIALOGMELDING
-            SET PERSON_ID = ?
-            WHERE SAMTALE_REF = ? AND PERSON_ID = ANY(?::text[])
-        """.trimIndent()
-
-        return connection.execute(query) {
-            setParams {
-                setString(1, nyIdent)
-                setUUID(2, samtaleRef)
-                setArray(3, muligeIdenter)
-            }
-        }
-    }
-
-    fun oppdaterPersonIdentPåParentRef(parentRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
-        val query = """
-            UPDATE DIALOGMELDING
-            SET PERSON_ID = ?
-            WHERE DIALOGMELDING_UUID = ? AND PERSON_ID = ANY(?::text[])
-        """.trimIndent()
-
-        return connection.execute(query) {
-            setParams {
-                setString(1, nyIdent)
-                setUUID(2, parentRef)
-                setArray(3, muligeIdenter)
-            }
-        }
-    }
-
-    fun eksisterer(dialogmeldingUuid: UUID): Boolean {
-        val query = "SELECT EXISTS(SELECT 1 FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ?)"
-
-        return connection.queryFirst(query) {
-            setParams {
-                setUUID(1, dialogmeldingUuid)
-            }
-            setRowMapper {
-                it.getBoolean("exists")
-            }
-        }
-    }
-
-    fun hentFlytStatus(dialogmeldingUuid: UUID): SyfoBestillingFlytStatus {
-        val query = """
-            SELECT * FROM DIALOGMELDING
-            WHERE DIALOGMELDING_UUID = ?
-        """.trimIndent()
-
-        return connection.queryFirst(query) {
-            setParams {
-                setUUID(1, dialogmeldingUuid)
-            }
-            setRowMapper {
-                SyfoBestillingFlytStatus(
-                    it.getUUID("DIALOGMELDING_UUID"),
-                    it.getString("SAKSNUMMER"),
-                    it.getEnumOrNull("FLYTSTATUS")
-                )
-            }
-        }
-    }
+    fun hentFlytStatus(dialogmeldingUuid: UUID): SyfoBestillingFlytStatus
 
     fun hentBestillingerSomSkalPåminnes(
         behandlingReferanse: BehandlingReferanse,
         dokumentasjonstype: DokumentasjonType,
         opprettetDato: LocalDate
-    ): List<DialogmeldingFullRecord> {
-        val query = """
-        SELECT d.* FROM DIALOGMELDING d
-        WHERE d.behandlingsReferanse = ?
-          AND d.DOKUMENTASJONTYPE = ?
-          AND d.OPPRETTET_TID::date = ?
-          AND d.AUTOMATISK_PAAMINNELSE
-          AND NOT EXISTS (
-              SELECT 1 FROM DIALOGMELDING p
-              WHERE p.DOKUMENTASJONTYPE = '${DokumentasjonType.PURRING}'
-                AND p.TIDLIGERE_BESTILLING_REFERANSE = d.DIALOGMELDING_UUID::text
-          )
-    """.trimIndent()
+    ): List<DialogmeldingFullRecord>
 
-        return connection.queryList(query) {
-            setParams {
-                setUUID(1, behandlingReferanse.referanse)
-                setString(2, dokumentasjonstype.name)
-                setLocalDate(3, opprettetDato)
-            }
-            setRowMapper {
-                mapDialogmeldingFullRecord(it)
-            }
-        }
-    }
-
-    fun settAutomatiskPåminnelse(automatiskPåminnelse: Boolean, dialogmeldingUuid: UUID) {
-        val query = """
-            UPDATE DIALOGMELDING SET AUTOMATISK_PAAMINNELSE = ? WHERE DIALOGMELDING_UUID = ?
-        """.trimIndent()
-        connection.execute(query) {
-            setParams {
-                setBoolean(1, automatiskPåminnelse)
-                setUUID(2, dialogmeldingUuid)
-            }
-        }
-    }
-
-    fun låsBestilling(dialogmeldingUuid: UUID): UUID {
-        val query = """SELECT DIALOGMELDING_UUID FROM DIALOGMELDING WHERE DIALOGMELDING_UUID = ? FOR UPDATE"""
-
-        return connection.queryFirst(query) {
-            setParams {
-                setUUID(1, dialogmeldingUuid)
-            }
-            setRowMapper {
-                it.getUUID("DIALOGMELDING_UUID")
-            }
-        }
-    }
-
-    private fun mapDialogmeldingFullRecord(row: Row): DialogmeldingFullRecord {
-        return DialogmeldingFullRecord(
-            bestillerNavIdent = row.getString("BESTILLER_NAV_IDENT"),
-            dialogmeldingUuid = row.getUUID("DIALOGMELDING_UUID"),
-            behandlerRef = row.getString("BEHANDLER_REF"),
-            behandlerNavn = row.getString("BEHANDLER_NAVN"),
-            behandlerHprNr = row.getString("BEHANDLER_HPR_NR"),
-            personIdent = row.getString("PERSON_ID"),
-            dokumentasjonType = row.getEnum("DOKUMENTASJONTYPE"),
-            fritekst = row.getString("FRITEKST"),
-            saksnummer = row.getString("SAKSNUMMER"),
-            status = row.getEnumOrNull("STATUS"),
-            flytStatus = row.getEnumOrNull("FLYTSTATUS"),
-            personNavn = row.getString("PERSON_NAVN"),
-            statusTekst = row.getStringOrNull("STATUS_TEKST"),
-            behandlingsReferanse = row.getUUID("BEHANDLINGSREFERANSE"),
-            samtaleRef = row.getUUID("SAMTALE_REF"),
-            opprettet = row.getLocalDateTime("OPPRETTET_TID"),
-            tidligereBestillingReferanse = row.getUUIDOrNull("TIDLIGERE_BESTILLING_REFERANSE"),
-            journalpostId = row.getStringOrNull("JOURNALPOST_ID"),
-            dokumentId = row.getStringOrNull("DOKUMENT_ID"),
-            id = row.getLong("ID"),
-            automatiskPåminnelse = row.getBoolean("AUTOMATISK_PAAMINNELSE"),
-        )
-    }
-
-    data class SyfoBestillingFlytStatus(
-        val dialogmeldingUuid: UUID,
-        val saksnummer: String,
-        val flytStatus: ProsesseringSyfoStatus?,
-    )
+    fun settAutomatiskPåminnelse(automatiskPåminnelse: Boolean, dialogmeldingUuid: UUID)
+    fun låsBestilling(dialogmeldingUuid: UUID): UUID
 }
