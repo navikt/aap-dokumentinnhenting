@@ -1,11 +1,10 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
-import dokumentinnhenting.api.mapLeveringStatus
-import dokumentinnhenting.api.tilDto
+import dokumentinnhenting.api.tilFellesDialogmeldingDto
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
-import no.nav.aap.dokumentinnhenting.kontrakt.InnkommendeUtgående
 import no.nav.aap.komponenter.dbconnect.transaction
 import javax.sql.DataSource
 
@@ -24,25 +23,7 @@ class DialogmeldingUthentingService(
             DialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
         }
 
-        return sendteDialogmeldinger.map { dialogmelding ->
-            FellesDialogmeldingDto(
-                dialogmeldingReferanse = requireNotNull(dialogmelding.dialogmeldingUuid) {
-                    "Utgående dialogmelding må ha en referanse"
-                },
-                innkommendeUtgående = InnkommendeUtgående.UTGÅENDE,
-                meldingFraNavn = dialogmelding.behandlerNavn,
-                opprettetTidspunkt = dialogmelding.opprettet,
-                dokumentasjonsType = dialogmelding.dokumentasjonType.tilDto(),
-                tekst = dialogmelding.fritekst,
-                meldingStatus = dialogmelding.status?.mapLeveringStatus(),
-                journalpostId = dialogmelding.journalpostId,
-                automatiskPåminnelse = if (dialogmelding.dokumentasjonType == DokumentasjonType.L40) {
-                    dialogmelding.automatiskPåminnelse
-                } else {
-                    null
-                }
-            )
-        }
+        return sendteDialogmeldinger.map { it.tilFellesDialogmeldingDto() }
     }
 
     private fun hentMottatteDialogmeldinger(saksnummer: String): List<FellesDialogmeldingDto> {
@@ -50,17 +31,17 @@ class DialogmeldingUthentingService(
             MottattDialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
         }
 
-        return mottatteDialogmeldinger.map { dialogmelding ->
-            FellesDialogmeldingDto(
-                dialogmeldingReferanse = null,
-                innkommendeUtgående = InnkommendeUtgående.INNKOMMENDE,
-                meldingFraNavn = dialogmelding.navnHelsepersonell,
-                opprettetTidspunkt = dialogmelding.opprettetTid,
-                dokumentasjonsType = null,
-                tekst = dialogmelding.tekstNotatInnhold,
-                meldingStatus = null,
-                journalpostId = dialogmelding.journalpostId
+        return mottatteDialogmeldinger.map { it.tilFellesDialogmeldingDto() }
+    }
+
+    fun hentLegeerklæringForespørslerForSak(behandlingsReferanse: BehandlingReferanse): List<FellesDialogmeldingDto> {
+        val legeerklæringForespørsler = dataSource.transaction { connection ->
+            DialogmeldingRepository(connection).hentBestillingerForDokumentasjonstyper(
+                behandlingsReferanse,
+                listOf(DokumentasjonType.L40)
             )
         }
+
+        return legeerklæringForespørsler.map { it.tilFellesDialogmeldingDto()}
     }
 }

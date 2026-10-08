@@ -8,6 +8,7 @@ import dokumentinnhenting.Azp
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingUthentingService
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
@@ -63,10 +64,27 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                 respond(dialogmeldingUthentingService.hentFellesDialogmeldingerForSak(params.saksnummer))
             }
         }
+
+        route("/{behandlingsReferanse}/legeerklaeringer") {
+            authorizedGet<HentLegeerklæringForespørslerForSakParams, List<FellesDialogmeldingDto>>(
+                AuthorizationParamPathConfig(
+                    applicationRole = dialogmeldingApiRolle,
+                    applicationsOnly = true
+                )
+            ) { params ->
+                respond(dialogmeldingUthentingService.hentLegeerklæringForespørslerForSak(
+                    BehandlingReferanse(params.behandlingsReferanse)
+                ))
+            }
+        }
     }
 }
 
 data class HentDialogmeldingerForSakParams(
     @param:PathParam(description = "Saksnummer") val saksnummer: String,
+)
+
+data class HentLegeerklæringForespørslerForSakParams(
+    @param:PathParam(description = "BehandlingsReferanse") val behandlingsReferanse: UUID,
 )
 
