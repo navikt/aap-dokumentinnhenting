@@ -10,7 +10,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.komponenter.repository.RepositoryFactory
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 class DialogmeldingRepositoryImpl(private val connection: DBConnection) : DialogmeldingRepository {
     companion object : RepositoryFactory<DialogmeldingRepository> {
