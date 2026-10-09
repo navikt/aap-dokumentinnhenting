@@ -1,15 +1,14 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
 import dokumentinnhenting.api.tilFellesDialogmeldingDto
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
-import no.nav.aap.komponenter.dbconnect.transaction
-import javax.sql.DataSource
 
 class DialogmeldingUthentingService(
-    private val dataSource: DataSource,
+    val dialogmeldingRepository: DialogmeldingRepositoryImpl,
+    val mottattDialogmeldingRepository: MottattDialogmeldingRepository
 ) {
     fun hentFellesDialogmeldingerForSak(saksnummer: String): List<FellesDialogmeldingDto> {
         val sendteDialogmeldinger = hentSendteDialogmeldinger(saksnummer)
@@ -19,29 +18,23 @@ class DialogmeldingUthentingService(
     }
 
     private fun hentSendteDialogmeldinger(saksnummer: String): List<FellesDialogmeldingDto> {
-        val sendteDialogmeldinger = dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
-        }
+        val sendteDialogmeldinger = dialogmeldingRepository.hentForSaksnummer(saksnummer)
 
         return sendteDialogmeldinger.map { it.tilFellesDialogmeldingDto() }
     }
 
     private fun hentMottatteDialogmeldinger(saksnummer: String): List<FellesDialogmeldingDto> {
-        val mottatteDialogmeldinger = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
-        }
+        val mottatteDialogmeldinger = mottattDialogmeldingRepository.hentForSaksnummer(saksnummer)
 
         return mottatteDialogmeldinger.map { it.tilFellesDialogmeldingDto() }
     }
 
     fun hentLegeerklæringForespørslerForSak(behandlingsReferanse: BehandlingReferanse): List<FellesDialogmeldingDto> {
-        val legeerklæringForespørsler = dataSource.transaction { connection ->
-            DialogmeldingRepository(connection).hentBestillingerForDokumentasjonstyper(
-                behandlingsReferanse,
-                listOf(DokumentasjonType.L40)
-            )
-        }
+        val legeerklæringForespørsler = dialogmeldingRepository.hentBestillingerForDokumentasjonstyper(
+            behandlingsReferanse,
+            listOf(DokumentasjonType.L40)
+        )
 
-        return legeerklæringForespørsler.map { it.tilFellesDialogmeldingDto()}
+        return legeerklæringForespørsler.map { it.tilFellesDialogmeldingDto() }
     }
 }

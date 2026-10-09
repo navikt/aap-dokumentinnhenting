@@ -3,7 +3,7 @@ package dokumentinnhenting.integrasjoner.syfo.bestilling
 import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.api.tilDto
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
 import dokumentinnhenting.util.motor.syfo.syfosteg.SyfoSteg
@@ -31,7 +31,7 @@ class BestillLegeerklæringStegTest {
     private lateinit var behandlerDialogmeldingBestillingService: BehandlerDialogmeldingBestillingService
     private val dialogmeldingBrevGeneratorService = mockk<DialogmeldingBrevGeneratorService>(relaxed = true)
     private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
-    private lateinit var dialogmeldingRepository: DialogmeldingRepository
+    private lateinit var dialogmeldingRepository: DialogmeldingRepositoryImpl
 
     private lateinit var dataSource: TestDataSource
 
@@ -65,7 +65,7 @@ class BestillLegeerklæringStegTest {
 
         dataSource.transaction { connection ->
             // Første del, lagring av dialogmelding i repository
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
                 connection
             )
@@ -96,7 +96,7 @@ class BestillLegeerklæringStegTest {
         saksnummer: String
     ): List<DialogmeldingStatusTilBehandslingsflytDto> {
         return dataSource.transaction { connection ->
-            dialogmeldingRepository = DialogmeldingRepository(connection)
+            dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             dialogmeldingRepository.hentForSaksnummer(saksnummer)
                 .map(DialogmeldingFullRecord::tilDto)
         }

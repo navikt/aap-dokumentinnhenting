@@ -17,7 +17,6 @@ data class DbConfig(
 data class UnleashConfig(
     val apiUrl: String = requiredConfigForKey("UNLEASH_SERVER_API_URL"),
     val apiToken: String = requiredConfigForKey("UNLEASH_SERVER_API_TOKEN"),
-    val environment: String = requiredConfigForKey("UNLEASH_SERVER_API_ENV"),
 )
 
 object Azp {

@@ -1,7 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
 import dokumentinnhenting.integrasjoner.azure.SystemTokenProvider
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.behandlingsflyt.jobber.TaSakAvVentUtfører
 import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest

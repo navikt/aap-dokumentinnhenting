@@ -1,6 +1,7 @@
 package dokumentinnhenting.util.motor.syfo
 
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -24,7 +25,7 @@ class ProsesserLegeerklæringBestillingUtfører (
                 ProsesserStegSyfoService.konstruer(
                     connection = connection
                 ),
-                DialogmeldingRepository(connection)
+                DialogmeldingRepositoryImpl(connection)
             )
         }
 

@@ -1,6 +1,6 @@
 package dokumentinnhenting.util.motor.syfo
 
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.motor.syfo.syfosteg.*
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.slf4j.LoggerFactory
@@ -12,7 +12,7 @@ class ProsesserStegSyfoService(
 ) {
 
     private val log = LoggerFactory.getLogger(ProsesserStegSyfoService::class.java)
-    private val dialogmeldingRepository = DialogmeldingRepository(connection)
+    private val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
 
     companion object {
         fun konstruer(connection: DBConnection): ProsesserStegSyfoService {

@@ -4,7 +4,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldinger.FiltrerDialogmeldin
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
-import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.kafka.KafkaStream
 import dokumentinnhenting.util.kafka.NoopStream
 import dokumentinnhenting.util.kafka.Stream
@@ -74,7 +74,7 @@ fun createDialogmeldingStreamTopology(
 fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDto) {
   dataSource.transaction{ connection ->
     val jobbRepository = FlytJobbRepository(connection)
-    val dialogmeldingRepository = DialogmeldingRepository(connection)
+    val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
 
     log.info("Oppdaterer status på ${record.bestillingUuid} med status ${record.status}")
 
@@ -92,7 +92,7 @@ fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDto) {
 
 fun bestillingEksisterer(datasource: DataSource,bestillingUuid: String): Boolean {
   return datasource.transaction { connection ->
-    val repository = DialogmeldingRepository(connection)
+    val repository = DialogmeldingRepositoryImpl(connection)
     val record = repository.hentByDialogId(UUID.fromString(bestillingUuid))
 
     record?.dialogmeldingUuid.toString() == bestillingUuid

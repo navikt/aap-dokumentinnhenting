@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.time.OffsetDateTime
 import org.apache.kafka.common.serialization.Deserializer
-import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serializer
-import org.apache.kafka.common.serialization.Serdes
 
 data class DialogmeldingStatusDto(
     val uuid: String,
@@ -47,6 +45,3 @@ private class DialogmeldingStatusDTODeserializer : Deserializer<DialogmeldingSta
     }
 }
 
-fun dialogmeldingStatusDTOSerde(): Serde<DialogmeldingStatusDto> {
-    return Serdes.serdeFrom(DialogmeldingStatusDTOSerializer(), DialogmeldingStatusDTODeserializer())
-}
