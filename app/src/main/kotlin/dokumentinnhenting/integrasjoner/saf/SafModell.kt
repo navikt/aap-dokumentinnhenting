@@ -138,7 +138,16 @@ data class RelevantDato(
 data class DokumentoversiktFagsak(val journalposter: List<Journalpost>)
 data class SafDokumentversiktFagsakData(val dokumentoversiktFagsak: DokumentoversiktFagsak?)
 
-data class DokumentoversiktBruker(val journalposter: List<Journalpost>)
+data class DokumentoversiktBruker(
+    val journalposter: List<Journalpost>,
+    val sideInfo: SideInfo,
+)
+
+data class SideInfo(
+    val sluttpeker: String?,
+    val finnesNesteSide: Boolean,
+)
+
 data class SafDokumentversiktBrukerData(val dokumentoversiktBruker: DokumentoversiktBruker?)
 
 data class SafDokumentversiktJournalpostData(val journalpost: Journalpost?)

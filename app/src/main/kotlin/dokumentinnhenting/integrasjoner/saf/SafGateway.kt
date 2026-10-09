@@ -4,6 +4,8 @@ import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
 import dokumentinnhenting.util.graphql.ErrorCode
 import dokumentinnhenting.util.graphql.GraphQLError
+import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.util.metrics.recordSafBrukerJournalposterCount
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
@@ -69,28 +71,35 @@ object SafGateway {
         statuser: List<Journalstatus> = emptyList(),
         token: OidcToken,
     ): List<Journalpost> {
-        val request = SafRequest(
-            query = getQuery("/saf/dokumentoversiktBruker.graphql"),
-            variables = DokumentoversiktBrukerVariables(
-                brukerId = BrukerId(ident, BrukerId.BrukerIdType.FNR),
-                tema = tema.takeUnless(List<String>::isEmpty) ?: listOf("AAP"),
-                journalposttyper = typer,
-                journalstatuser = statuser,
-                foerste = 100,
+        val query = getQuery("/saf/dokumentoversiktBruker.graphql")
+        val journalposter = hentAlleBrukerDokumentoversiktSider { etter ->
+            val request = SafRequest(
+                query = query,
+                variables = DokumentoversiktBrukerVariables(
+                    brukerId = BrukerId(ident, BrukerId.BrukerIdType.FNR),
+                    tema = tema.takeUnless(List<String>::isEmpty) ?: listOf("AAP"),
+                    journalposttyper = typer,
+                    journalstatuser = statuser,
+                    foerste = 100,
+                    etter = etter,
+                )
             )
-        )
 
-        val response = defaultHttpClient.post(graphqlUrl) {
-            bearerAuth(OboTokenProvider.getToken(scope, token))
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body<SafDokumentoversiktBrukerDataResponse>()
+            val response = defaultHttpClient.post(graphqlUrl) {
+                bearerAuth(OboTokenProvider.getToken(scope, token))
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body<SafDokumentoversiktBrukerDataResponse>()
 
-        if (response.errors != null) {
-            throw mapSafException(response.errors)
+            if (response.errors != null) {
+                throw mapSafException(response.errors)
+            }
+
+            response.data?.dokumentoversiktBruker
+                ?: throw InternfeilException("Mangler dokumentoversikt i respons fra SAF.")
         }
-
-        return response.data?.dokumentoversiktBruker?.journalposter.orEmpty()
+        prometheus.recordSafBrukerJournalposterCount(journalposter.size)
+        return journalposter
     }
 
     private fun getQuery(name: String): String {
@@ -109,6 +118,30 @@ object SafGateway {
             ErrorCode.SERVER_ERROR -> InternfeilException("Teknisk feil i Saf. Prøv igjen om litt.")
             else -> InternfeilException("Ukjent feil oppsto ved henting av dokument(er) fra arkivet.")
         }
+    }
+}
+
+internal suspend fun hentAlleBrukerDokumentoversiktSider(
+    hentSide: suspend (etter: String?) -> DokumentoversiktBruker,
+): List<Journalpost> {
+    val journalposter = mutableListOf<Journalpost>()
+    val brukteSluttpekere = mutableSetOf<String>()
+    var etter: String? = null
+
+    while (true) {
+        val side = hentSide(etter)
+        journalposter.addAll(side.journalposter)
+
+        if (!side.sideInfo.finnesNesteSide) {
+            return journalposter
+        }
+
+        val sluttpeker = side.sideInfo.sluttpeker
+            ?: throw InternfeilException("SAF oppgir flere sider, men mangler sluttpeker.")
+        if (sluttpeker == etter || !brukteSluttpekere.add(sluttpeker)) {
+            throw InternfeilException("SAF returnerte en gjentatt sluttpeker for dokumentoversikten.")
+        }
+        etter = sluttpeker
     }
 }
 

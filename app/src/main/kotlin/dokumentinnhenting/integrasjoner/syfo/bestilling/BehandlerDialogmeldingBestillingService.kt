@@ -15,6 +15,8 @@ import java.util.UUID
 
 private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestillingService::class.java)
 
+const val BESTILLING_REFERANSE_PARAMETER_NAVN = "referanse"
+
 class BehandlerDialogmeldingBestillingService(
     private val connection: DBConnection,
 ) {
@@ -139,8 +141,6 @@ class BehandlerDialogmeldingBestillingService(
         )
 
         val id = skrivDialogmeldingTilRepository(dialogMeldingRecord)
-        val BESTILLING_REFERANSE_PARAMETER_NAVN = "referanse"
-
         val jobb =
             JobbInput(ProsesserLegeerklæringBestillingUtfører)
                 .medCallId()
