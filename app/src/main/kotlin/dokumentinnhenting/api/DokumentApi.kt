@@ -44,7 +44,9 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
             respond(dokumenter)
         }
 
-        route("/bruker/helsedokumenter").post<Unit, List<Doc>, HentDokumentoversiktBrukerRequest> { _, req ->
+        data class HelsedokumenterRequest(val saksnummer: String, val tema: String, val personIdent: String)
+
+        route("/bruker/helsedokumenter").post<Unit, List<Doc>, HelsedokumenterRequest> { _, req ->
             val saksnummer = req.saksnummer
 
             val dokumenter = SafGateway.hentDokumenterForBruker(
@@ -112,7 +114,6 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
 
 data class HentDokumentoversiktBrukerRequest(
     val personIdent: String,
-    val saksnummer: String,
     val tema: List<String> = listOf("AAP"),
     val typer: List<Journalposttype> = emptyList(),
     val statuser: List<Journalstatus> = emptyList(),
