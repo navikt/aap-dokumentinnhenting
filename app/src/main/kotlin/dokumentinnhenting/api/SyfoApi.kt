@@ -4,6 +4,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
+import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.Azp
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
@@ -14,6 +15,7 @@ import dokumentinnhenting.integrasjoner.syfo.oppslag.HentFastlegeDtoSaksreferans
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.util.BestillingCache
+import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
 import java.util.UUID
 import javax.sql.DataSource
@@ -42,7 +44,7 @@ fun NormalOpenAPIRoute.syfoApi(
 ) {
     val syfoApiRolle = "syfo-api"
     val brevGeneratorService = DialogmeldingBrevGeneratorService(brevGateway)
-    route("/syfo") {
+    route("/syfo").tag(Tags.Syfo) {
         route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDto>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,

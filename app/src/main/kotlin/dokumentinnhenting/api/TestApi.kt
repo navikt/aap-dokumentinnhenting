@@ -3,10 +3,12 @@ package dokumentinnhenting.api
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
+import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.behandlingsflyt.VarselOmBrevbestillingDto
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.repositories.DialogmeldingRepository
+import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
 import java.time.LocalDateTime
 import java.util.UUID
@@ -30,7 +32,7 @@ fun NormalOpenAPIRoute.testApi(
     brevGateway: BrevGateway
 ) {
     val testApiRolle = "test-api"
-    route("/test") {
+    route("/test").tag(Tags.Test)  {
         route("/avvist").authorizedPost<Unit, String, TaAvVentRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
