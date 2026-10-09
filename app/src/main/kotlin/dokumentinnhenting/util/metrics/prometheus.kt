@@ -10,3 +10,7 @@ val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
 fun MeterRegistry.bestillingCounter(topic: String): Counter =
     this.counter("bestilling", listOf(Tag.of("topic", topic)))
+
+fun MeterRegistry.recordSafBrukerJournalposterCount(count: Int) {
+    this.counter("dokumentinnhenting_antall_saf_bruker_journalposter_returnert").increment(count.toDouble())
+}

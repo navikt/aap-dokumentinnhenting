@@ -24,7 +24,7 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.verdityper.dokument.Kanal
 import org.slf4j.LoggerFactory
 
-class OppdaterLegeerklæringStatusUtfører (
+class OppdaterLegeerklæringStatusUtfører(
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val jobbRepository: FlytJobbRepository,
     private val brevGateway: BrevGateway
@@ -60,13 +60,12 @@ class OppdaterLegeerklæringStatusUtfører (
                     melding = null
                 )
             )
-        }
-        else if (record.status == MeldingStatusType.OK) {
+        } else if (record.status == MeldingStatusType.OK) {
             val sak = requireNotNull(dialogmeldingRepository.hentByDialogId(bestillingId))
             runBlocking {
                 brevGateway.ekspederBestilling(
                     BrevGateway.EkspederBestillingRequest(
-                        requireNotNull(sak.journalpostId), (requireNotNull(sak.dokumentId))
+                        requireNotNull(sak.journalpostId), requireNotNull(sak.dokumentId)
                     )
                 )
             }
