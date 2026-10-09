@@ -44,7 +44,7 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
             respond(dokumenter)
         }
 
-        data class HelsedokumenterRequest(val saksnummer: String, val tema: String, val personIdent: String)
+        data class HelsedokumenterRequest(val saksnummer: String, val personIdent: String)
 
         route("/bruker/helsedokumenter").post<Unit, List<Doc>, HelsedokumenterRequest> { _, req ->
             val saksnummer = req.saksnummer
