@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     // Felles for alle gradle prosjekter i repoet
     versionCatalogs {
         create("kelvinLibs") {
-            from("no.nav.aap.kelvin:version-catalog:2.0.181")
+            from("no.nav.aap.kelvin:version-catalog:2.0.186")
         }
     }
     @Suppress("UnstableApiUsage")
