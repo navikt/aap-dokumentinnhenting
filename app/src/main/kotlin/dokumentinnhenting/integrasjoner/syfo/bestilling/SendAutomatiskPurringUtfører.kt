@@ -14,7 +14,7 @@ import java.time.LocalDate
 
 private val log = LoggerFactory.getLogger(SendAutomatiskPurringUtfører::class.java)
 
-private val dagerÅTrekkeFra = if (Miljø.erProd()) 22L else 1L
+private val dagerÅTrekkeFra = 22L
 
 class SendAutomatiskPurringUtfører(
     private val bestillingService: BehandlerDialogmeldingBestillingService,
@@ -45,7 +45,7 @@ class SendAutomatiskPurringUtfører(
                     kandidater.map { it.referanse }.joinToString(", ")
                 }"
             )
-            
+
             kandidater.forEach {
                 bestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                     it,
