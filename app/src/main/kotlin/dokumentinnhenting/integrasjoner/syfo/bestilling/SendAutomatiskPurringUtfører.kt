@@ -45,11 +45,7 @@ class SendAutomatiskPurringUtfører(
                     kandidater.map { it.referanse }.joinToString(", ")
                 }"
             )
-
-            // ikke send eller lagre noe i prod inntil videre
-            if (Miljø.erProd()) {
-                return@forEach
-            }
+            
             kandidater.forEach {
                 bestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                     it,
