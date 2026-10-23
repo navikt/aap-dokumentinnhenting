@@ -7,6 +7,7 @@ import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
@@ -37,6 +38,11 @@ class OppdaterLegeerklæringStatusUtfører(
         val bestillingId = dialogmeldingRepository.låsBestilling(UUID.fromString(record.bestillingUuid))
         val eksisterendeRecord = dialogmeldingRepository.hentByDialogId(bestillingId)
         dialogmeldingRepository.oppdaterDialogmeldingStatus(record)
+
+        dialogmeldingRepository.lagreStatusHistorikk(
+            record,
+            input.parameter(MOTTATT_TIDSPUNKT_PARAMETER).let(Instant::parse)
+        )
 
         if (eksisterendeRecord != null && eksisterendeRecord.status == record.status) {
             log.info("Mottok oppdatering på dialogmelding $bestillingId uten endring i status, ${record.status}.")
