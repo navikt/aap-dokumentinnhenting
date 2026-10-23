@@ -66,7 +66,7 @@ class DialogmeldingRepositoryImpl(private val connection: DBConnection) : Dialog
         }
     }
 
-    override fun lagreStatusHistorikk(melding: DialogmeldingStatusDto, mottattTidspunkt: Instant?) {
+    override fun lagreStatusHistorikk(melding: DialogmeldingStatusDto, mottattTidspunkt: Instant) {
         val query = """
             INSERT INTO DIALOGMELDING_STATUS_HISTORIKK (
                 DIALOGMELDING_UUID, KILDEHENDELSE_ID, STATUS, TEKST, HENDELSE_TIDSPUNKT, MOTTATT_TIDSPUNKT
