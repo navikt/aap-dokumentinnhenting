@@ -1,5 +1,6 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -8,7 +9,7 @@ data class PåminnelseRecord(
     val dialogmeldingId: UUID,
     val behandlingsReferanse: UUID,
     val status: PåminnelseStatus,
-    val påminnelseDato: LocalDateTime,
+    val påminnelseDato: LocalDate,
     val opprettetTidspunkt: LocalDateTime,
     val sisteForespørselSendt: LocalDateTime?,
 )
