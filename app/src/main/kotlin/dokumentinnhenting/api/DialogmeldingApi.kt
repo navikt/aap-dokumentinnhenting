@@ -9,6 +9,7 @@ import dokumentinnhenting.Azp
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingUthentingService
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
+import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.util.Tags
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
@@ -64,7 +65,8 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                 respond(dataSource.transaction { connection ->
                     val dialogmeldingUthentingService = DialogmeldingUthentingService(
                         DialogmeldingRepositoryImpl(connection),
-                        MottattDialogmeldingRepositoryImpl(connection)
+                        MottattDialogmeldingRepositoryImpl(connection),
+                        PåminnelseRepositoryImpl(connection)
                     )
                     dialogmeldingUthentingService.hentFellesDialogmeldingerForSak(params.saksnummer)
 
@@ -82,7 +84,8 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                 respond(dataSource.transaction { connection ->
                     val dialogmeldingUthentingService = DialogmeldingUthentingService(
                         DialogmeldingRepositoryImpl(connection),
-                        MottattDialogmeldingRepositoryImpl(connection)
+                        MottattDialogmeldingRepositoryImpl(connection),
+                        PåminnelseRepositoryImpl(connection)
                     )
                     dialogmeldingUthentingService.hentLegeerklæringForespørslerForSak(BehandlingReferanse(params.behandlingsReferanse))
                 })
