@@ -1,5 +1,6 @@
 package dokumentinnhenting.api
 
+import dokumentinnhenting.integrasjoner.saf.AvsenderMottaker
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
@@ -9,6 +10,8 @@ import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslings
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
 import no.nav.aap.dokumentinnhenting.kontrakt.InnkommendeUtgående
 import no.nav.aap.dokumentinnhenting.kontrakt.MeldingStatusDto
+import java.time.LocalDateTime
+import java.util.UUID
 
 fun DialogmeldingFullRecord.tilDto(): DialogmeldingStatusTilBehandslingsflytDto {
     return DialogmeldingStatusTilBehandslingsflytDto(
@@ -45,14 +48,14 @@ fun MeldingStatusType.mapLeveringStatus(): MeldingStatusDto {
     }
 }
 
-fun dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.tilKontrakt(): AvsenderMottakerDto.AvsenderMottakerIdType {
+fun AvsenderMottaker.AvsenderMottakerIdType.tilKontrakt(): AvsenderMottakerDto.AvsenderMottakerIdType {
     return when (this) {
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.FNR -> AvsenderMottakerDto.AvsenderMottakerIdType.FNR
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.ORGNR -> AvsenderMottakerDto.AvsenderMottakerIdType.ORGNR
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.HPRNR -> AvsenderMottakerDto.AvsenderMottakerIdType.HPRNR
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.UTL_ORG -> AvsenderMottakerDto.AvsenderMottakerIdType.UTL_ORG
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.NULL -> AvsenderMottakerDto.AvsenderMottakerIdType.NULL
-        dokumentinnhenting.integrasjoner.saf.AvsenderMottaker.AvsenderMottakerIdType.UKJENT -> AvsenderMottakerDto.AvsenderMottakerIdType.UKJENT
+        AvsenderMottaker.AvsenderMottakerIdType.FNR -> AvsenderMottakerDto.AvsenderMottakerIdType.FNR
+        AvsenderMottaker.AvsenderMottakerIdType.ORGNR -> AvsenderMottakerDto.AvsenderMottakerIdType.ORGNR
+        AvsenderMottaker.AvsenderMottakerIdType.HPRNR -> AvsenderMottakerDto.AvsenderMottakerIdType.HPRNR
+        AvsenderMottaker.AvsenderMottakerIdType.UTL_ORG -> AvsenderMottakerDto.AvsenderMottakerIdType.UTL_ORG
+        AvsenderMottaker.AvsenderMottakerIdType.NULL -> AvsenderMottakerDto.AvsenderMottakerIdType.NULL
+        AvsenderMottaker.AvsenderMottakerIdType.UKJENT -> AvsenderMottakerDto.AvsenderMottakerIdType.UKJENT
     }
 }
 
@@ -78,7 +81,9 @@ fun DokumentasjonType.tilDto(): no.nav.aap.dokumentinnhenting.kontrakt.Dokumenta
     }
 }
 
-fun DialogmeldingFullRecord.tilFellesDialogmeldingDto(): FellesDialogmeldingDto {
+fun DialogmeldingFullRecord.tilFellesDialogmeldingDto(
+    kanPåminnesMedSisteForespørselDato: Map<UUID, LocalDateTime?>
+): FellesDialogmeldingDto {
     return FellesDialogmeldingDto(
         dialogmeldingReferanse = requireNotNull(this.dialogmeldingUuid) {
             "Utgående dialogmelding må ha en referanse"
@@ -94,7 +99,9 @@ fun DialogmeldingFullRecord.tilFellesDialogmeldingDto(): FellesDialogmeldingDto 
             this.automatiskPåminnelse
         } else {
             null
-        }
+        },
+        kanSendeManuellPåminnelse = kanPåminnesMedSisteForespørselDato.contains(this.dialogmeldingUuid),
+        sisteForespørselSendt = kanPåminnesMedSisteForespørselDato[this.dialogmeldingUuid]
     )
 }
 
@@ -107,6 +114,8 @@ fun MottattDialogmeldingRecord.tilFellesDialogmeldingDto(): FellesDialogmeldingD
         dokumentasjonsType = null,
         tekst = this.tekstNotatInnhold,
         meldingStatus = null,
-        journalpostId = this.journalpostId
+        journalpostId = this.journalpostId,
+        kanSendeManuellPåminnelse = false,
+        sisteForespørselSendt = null,
     )
 }
