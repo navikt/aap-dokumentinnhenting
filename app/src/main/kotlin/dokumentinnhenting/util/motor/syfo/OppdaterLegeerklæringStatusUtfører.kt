@@ -82,6 +82,8 @@ class OppdaterLegeerklæringStatusUtfører(
     }
 
     companion object : Jobb {
+        const val MOTTATT_TIDSPUNKT_PARAMETER = "statusMottattTidspunkt"
+
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return OppdaterLegeerklæringStatusUtfører(
                 DialogmeldingRepositoryImpl(connection),

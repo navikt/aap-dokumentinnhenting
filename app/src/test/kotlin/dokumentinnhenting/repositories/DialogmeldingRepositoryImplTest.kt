@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.UUID
 import java.util.UUID.randomUUID
@@ -182,6 +183,44 @@ class DialogmeldingRepositoryImplTest {
 
         assertEquals(MeldingStatusType.SENDT, oppdatert.status)
         assertEquals("Sendt til behandler", oppdatert.statusTekst)
+    }
+
+    @Test
+    fun `lagreStatusHistorikk lagrer hendelsen kun en gang`() {
+        val record = lagRecord()
+        val hendelse = DialogmeldingStatusDto(
+            uuid = randomUUID().toString(),
+            createdAt = OffsetDateTime.parse("2026-10-23T10:00:00+02:00"),
+            status = MeldingStatusType.SENDT,
+            tekst = "Sendt til behandler",
+            bestillingUuid = record.dialogmeldingUuid.toString(),
+        )
+        val mottattTidspunkt = Instant.parse("2026-10-23T08:01:00Z")
+
+        dataSource.transaction { connection ->
+            val repository = DialogmeldingRepositoryImpl(connection)
+            repository.opprettDialogmelding(record)
+            repository.lagreStatusHistorikk(hendelse, mottattTidspunkt)
+            repository.lagreStatusHistorikk(hendelse, mottattTidspunkt.plusSeconds(60))
+        }
+
+        val historikk = dataSource.transaction { connection ->
+            connection.queryList(
+                "SELECT * FROM DIALOGMELDING_STATUS_HISTORIKK WHERE DIALOGMELDING_UUID = ?"
+            ) {
+                setParams { setUUID(1, record.dialogmeldingUuid) }
+                setRowMapper { row ->
+                    assertEquals(hendelse.uuid, row.getString("KILDEHENDELSE_ID"))
+                    assertEquals(hendelse.status.name, row.getString("STATUS"))
+                    assertEquals(hendelse.tekst, row.getString("TEKST"))
+                    assertEquals(hendelse.createdAt.toInstant(), row.getInstant("HENDELSE_TIDSPUNKT"))
+                    assertEquals(mottattTidspunkt, row.getInstant("MOTTATT_TIDSPUNKT"))
+                    row.getUUID("DIALOGMELDING_UUID")
+                }
+            }
+        }
+
+        assertThat(historikk).containsExactly(record.dialogmeldingUuid)
     }
 
     @Test

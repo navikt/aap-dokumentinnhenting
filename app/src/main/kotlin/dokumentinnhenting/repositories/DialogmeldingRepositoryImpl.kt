@@ -9,6 +9,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.komponenter.repository.RepositoryFactory
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -61,6 +62,26 @@ class DialogmeldingRepositoryImpl(private val connection: DBConnection) : Dialog
                 setString(1, melding.status.toString())
                 setString(2, melding.tekst)
                 setUUID(3, UUID.fromString(melding.bestillingUuid))
+            }
+        }
+    }
+
+    override fun lagreStatusHistorikk(melding: DialogmeldingStatusDto, mottattTidspunkt: Instant?) {
+        val query = """
+            INSERT INTO DIALOGMELDING_STATUS_HISTORIKK (
+                DIALOGMELDING_UUID, KILDEHENDELSE_ID, STATUS, TEKST, HENDELSE_TIDSPUNKT, MOTTATT_TIDSPUNKT
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT (KILDEHENDELSE_ID) DO NOTHING
+        """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setUUID(1, UUID.fromString(melding.bestillingUuid))
+                setString(2, melding.uuid)
+                setString(3, melding.status.name)
+                setString(4, melding.tekst)
+                setInstant(5, melding.createdAt.toInstant())
+                setInstant(6, mottattTidspunkt)
             }
         }
     }
