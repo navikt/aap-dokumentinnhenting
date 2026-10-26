@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class Påminnelsesplan(
-    val originalbestillingId: UUID,
+    val forespørselId: UUID,
     val behandlingsreferanse: BehandlingReferanse,
     val påminnelsesdato: LocalDate,
     val opprettetTidspunkt: LocalDateTime,
@@ -36,11 +36,11 @@ data class Påminnelsesplan(
         return copy(tilstand = Påminnelsestilstand.Bortfalt(årsak))
     }
 
-    fun registrerOpprettetPurring(purringId: UUID): Påminnelsesplan {
+    fun registrerOpprettetPåminnelse(påminnelseId: UUID): Påminnelsesplan {
         check(tilstand == Påminnelsestilstand.Planlagt) {
             "Bare en planlagt påminnelse kan utføres"
         }
-        return copy(tilstand = Påminnelsestilstand.Utført(purringId))
+        return copy(tilstand = Påminnelsestilstand.Utført(påminnelseId))
     }
 }
 
@@ -49,11 +49,11 @@ sealed interface Påminnelsestilstand {
     data object Avbrutt : Påminnelsestilstand
 
     data class Bortfalt(val årsak: Bortfallsårsak) : Påminnelsestilstand
-    data class Utført(val purringId: UUID) : Påminnelsestilstand
+    data class Utført(val påminnelseId: UUID) : Påminnelsestilstand
 }
 
 enum class Bortfallsårsak {
     LEGEERKLÆRING_MOTTATT,
     BEHANDLING_IKKE_LENGER_AKTUELL,
-    PURRING_FINNES_ALLEREDE,
+    PÅMINNELSE_FINNES_ALLEREDE,
 }

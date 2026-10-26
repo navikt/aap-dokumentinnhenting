@@ -10,34 +10,34 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class Bestilling(
+data class Forespørsel(
     val melding: UtgåendeDialogmelding,
     val dokumentasjonstype: DokumentasjonType,
     val automatiskPåminnelseAktiv: Boolean,
-    val purringer: List<Purring>,
+    val påminnelser: List<Påminnelse>,
     val påminnelsesplan: Påminnelsesplan? = null,
 ) {
     init {
-        require(purringer.all { it.originalbestillingId == melding.id }) {
-            "Alle purringer må referere til originalbestillingen"
+        require(påminnelser.all { it.forespørselId == melding.id }) {
+            "Alle påminnelser må referere til forespørselen"
         }
-        require(påminnelsesplan == null || påminnelsesplan.originalbestillingId == melding.id) {
-            "Påminnelsesplanen må referere til originalbestillingen"
+        require(påminnelsesplan == null || påminnelsesplan.forespørselId == melding.id) {
+            "Påminnelsesplanen må referere til forespørselen"
         }
         require(påminnelsesplan == null || påminnelsesplan.behandlingsreferanse == melding.behandlingsreferanse) {
-            "Påminnelsesplanen må tilhøre samme behandling som bestillingen"
+            "Påminnelsesplanen må tilhøre samme behandling som forespørselen"
         }
     }
 
-    fun harPurring(): Boolean = purringer.isNotEmpty()
+    fun harPåminnelse(): Boolean = påminnelser.isNotEmpty()
 
-    fun sistePurring(): Purring? =
-        purringer.maxByOrNull { it.melding.opprettetTidspunkt }
+    fun sistePåminnelse(): Påminnelse? =
+        påminnelser.maxByOrNull { it.melding.opprettetTidspunkt }
 }
 
-data class Purring(
+data class Påminnelse(
     val melding: UtgåendeDialogmelding,
-    val originalbestillingId: UUID,
+    val forespørselId: UUID,
 )
 
 data class UtgåendeDialogmelding(

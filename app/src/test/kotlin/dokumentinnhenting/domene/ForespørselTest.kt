@@ -12,57 +12,57 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
-class BestillingTest {
+class ForespørselTest {
     @Test
-    fun `bestilling uten purringer har ingen siste purring`() {
-        val bestilling = bestilling(melding())
+    fun `forespørsel uten påminnelser har ingen siste påminnelse`() {
+        val forespørsel = forespørsel(melding())
 
-        assertThat(bestilling.harPurring()).isFalse()
-        assertThat(bestilling.sistePurring()).isNull()
+        assertThat(forespørsel.harPåminnelse()).isFalse()
+        assertThat(forespørsel.sistePåminnelse()).isNull()
     }
 
     @Test
-    fun `siste purring velges etter opprettelsestidspunkt uavhengig av rekkefølge`() {
+    fun `siste påminnelse velges etter opprettelsestidspunkt uavhengig av rekkefølge`() {
         val originalmelding = melding()
-        val første = Purring(melding(opprettet = originalmelding.opprettetTidspunkt.plusDays(22)), originalmelding.id)
-        val siste = Purring(melding(opprettet = originalmelding.opprettetTidspunkt.plusDays(25)), originalmelding.id)
-        val bestilling = bestilling(originalmelding, listOf(siste, første))
+        val første = Påminnelse(melding(opprettet = originalmelding.opprettetTidspunkt.plusDays(22)), originalmelding.id)
+        val siste = Påminnelse(melding(opprettet = originalmelding.opprettetTidspunkt.plusDays(25)), originalmelding.id)
+        val forespørsel = forespørsel(originalmelding, listOf(siste, første))
 
-        assertThat(bestilling.harPurring()).isTrue()
-        assertThat(bestilling.sistePurring()).isEqualTo(siste)
+        assertThat(forespørsel.harPåminnelse()).isTrue()
+        assertThat(forespørsel.sistePåminnelse()).isEqualTo(siste)
         assertThat(siste.melding.gjeldendeStatus).isNull()
     }
 
     @Test
-    fun `purring må tilhøre originalbestillingen`() {
-        val purring = Purring(melding(), UUID.randomUUID())
+    fun `påminnelse må tilhøre forespørselen`() {
+        val påminnelse = Påminnelse(melding(), UUID.randomUUID())
 
-        assertThatThrownBy { bestilling(melding(), listOf(purring)) }
+        assertThatThrownBy { forespørsel(melding(), listOf(påminnelse)) }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Alle purringer må referere til originalbestillingen")
+            .hasMessage("Alle påminnelser må referere til forespørselen")
     }
 
     @Test
-    fun `bestilling og purring har egen status og historikk`() {
+    fun `forespørsel og påminnelse har egen status og historikk`() {
         val originalhistorikk = hendelse(MeldingStatusType.OK)
-        val purringhistorikk = hendelse(MeldingStatusType.SENDT)
+        val påminnelsehistorikk = hendelse(MeldingStatusType.SENDT)
         val originalmelding = melding().copy(
             gjeldendeStatus = MeldingStatusType.OK,
             statushistorikk = listOf(originalhistorikk),
         )
-        val purring = Purring(
+        val påminnelse = Påminnelse(
             melding().copy(
                 gjeldendeStatus = MeldingStatusType.SENDT,
-                statushistorikk = listOf(purringhistorikk),
+                statushistorikk = listOf(påminnelsehistorikk),
             ),
             originalmelding.id,
         )
-        val bestilling = bestilling(originalmelding, listOf(purring))
+        val forespørsel = forespørsel(originalmelding, listOf(påminnelse))
 
-        assertThat(bestilling.melding.statushistorikk).containsExactly(originalhistorikk)
-        assertThat(bestilling.purringer.single().melding.statushistorikk).containsExactly(purringhistorikk)
-        assertThat(bestilling.melding.gjeldendeStatus).isEqualTo(MeldingStatusType.OK)
-        assertThat(purring.melding.gjeldendeStatus).isEqualTo(MeldingStatusType.SENDT)
+        assertThat(forespørsel.melding.statushistorikk).containsExactly(originalhistorikk)
+        assertThat(forespørsel.påminnelser.single().melding.statushistorikk).containsExactly(påminnelsehistorikk)
+        assertThat(forespørsel.melding.gjeldendeStatus).isEqualTo(MeldingStatusType.OK)
+        assertThat(påminnelse.melding.gjeldendeStatus).isEqualTo(MeldingStatusType.SENDT)
     }
 
     @Test
@@ -84,41 +84,41 @@ class BestillingTest {
     }
 
     @Test
-    fun `bestilling uten lagret plan har ingen påminnelsesplan`() {
-        assertThat(bestilling(melding()).påminnelsesplan).isNull()
+    fun `forespørsel uten lagret plan har ingen påminnelsesplan`() {
+        assertThat(forespørsel(melding()).påminnelsesplan).isNull()
     }
 
     @Test
-    fun `påminnelsesplan må tilhøre bestillingen og behandlingen`() {
-        val bestilling = bestilling(melding())
+    fun `påminnelsesplan må tilhøre forespørselen og behandlingen`() {
+        val forespørsel = forespørsel(melding())
         val plan = Påminnelsesplan(
-            originalbestillingId = bestilling.melding.id,
-            behandlingsreferanse = bestilling.melding.behandlingsreferanse,
-            påminnelsesdato = bestilling.melding.opprettetTidspunkt.toLocalDate().plusDays(22),
-            opprettetTidspunkt = bestilling.melding.opprettetTidspunkt,
+            forespørselId = forespørsel.melding.id,
+            behandlingsreferanse = forespørsel.melding.behandlingsreferanse,
+            påminnelsesdato = forespørsel.melding.opprettetTidspunkt.toLocalDate().plusDays(22),
+            opprettetTidspunkt = forespørsel.melding.opprettetTidspunkt,
             tilstand = Påminnelsestilstand.Planlagt,
         )
 
-        assertThat(bestilling.copy(påminnelsesplan = plan).påminnelsesplan)
+        assertThat(forespørsel.copy(påminnelsesplan = plan).påminnelsesplan)
             .usingRecursiveComparison().isEqualTo(plan)
         assertThatThrownBy {
-            bestilling.copy(påminnelsesplan = plan.copy(originalbestillingId = UUID.randomUUID()))
+            forespørsel.copy(påminnelsesplan = plan.copy(forespørselId = UUID.randomUUID()))
         }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Påminnelsesplanen må referere til originalbestillingen")
+            .hasMessage("Påminnelsesplanen må referere til forespørselen")
         assertThatThrownBy {
-            bestilling.copy(
+            forespørsel.copy(
                 påminnelsesplan = plan.copy(behandlingsreferanse = BehandlingReferanse(UUID.randomUUID()))
             )
         }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Påminnelsesplanen må tilhøre samme behandling som bestillingen")
+            .hasMessage("Påminnelsesplanen må tilhøre samme behandling som forespørselen")
     }
 
-    private fun bestilling(melding: UtgåendeDialogmelding, purringer: List<Purring> = emptyList()) =
-        Bestilling(
+    private fun forespørsel(melding: UtgåendeDialogmelding, påminnelser: List<Påminnelse> = emptyList()) =
+        Forespørsel(
             melding = melding,
             dokumentasjonstype = DokumentasjonType.L40,
             automatiskPåminnelseAktiv = true,
-            purringer = purringer,
+            påminnelser = påminnelser,
         )
 
     private fun melding(opprettet: LocalDateTime = LocalDateTime.parse("2026-10-01T10:00:00")) =

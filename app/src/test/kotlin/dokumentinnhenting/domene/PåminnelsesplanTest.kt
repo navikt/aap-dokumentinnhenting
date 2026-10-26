@@ -10,12 +10,12 @@ import java.util.UUID
 
 class PåminnelsesplanTest {
     private val dato = LocalDate.of(2026, 10, 23)
-    private val purringId = UUID.randomUUID()
+    private val påminnelseId = UUID.randomUUID()
     private val tilstander = listOf(
         Påminnelsestilstand.Planlagt,
         Påminnelsestilstand.Avbrutt,
         Påminnelsestilstand.Bortfalt(Bortfallsårsak.LEGEERKLÆRING_MOTTATT),
-        Påminnelsestilstand.Utført(purringId),
+        Påminnelsestilstand.Utført(påminnelseId),
     )
 
     @Test
@@ -54,11 +54,11 @@ class PåminnelsesplanTest {
     }
 
     @Test
-    fun `utført plan refererer til opprettet purring`() {
+    fun `utført plan refererer til opprettet påminnelse`() {
         val plan = plan()
 
-        assertThat(plan.registrerOpprettetPurring(purringId)).usingRecursiveComparison()
-            .isEqualTo(plan.copy(tilstand = Påminnelsestilstand.Utført(purringId)))
+        assertThat(plan.registrerOpprettetPåminnelse(påminnelseId)).usingRecursiveComparison()
+            .isEqualTo(plan.copy(tilstand = Påminnelsestilstand.Utført(påminnelseId)))
     }
 
     @Test
@@ -67,7 +67,7 @@ class PåminnelsesplanTest {
             val plan = plan(tilstand)
             if (tilstand != Påminnelsestilstand.Planlagt) {
                 assertThatIllegalStateException().isThrownBy { plan.avbryt() }
-                assertThatIllegalStateException().isThrownBy { plan.registrerOpprettetPurring(purringId) }
+                assertThatIllegalStateException().isThrownBy { plan.registrerOpprettetPåminnelse(påminnelseId) }
             }
             if (tilstand != Påminnelsestilstand.Avbrutt) {
                 assertThatIllegalStateException().isThrownBy { plan.gjenoppta() }
@@ -80,7 +80,7 @@ class PåminnelsesplanTest {
     }
 
     private fun plan(tilstand: Påminnelsestilstand = Påminnelsestilstand.Planlagt) = Påminnelsesplan(
-        originalbestillingId = UUID.randomUUID(),
+        forespørselId = UUID.randomUUID(),
         behandlingsreferanse = BehandlingReferanse(UUID.randomUUID()),
         påminnelsesdato = dato,
         opprettetTidspunkt = LocalDateTime.of(2026, 10, 1, 10, 0),
