@@ -11,9 +11,11 @@ import dokumentinnhenting.util.kafka.Stream
 import dokumentinnhenting.util.kafka.config.StreamsConfig
 import dokumentinnhenting.util.kafka.createGenericSerde
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører
+import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører.Companion.MOTTATT_TIDSPUNKT_PARAMETER
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.micrometer.core.instrument.MeterRegistry
+import java.time.Instant
 import java.util.UUID
 import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -57,8 +59,12 @@ fun createDialogmeldingStreamTopology(
   val builder = StreamsBuilder()
 
   builder.stream(SYFO_STATUS_DIALOGMELDING_TOPIC, Consumed.with(Serdes.String(), dialogmeldingStatusSerde))
-    .filter { _, record -> bestillingEksisterer(dataSource, record.bestillingUuid) }
-    .foreach { _, record -> oppdaterStatus(dataSource, record) }
+    .foreach { _, record ->
+      val mottattTidspunkt = Instant.now()
+      if (bestillingEksisterer(dataSource, record.bestillingUuid)) {
+        oppdaterStatus(dataSource, record, mottattTidspunkt)
+      }
+    }
 
   builder.stream(SYFO_DIALOGMELDING_MOTTAK_TOPIC, Consumed.with(Serdes.String(), dialogmeldingMottakSerde))
     .foreach { _, record ->
@@ -71,7 +77,7 @@ fun createDialogmeldingStreamTopology(
 
 
 
-fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDto) {
+fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDto, mottattTidspunkt: Instant) {
   dataSource.transaction{ connection ->
     val jobbRepository = FlytJobbRepository(connection)
     val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
@@ -84,7 +90,9 @@ fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDto) {
       JobbInput(OppdaterLegeerklæringStatusUtfører)
         .medCallId()
         .medPayload(DefaultJsonMapper.toJson(record))
+        .medParameter(MOTTATT_TIDSPUNKT_PARAMETER, mottattTidspunkt.toString())
         .medDialogmeldingUuid(lagretBestilling.dialogmeldingUuid)
+        .medParameter(MOTTATT_TIDSPUNKT_PARAMETER, mottattTidspunkt.toString())
 
     jobbRepository.leggTil(jobb)
   }

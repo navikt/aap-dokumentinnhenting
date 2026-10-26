@@ -8,6 +8,7 @@ import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl.SyfoBestillin
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.repository.Repository
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -15,6 +16,8 @@ interface DialogmeldingRepository : Repository {
     fun opprettDialogmelding(melding: DialogmeldingRecord): UUID
 
     fun oppdaterDialogmeldingStatus(melding: DialogmeldingStatusDto)
+
+    fun lagreStatusHistorikk(melding: DialogmeldingStatusDto, mottattTidspunkt: Instant?)
 
     fun leggTilJournalpostPåBestilling(dialogmeldingUuid: UUID, journalpostId: String, dokumentId: String)
 
