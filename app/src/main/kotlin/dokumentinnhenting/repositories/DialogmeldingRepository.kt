@@ -17,7 +17,7 @@ interface DialogmeldingRepository : Repository {
 
     fun oppdaterDialogmeldingStatus(melding: DialogmeldingStatusDto)
 
-    fun lagreStatusHistorikk(melding: DialogmeldingStatusDto, mottattTidspunkt: Instant?)
+    fun lagreStatusHistorikk(melding: DialogmeldingStatusDto, mottattTidspunkt: Instant)
 
     fun leggTilJournalpostPåBestilling(dialogmeldingUuid: UUID, journalpostId: String, dokumentId: String)
 
