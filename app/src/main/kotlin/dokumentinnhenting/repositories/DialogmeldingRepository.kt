@@ -1,5 +1,6 @@
 package dokumentinnhenting.repositories
 
+import dokumentinnhenting.domene.Forespørsel
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
@@ -32,6 +33,7 @@ interface DialogmeldingRepository : Repository {
 
     fun hentForSaksnummer(saksnummer: String): List<DialogmeldingFullRecord>
     fun hentByDialogId(dialogmeldingUuid: UUID): DialogmeldingFullRecord?
+    fun hentForespørsel(dialogmeldingUuid: UUID): Forespørsel?
 
     fun hentForParent(parentRef: UUID, personIdent: String): DialogmeldingFullRecord?
 
@@ -47,7 +49,7 @@ interface DialogmeldingRepository : Repository {
         behandlingReferanse: BehandlingReferanse,
         dokumentasjonstype: DokumentasjonType,
         opprettetDato: LocalDate
-    ): List<DialogmeldingFullRecord>
+    ): List<Forespørsel>
 
     fun settAutomatiskPåminnelse(automatiskPåminnelse: Boolean, dialogmeldingUuid: UUID)
     fun låsBestilling(dialogmeldingUuid: UUID): UUID

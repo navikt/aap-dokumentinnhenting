@@ -1,6 +1,7 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
 import dokumentinnhenting.api.fraDto
+import dokumentinnhenting.domene.Forespørsel
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
@@ -88,21 +89,29 @@ class BehandlerDialogmeldingBestillingService(
         bestillingOpprettetDato: LocalDate
     ) {
         val bestillingerSomSkalPåminnes = finnBestillingerSomSkalPåminnes(behandlingReferanse, bestillingOpprettetDato)
-        bestillingerSomSkalPåminnes.forEach {
-            log.info("Sender purring på behandling $behandlingReferanse på sak ${it.saksnummer} for opprinnelig bestilling med id ${it.dialogmeldingUuid}")
+        bestillingerSomSkalPåminnes.sortedBy { it.melding.id }.forEach { forespørsel ->
+            dialogmeldingRepository.låsBestilling(forespørsel.melding.id)
+            val oppdatert = requireNotNull(dialogmeldingRepository.hentForespørsel(forespørsel.melding.id)) {
+                "Fant ikke forespørsel med dialogmeldingUuid ${forespørsel.melding.id}"
+            }
+            if (!oppdatert.automatiskPåminnelseAktiv || oppdatert.harPåminnelse()) {
+                return@forEach
+            }
+            val melding = oppdatert.melding
+            log.info("Sender purring på behandling $behandlingReferanse på sak ${melding.saksnummer} for opprinnelig bestilling med id ${melding.id}")
             dialogmeldingBestilling(
                 BehandlingsflytToDokumentInnhentingBestillingDto(
-                    bestillerNavIdent = it.bestillerNavIdent,
-                    behandlerRef = it.behandlerRef,
-                    behandlerNavn = it.behandlerNavn,
-                    behandlerHprNr = it.behandlerHprNr,
-                    personIdent = it.personIdent,
-                    personNavn = it.personNavn,
-                    dialogmeldingTekst = it.fritekst,
-                    saksnummer = it.saksnummer,
+                    bestillerNavIdent = melding.bestillerNavIdent,
+                    behandlerRef = melding.behandler.referanse,
+                    behandlerNavn = melding.behandler.navn,
+                    behandlerHprNr = melding.behandler.hprNummer,
+                    personIdent = melding.person.ident,
+                    personNavn = melding.person.navn,
+                    dialogmeldingTekst = melding.tekst,
+                    saksnummer = melding.saksnummer.toString(),
                     dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING,
-                    behandlingsReferanse = it.behandlingsReferanse,
-                    tidligereBestillingReferanse = it.dialogmeldingUuid,
+                    behandlingsReferanse = melding.behandlingsreferanse.referanse,
+                    tidligereBestillingReferanse = melding.id,
                 )
             )
             connection.markerSavepoint()
@@ -112,7 +121,7 @@ class BehandlerDialogmeldingBestillingService(
     private fun finnBestillingerSomSkalPåminnes(
         behandlingsreferanse: BehandlingReferanse,
         bestillingOpprettetDato: LocalDate
-    ): List<DialogmeldingFullRecord> {
+    ): List<Forespørsel> {
         val bestillinger = dialogmeldingRepository.hentBestillingerSomSkalPåminnes(
             behandlingReferanse = behandlingsreferanse,
             dokumentasjonstype = DokumentasjonType.L40,

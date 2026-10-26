@@ -107,6 +107,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
 
+            val original = requireNotNull(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid))
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                 BehandlingReferanse(behandlingsReferanse),
                 bestillingOpprettetDato = treUkerOgEnDagSiden,
@@ -117,8 +118,22 @@ class BehandlerDialogmeldingBestillingServiceTest {
             val purring = lagretBestillinger.find {
                 it.dokumentasjonType == DokumentasjonType.PURRING
             }
-            assertThat(purring).isNotNull
-            assertThat(purring!!.tidligereBestillingReferanse).isEqualTo(dialogmeldingUuid)
+            assertThat(purring).usingRecursiveComparison()
+                .ignoringFields("id", "dialogmeldingUuid", "samtaleRef", "opprettet")
+                .isEqualTo(
+                    original.copy(
+                        dokumentasjonType = DokumentasjonType.PURRING,
+                        tidligereBestillingReferanse = dialogmeldingUuid,
+                    )
+                )
+            assertThat(dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)).isEqualTo(original)
+
+            behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
+                BehandlingReferanse(behandlingsReferanse),
+                bestillingOpprettetDato = treUkerOgEnDagSiden,
+            )
+            assertThat(dialogmeldingRepository.hentForSaksnummer(saksnummer))
+                .containsExactlyInAnyOrderElementsOf(lagretBestillinger)
         }
     }
 

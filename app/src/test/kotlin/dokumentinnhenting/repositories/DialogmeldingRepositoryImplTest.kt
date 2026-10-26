@@ -1,6 +1,12 @@
 package dokumentinnhenting.repositories
 
 import dokumentinnhenting.WithFakes
+import dokumentinnhenting.domene.Behandler
+import dokumentinnhenting.domene.Forespørsel
+import dokumentinnhenting.domene.Journalreferanse
+import dokumentinnhenting.domene.Person
+import dokumentinnhenting.domene.Statushendelse
+import dokumentinnhenting.domene.UtgåendeDialogmelding
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
@@ -10,8 +16,10 @@ import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomSaksnummer
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.verdityper.dokument.JournalpostId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -40,6 +48,25 @@ class DialogmeldingRepositoryImplTest {
     @AfterAll
     fun tearDown() {
         dataSource.close()
+    }
+
+    @Test
+    fun `påminnelseoppslag har indeks på tidligere bestilling og dokumentasjonstype`() {
+        val indeksdefinisjon = dataSource.transaction { connection ->
+            connection.queryFirst(
+                """
+                    SELECT indexdef FROM pg_indexes
+                    WHERE schemaname = current_schema()
+                      AND tablename = 'dialogmelding'
+                      AND indexname = 'idx_dialogmelding_tidligere_bestilling_dokumentasjontype'
+                """.trimIndent()
+            ) {
+                setRowMapper { it.getString("indexdef") }
+            }
+        }
+
+        assertThat(indeksdefinisjon)
+            .contains("USING btree (tidligere_bestilling_referanse, dokumentasjontype)")
     }
 
     private fun lagRecord(
@@ -124,6 +151,142 @@ class DialogmeldingRepositoryImplTest {
         }
 
         assertNull(resultat)
+    }
+
+    @Test
+    fun `hentForespørsel bevarer dagens tilstand uten historikk`() {
+        val record = lagRecord()
+        val status = DialogmeldingStatusDto(
+            uuid = randomUUID().toString(),
+            createdAt = OffsetDateTime.now(),
+            status = MeldingStatusType.OK,
+            tekst = "Levert til behandler",
+            bestillingUuid = record.dialogmeldingUuid.toString(),
+        )
+        dataSource.transaction { connection ->
+            val repository = DialogmeldingRepositoryImpl(connection)
+            repository.opprettDialogmelding(record)
+            repository.oppdaterDialogmeldingStatus(status)
+            repository.oppdaterFlytStatus(record.dialogmeldingUuid, ProsesseringSyfoStatus.FERDIG)
+            repository.leggTilJournalpostPåBestilling(record.dialogmeldingUuid, "123456", "654321")
+            repository.settAutomatiskPåminnelse(false, record.dialogmeldingUuid)
+
+            val bestilling = requireNotNull(repository.hentForespørsel(record.dialogmeldingUuid))
+            val forventet = Forespørsel(
+                melding = UtgåendeDialogmelding(
+                    id = record.dialogmeldingUuid,
+                    behandlingsreferanse = BehandlingReferanse(record.behandlingsReferanse),
+                    saksnummer = Saksnummer(record.saksnummer),
+                    person = Person(record.personIdent, record.personNavn),
+                    behandler = Behandler(record.behandlerRef, record.behandlerHprNr, record.behandlerNavn),
+                    bestillerNavIdent = record.bestillerNavIdent,
+                    tekst = record.fritekst,
+                    opprettetTidspunkt = requireNotNull(repository.hentByDialogId(record.dialogmeldingUuid)).opprettet,
+                    journalreferanse = Journalreferanse(JournalpostId("123456"), "654321"),
+                    gjeldendeStatus = MeldingStatusType.OK,
+                    statusTekst = status.tekst,
+                    samtaleRef = record.samtaleRef,
+                    flytStatus = ProsesseringSyfoStatus.FERDIG,
+                    statushistorikk = emptyList(),
+                ),
+                dokumentasjonstype = record.dokumentasjonType,
+                automatiskPåminnelseAktiv = false,
+                påminnelser = emptyList(),
+            )
+            assertThat(bestilling).usingRecursiveComparison().isEqualTo(forventet)
+        }
+    }
+
+    @Test
+    fun `hentForespørsel kobler alle påminnelser og deres egen delvise historikk`() {
+        val original = lagRecord()
+        val første = lagRecord(
+            tidligereBestillingReferanse = original.dialogmeldingUuid,
+            dokumentasjonType = DokumentasjonType.PURRING,
+        )
+        val siste = lagRecord(
+            tidligereBestillingReferanse = original.dialogmeldingUuid,
+            dokumentasjonType = DokumentasjonType.PURRING,
+        )
+        val tidspunkt = OffsetDateTime.parse("2026-10-23T10:00:00+02:00")
+        val originalhendelse = DialogmeldingStatusDto(
+            uuid = randomUUID().toString(),
+            createdAt = tidspunkt,
+            status = MeldingStatusType.OK,
+            tekst = "Levert",
+            bestillingUuid = original.dialogmeldingUuid.toString(),
+        )
+        val purringhendelse = originalhendelse.copy(
+            uuid = randomUUID().toString(),
+            bestillingUuid = siste.dialogmeldingUuid.toString(),
+            status = MeldingStatusType.SENDT,
+            tekst = null,
+        )
+        val senereHendelse = purringhendelse.copy(
+            uuid = randomUUID().toString(),
+            createdAt = tidspunkt.plusMinutes(10),
+            status = MeldingStatusType.OK,
+        )
+
+        dataSource.transaction { connection ->
+            val repository = DialogmeldingRepositoryImpl(connection)
+            listOf(
+                original, første, siste,
+                lagRecord(tidligereBestillingReferanse = original.dialogmeldingUuid),
+                lagRecord(dokumentasjonType = DokumentasjonType.PURRING),
+            ).forEach { repository.opprettDialogmelding(it) }
+            repository.oppdaterDialogmeldingStatus(originalhendelse)
+            repository.oppdaterDialogmeldingStatus(purringhendelse)
+            // Lagringsrekkefølge og siste historikkhendelse skal ikke bestemme gjeldende status.
+            listOf(senereHendelse, originalhendelse, purringhendelse).forEach {
+                repository.lagreStatusHistorikk(it, tidspunkt.toInstant().plusSeconds(1200))
+            }
+
+            val bestilling = requireNotNull(repository.hentForespørsel(original.dialogmeldingUuid))
+            assertThat(bestilling.påminnelser.map { it.melding.id })
+                .containsExactlyInAnyOrder(første.dialogmeldingUuid, siste.dialogmeldingUuid)
+            assertThat(bestilling.påminnelser.map { it.forespørselId })
+                .containsOnly(original.dialogmeldingUuid)
+            assertThat(bestilling.harPåminnelse()).isTrue()
+            assertThat(bestilling.melding.statushistorikk.map { it.kildehendelseId })
+                .containsExactly(originalhendelse.uuid)
+            assertThat(bestilling.påminnelser.single { it.melding.id == første.dialogmeldingUuid }
+                .melding.statushistorikk).isEmpty()
+            val purring = bestilling.påminnelser.single { it.melding.id == siste.dialogmeldingUuid }.melding
+            assertThat(purring.gjeldendeStatus).isEqualTo(MeldingStatusType.SENDT)
+            assertThat(purring.statushistorikk).usingRecursiveComparison().isEqualTo(
+                listOf(purringhendelse, senereHendelse).map {
+                    Statushendelse(
+                        kildehendelseId = it.uuid,
+                        status = it.status,
+                        hendelseTidspunkt = it.createdAt.toInstant(),
+                        mottattTidspunkt = tidspunkt.toInstant().plusSeconds(1200),
+                        tekst = it.tekst,
+                    )
+                }
+            )
+            assertThat(purring.journalreferanse).isNull()
+        }
+    }
+
+    @Test
+    fun `hentForespørsel bevarer delvise journalreferanser og returnerer null for ukjent forespørsel`() {
+        dataSource.transaction { connection ->
+            val repository = DialogmeldingRepositoryImpl(connection)
+            assertThat(repository.hentForespørsel(randomUUID())).isNull()
+            val record = lagRecord()
+            repository.opprettDialogmelding(record)
+            connection.execute("UPDATE DIALOGMELDING SET JOURNALPOST_ID = ? WHERE DIALOGMELDING_UUID = ?") {
+                setParams {
+                    setString(1, "123456")
+                    setUUID(2, record.dialogmeldingUuid)
+                }
+            }
+            val journalreferanse = requireNotNull(repository.hentForespørsel(record.dialogmeldingUuid))
+                .melding.journalreferanse
+            assertThat(journalreferanse).usingRecursiveComparison()
+                .isEqualTo(Journalreferanse(JournalpostId("123456"), null))
+        }
     }
 
     @Test
