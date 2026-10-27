@@ -12,12 +12,15 @@ import dokumentinnhenting.integrasjoner.saf.AvsenderMottaker
 import dokumentinnhenting.integrasjoner.saf.DokumentInfo
 import dokumentinnhenting.integrasjoner.saf.DokumentoversiktFagsak
 import dokumentinnhenting.integrasjoner.saf.Dokumentvariant
+import dokumentinnhenting.integrasjoner.saf.HentUtsendingsinfoResponse
 import dokumentinnhenting.integrasjoner.saf.Journalpost
 import dokumentinnhenting.integrasjoner.saf.JournalpostSak
 import dokumentinnhenting.integrasjoner.saf.Journalposttype
 import dokumentinnhenting.integrasjoner.saf.Journalstatus
 import dokumentinnhenting.integrasjoner.saf.SafDokumentoversiktFagsakDataResponse
 import dokumentinnhenting.integrasjoner.saf.SafDokumentversiktFagsakData
+import dokumentinnhenting.integrasjoner.saf.SafUtsendingsinfoData
+import dokumentinnhenting.integrasjoner.saf.Utsendingsinfo
 import dokumentinnhenting.integrasjoner.saf.Variantformat
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
 import io.ktor.http.HttpStatusCode
@@ -41,6 +44,12 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
 import io.mockk.mockk
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.random.Random
+import kotlin.random.nextUInt
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.brev.kontrakt.HentSignaturDokumentinnhentingRequest
 import no.nav.aap.brev.kontrakt.JournalførBehandlerBestillingResponse
@@ -54,12 +63,6 @@ import no.nav.aap.tilgang.TilgangResponse
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.random.Random
-import kotlin.random.nextUInt
 
 object Fakes : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
@@ -81,6 +84,7 @@ object Fakes : AutoCloseable {
         val dokarkiv = embeddedServer(Netty, port = 0, module = { dokarkivFake() }).apply { start() }
         val tilgang = embeddedServer(Netty, port = 0, module = { tilgangFake() }).apply { start() }
         val texas = embeddedServer(Netty, port = 0, module = { texasFake() }).apply { start() }
+        val unleash = embeddedServer(Netty, port = 0, module = { unleashFake() }).apply { start() }
 
         servers.addAll(
             listOf(
@@ -152,6 +156,9 @@ object Fakes : AutoCloseable {
 
         System.setProperty("INTEGRASJON_API_INTERN_AZP", UUID.randomUUID().toString())
         System.setProperty("INTEGRASJON_BEHANDLINGSFLYT_AZP", UUID.randomUUID().toString())
+
+        System.setProperty("UNLEASH_SERVER_API_URL", "http://localhost:${unleash.engine.port()}")
+        System.setProperty("UNLEASH_SERVER_API_TOKEN", "token")
 
         System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
         System.setProperty("NAIS_TEAM_AAP", "nais-team-aap")
@@ -233,6 +240,31 @@ object Fakes : AutoCloseable {
         }
         routing {
             post("/graphql") {
+                val body = call.receiveText()
+                if (body.contains("utsendingsinfo")) {
+                    return@post call.respond(
+                        HentUtsendingsinfoResponse(
+                            SafUtsendingsinfoData(
+                                journalpostId = "1234",
+                                utsendingsinfo = Utsendingsinfo(
+                                    varselSendt = Utsendingsinfo.VarselSendt("SMS", LocalDateTime.now().minusHours(3)),
+                                    fysiskpostSendt = Utsendingsinfo.FysiskpostSendt(
+                                        """
+                                        Rask Fiskebolle
+                                        Testveien 1
+                                        0123 Teststed
+                                        Norge
+                                    """.trimIndent()
+                                    ),
+                                    digitalpostSendt = Utsendingsinfo.DigitalpostSendt("Digital adresse - ${UUID.randomUUID()}"),
+                                )
+                            ),
+                            errors = null,
+                            extensions = null
+                        )
+                    )
+                }
+
                 call.respond(
                     SafDokumentoversiktFagsakDataResponse(
                         data = SafDokumentversiktFagsakData(
@@ -546,6 +578,22 @@ object Fakes : AutoCloseable {
             }
         }
 
+    }
+
+    private fun Application.unleashFake() {
+        install(ContentNegotiation) {
+            jackson()
+        }
+        routing {
+            get("/api/client/features") {
+                call.respond(
+                    mapOf(
+                        "version" to 1,
+                        "features" to emptyList<Any>(),
+                    )
+                )
+            }
+        }
     }
 
     private fun Application.texasFake() {
