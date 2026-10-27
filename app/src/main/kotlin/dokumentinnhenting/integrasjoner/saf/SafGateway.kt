@@ -102,6 +102,25 @@ object SafGateway {
         return journalposter
     }
 
+    suspend fun hentUtsendingsinfo(journalpostId: JournalpostId, token: OidcToken): Utsendingsinfo? {
+        val request = SafRequest(
+            query = getQuery("/saf/utsendingsinfo.graphql"),
+            variables = UtsendingsinfoJournalpostVariables(journalpostId.identifikator)
+        )
+
+        val response = defaultHttpClient.post(graphqlUrl) {
+            bearerAuth(OboTokenProvider.getToken(scope, token))
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body<HentUtsendingsinfoResponse>()
+
+        if (response.errors != null) {
+            throw mapSafException(response.errors)
+        }
+
+        return response.data?.utsendingsinfo
+    }
+
     private fun getQuery(name: String): String {
         val resource = javaClass.getResource(name)
             ?: throw InternfeilException("Kunne ikke opprette spørring mot SAF")

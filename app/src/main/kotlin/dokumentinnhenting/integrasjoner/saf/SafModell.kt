@@ -20,6 +20,7 @@ data class DokumentoversiktBrukerVariables(
 ) : Variables
 
 data class DokumentoversiktJournalpostVariables(val journalpostId: String) : Variables
+data class UtsendingsinfoJournalpostVariables(val journalpostId: String) : Variables
 
 data class BrukerId(
     val id: String,
@@ -48,6 +49,12 @@ class SafDokumentoversiktFagsakDataResponse(
     errors: List<GraphQLError>?,
     extensions: GraphQLExtensions?,
 ) : SafResponse(errors, extensions)
+
+class HentUtsendingsinfoResponse(
+    val data: SafUtsendingsinfoData?,
+    errors: List<GraphQLError>?,
+    extensions: GraphQLExtensions?,
+): SafResponse(errors, extensions)
 
 class SafDokumentoversiktBrukerDataResponse(
     val data: SafDokumentversiktBrukerData?,
@@ -190,3 +197,27 @@ data class BegrensetDokumentInfoDto(
     val dokumentInfoId: String,
     val tittel: String?
 )
+
+data class SafUtsendingsinfoData(
+    val journalpostId: String,
+    val utsendingsinfo: Utsendingsinfo?,
+)
+
+data class Utsendingsinfo(
+    val varselSendt: VarselSendt?,
+    val fysiskpostSendt: FysiskpostSendt?,
+    val digitalpostSendt: DigitalpostSendt?,
+) {
+    data class VarselSendt(
+        val type: String? // SMS eller EPOST
+    )
+    // Mappes hvis Journalpost.utsendingskanal er S (sentral utskrift)
+    data class FysiskpostSendt(
+        val adressetekstKonvolutt: String?,
+    )
+
+    // Mappes hvis Journalpost.utsendingskanal er SDP (sikker digital postkasse)
+    data class DigitalpostSendt(
+        val adresse: String?,
+    )
+}
