@@ -92,7 +92,6 @@ fun oppdaterStatus(dataSource: DataSource, record: DialogmeldingStatusDto, motta
         .medPayload(DefaultJsonMapper.toJson(record))
         .medParameter(MOTTATT_TIDSPUNKT_PARAMETER, mottattTidspunkt.toString())
         .medDialogmeldingUuid(lagretBestilling.dialogmeldingUuid)
-        .medParameter(MOTTATT_TIDSPUNKT_PARAMETER, mottattTidspunkt.toString())
 
     jobbRepository.leggTil(jobb)
   }

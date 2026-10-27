@@ -36,9 +36,7 @@ class TaSakAvVentUtfører(private val behandlingsflytGateway: BehandlingsflytGat
 
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return TaSakAvVentUtfører(
-                BehandlingsflytGateway
-            )
+            return TaSakAvVentUtfører(BehandlingsflytGateway)
         }
 
         override fun beskrivelse(): String {
