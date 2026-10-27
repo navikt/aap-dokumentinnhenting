@@ -210,6 +210,7 @@ data class Utsendingsinfo(
 ) {
     data class VarselSendt(
         val type: String? // SMS eller EPOST
+        val varslingstidspunkt: LocalDateTime?,
     )
     // Mappes hvis Journalpost.utsendingskanal er S (sentral utskrift)
     data class FysiskpostSendt(
