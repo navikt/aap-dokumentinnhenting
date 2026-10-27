@@ -108,10 +108,6 @@ data class JournalpostSak(
     }
 }
 
-data class Bruker(
-    val id: BrukerId,
-)
-
 data class AvsenderMottaker(
     val id: String?,
     val type: AvsenderMottakerIdType?,
@@ -187,17 +183,6 @@ enum class Journalstatus {
     UKJENT
 }
 
-data class BegrensetJournalpostDto(
-    val journalpostId: String,
-    val dokumenter: List<BegrensetDokumentInfoDto>,
-    val avsenderMottaker: AvsenderMottaker?,
-)
-
-data class BegrensetDokumentInfoDto(
-    val dokumentInfoId: String,
-    val tittel: String?
-)
-
 data class SafUtsendingsinfoData(
     val journalpostId: String,
     val utsendingsinfo: Utsendingsinfo?,
@@ -209,7 +194,7 @@ data class Utsendingsinfo(
     val digitalpostSendt: DigitalpostSendt?,
 ) {
     data class VarselSendt(
-        val type: String? // SMS eller EPOST
+        val type: String?, // SMS eller EPOST
         val varslingstidspunkt: LocalDateTime?,
     )
     // Mappes hvis Journalpost.utsendingskanal er S (sentral utskrift)

@@ -247,7 +247,7 @@ object Fakes : AutoCloseable {
                             SafUtsendingsinfoData(
                                 journalpostId = "1234",
                                 utsendingsinfo = Utsendingsinfo(
-                                    varselSendt = Utsendingsinfo.VarselSendt("SMS"),
+                                    varselSendt = Utsendingsinfo.VarselSendt("SMS", LocalDateTime.now().minusHours(3)),
                                     fysiskpostSendt = Utsendingsinfo.FysiskpostSendt(
                                         """
                                         Rask Fiskebolle
