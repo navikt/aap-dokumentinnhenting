@@ -11,7 +11,6 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -40,115 +39,116 @@ class PåminnelseRepositoryImplTest {
     @Test
     fun `opprettPåminnelse oppretter påminnelse og returnerer Long`() {
         val dialogmelding = lagDialogmeldingRecord()
-        val påminnelse = lagPåminnelseRecord(dialogmelding.dialogmeldingUuid)
 
-        val returnertId = dataSource.transaction { connection ->
+        val returnertDialogmeldingId = dataSource.transaction { connection ->
             val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
-            val påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
             dialogmeldingRepository.opprettDialogmelding(dialogmelding)
+        }
+
+        val påminnelse = lagPåminnelseRecord(id = 1, dialogmeldingId = returnertDialogmeldingId)
+
+        val returnertPåminnelseId = dataSource.transaction { connection ->
+            val påminnelseRepository = PåminnelseRepositoryImpl(connection)
+
             påminnelseRepository.opprettPåminnelse(påminnelse)
         }
 
-        val returnertPåminnelse = dataSource.transaction { connection ->
+        val lagretPåminnelse = dataSource.transaction { connection ->
             val påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
-            påminnelseRepository.hentPåminnelseForId(returnertId)
+            påminnelseRepository.hentPåminnelseForId(returnertPåminnelseId)
         }
 
-        assertEquals(returnertId, returnertPåminnelse?.id)
-        assertEquals(påminnelse.dialogmeldingId, returnertPåminnelse?.dialogmeldingId)
-        assertEquals(påminnelse.behandlingsReferanse, returnertPåminnelse?.behandlingsReferanse)
-        assertEquals(påminnelse.status, returnertPåminnelse?.status)
-        assertEquals(påminnelse.påminnelseDato, returnertPåminnelse?.påminnelseDato)
-        assertEquals(påminnelse.opprettetTidspunkt, returnertPåminnelse?.opprettetTidspunkt)
-        assertEquals(påminnelse.sisteForespørselSendt, returnertPåminnelse?.sisteForespørselSendt)
+        assertThat(lagretPåminnelse).isEqualTo(påminnelse.copy(id = returnertPåminnelseId))
     }
 
     @Test
-    fun `hentPåminnelseForDialogmeldingId henter all dialogmeldinger med riktig dialogmelding UUID`() {
-        val riktigDialogmelding1 = lagDialogmeldingRecord()
-        val annenDialogmelding2 = lagDialogmeldingRecord()
+    fun `hentPåminnelseForDialogmeldingId henter alle dialogmeldinger med forespurt dialogmelding UUID`() {
+        val forespurtDialogmelding = lagDialogmeldingRecord()
+        val annenDialogmelding = lagDialogmeldingRecord()
 
-        val påminnelseDato1 = LocalDate.now().plusDays(10)
-        val påminnelseDato2 = LocalDate.now().plusDays(15)
-        val påminnelse1 = lagPåminnelseRecord(
-            riktigDialogmelding1.dialogmeldingUuid,
-            påminnelseDato = påminnelseDato1
+        val forespurtPåminnelseDato1 = LocalDate.now().plusDays(10)
+        val forespurtPåminnelseDato2 = LocalDate.now().plusDays(15)
+        val forespurtPåminnelse1 = lagPåminnelseRecord(
+            dialogmeldingId = forespurtDialogmelding.dialogmeldingUuid,
+            påminnelseDato = forespurtPåminnelseDato1
         )
-        val påminnelse2 = lagPåminnelseRecord(
-            riktigDialogmelding1.dialogmeldingUuid,
-            påminnelseDato = påminnelseDato2
+        val forespurtPåminnelse2 = lagPåminnelseRecord(
+            dialogmeldingId = forespurtDialogmelding.dialogmeldingUuid,
+            påminnelseDato = forespurtPåminnelseDato2
         )
-        val påminnelse3 = lagPåminnelseRecord(annenDialogmelding2.dialogmeldingUuid)
+        val annenPåminnelse = lagPåminnelseRecord(
+            dialogmeldingId = annenDialogmelding.dialogmeldingUuid
+        )
 
         dataSource.transaction { connection ->
             val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             val påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
-            dialogmeldingRepository.opprettDialogmelding(riktigDialogmelding1)
-            dialogmeldingRepository.opprettDialogmelding(annenDialogmelding2)
-            påminnelseRepository.opprettPåminnelse(påminnelse1)
-            påminnelseRepository.opprettPåminnelse(påminnelse2)
-            påminnelseRepository.opprettPåminnelse(påminnelse3)
+            dialogmeldingRepository.opprettDialogmelding(forespurtDialogmelding)
+            dialogmeldingRepository.opprettDialogmelding(annenDialogmelding)
+            påminnelseRepository.opprettPåminnelse(forespurtPåminnelse1)
+            påminnelseRepository.opprettPåminnelse(forespurtPåminnelse2)
+            påminnelseRepository.opprettPåminnelse(annenPåminnelse)
         }
 
         val returnertePåminnelser = dataSource.transaction { connection ->
             val påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
-            påminnelseRepository.hentPåminnelseForDialogmeldingId(riktigDialogmelding1.dialogmeldingUuid)
+            påminnelseRepository.hentPåminnelseForDialogmeldingId(forespurtDialogmelding.dialogmeldingUuid)
         }
 
         assertThat(returnertePåminnelser).hasSize(2)
         assertThat(returnertePåminnelser.map { it.påminnelseDato })
-            .containsExactlyInAnyOrder(påminnelse1.påminnelseDato, påminnelse2.påminnelseDato)
+            .containsExactlyInAnyOrder(forespurtPåminnelse1.påminnelseDato, forespurtPåminnelse2.påminnelseDato)
     }
 
     @Test
-    fun `hentPåminnelseForDialogmeldinger henter all dialogmeldinger med dialogmelding UUID fra listen`() {
-        val riktigDialogmelding1 = lagDialogmeldingRecord()
-        val riktigDialogmelding2 = lagDialogmeldingRecord()
+    fun `hentPåminnelseForDialogmeldinger henter alle dialogmeldinger med dialogmelding UUID fra listen`() {
+        val forespurtDialogmelding1 = lagDialogmeldingRecord()
+        val forespurtDialogmelding2 = lagDialogmeldingRecord()
         val annenDialogmelding = lagDialogmeldingRecord()
 
-        val påminnelseDato1 = LocalDate.now().plusDays(10)
-        val påminnelseDato2 = LocalDate.now().plusDays(15)
-        val påminnelseDato3 = LocalDate.now().plusDays(20)
-        val påminnelse1 = lagPåminnelseRecord(
-            riktigDialogmelding1.dialogmeldingUuid,
-            påminnelseDato = påminnelseDato1
+        val forespurtPåminnelseDato1 = LocalDate.now().plusDays(10)
+        val forespurtPåminnelseDato2 = LocalDate.now().plusDays(15)
+        val annenPåminnelseDato = LocalDate.now().plusDays(20)
+        val forespurtPåminnelse1 = lagPåminnelseRecord(
+            forespurtDialogmelding1.dialogmeldingUuid,
+            påminnelseDato = forespurtPåminnelseDato1
         )
-        val påminnelse2 = lagPåminnelseRecord(
-            riktigDialogmelding2.dialogmeldingUuid,
-            påminnelseDato = påminnelseDato2
+        val forespurtPåminnelse2 = lagPåminnelseRecord(
+            forespurtDialogmelding2.dialogmeldingUuid,
+            påminnelseDato = forespurtPåminnelseDato2
         )
-        val påminnelse3 = lagPåminnelseRecord(
+        val forespurtPåminnelse = lagPåminnelseRecord(
             annenDialogmelding.dialogmeldingUuid,
-            påminnelseDato = påminnelseDato3
+            påminnelseDato = annenPåminnelseDato
         )
 
         dataSource.transaction { connection ->
             val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             val påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
-            dialogmeldingRepository.opprettDialogmelding(riktigDialogmelding1)
-            dialogmeldingRepository.opprettDialogmelding(riktigDialogmelding2)
+            dialogmeldingRepository.opprettDialogmelding(forespurtDialogmelding1)
+            dialogmeldingRepository.opprettDialogmelding(forespurtDialogmelding2)
             dialogmeldingRepository.opprettDialogmelding(annenDialogmelding)
-            påminnelseRepository.opprettPåminnelse(påminnelse1)
-            påminnelseRepository.opprettPåminnelse(påminnelse2)
-            påminnelseRepository.opprettPåminnelse(påminnelse3)
+            påminnelseRepository.opprettPåminnelse(forespurtPåminnelse1)
+            påminnelseRepository.opprettPåminnelse(forespurtPåminnelse2)
+            påminnelseRepository.opprettPåminnelse(forespurtPåminnelse)
         }
 
         val returnertePåminnelser = dataSource.transaction { connection ->
             val påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
             påminnelseRepository.hentPåminnelseForDialogmeldinger(
-                listOf(riktigDialogmelding1.dialogmeldingUuid, riktigDialogmelding2.dialogmeldingUuid)
+                listOf(forespurtDialogmelding1.dialogmeldingUuid, forespurtDialogmelding2.dialogmeldingUuid)
             )
         }
 
         assertThat(returnertePåminnelser).hasSize(2)
         assertThat(returnertePåminnelser.map { it.påminnelseDato })
-            .containsExactlyInAnyOrder(påminnelse1.påminnelseDato, påminnelse2.påminnelseDato)
+            .containsExactlyInAnyOrder(forespurtPåminnelse1.påminnelseDato, forespurtPåminnelse2.påminnelseDato)
     }
 
     private fun lagDialogmeldingRecord(
