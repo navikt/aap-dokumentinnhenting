@@ -4,6 +4,7 @@ import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
 import dokumentinnhenting.util.motor.syfo.syfosteg.SyfoSteg
@@ -32,6 +33,7 @@ class BestillLegeerklæringStegTest {
     private val dialogmeldingBrevGeneratorService = mockk<DialogmeldingBrevGeneratorService>(relaxed = true)
     private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepositoryImpl
+    private lateinit var påminnelseRepository: PåminnelseRepositoryImpl
 
     private lateinit var dataSource: TestDataSource
 
@@ -71,12 +73,12 @@ class BestillLegeerklæringStegTest {
             )
 
             // Andre del, henter data i steg og sender til kafka
-            dialogmeldingUuid = behandlerDialogmeldingBestillingService.dialogmeldingBestilling(dto)
+            dialogmeldingUuid = behandlerDialogmeldingBestillingService.bestillNyDialogmelding(dto)
             dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, "journalpostid", "dokumentid")
             val azureTokenGen = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting")
             azureTokenGen.generate()
             val steg =
-                BestillLegeerklæringSteg(dialogmeldingRepository, dialogmeldingBrevGeneratorService, mockProducer)
+                BestillLegeerklæringSteg(dialogmeldingRepository, dialogmeldingBrevGeneratorService, mockProducer, påminnelseRepository)
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
         }
 
