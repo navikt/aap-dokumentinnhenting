@@ -249,9 +249,11 @@ object Fakes : AutoCloseable {
                                 journalpost = JournalpostUtsendingsinfo(
                                     journalpostId = "1234",
                                     utsendingsinfo = Utsendingsinfo(
-                                        varselSendt = Utsendingsinfo.VarselSendt(
-                                            "SMS",
-                                            LocalDateTime.now().minusHours(3)
+                                        varselSendt = listOf(
+                                            Utsendingsinfo.VarselSendt(
+                                                "SMS",
+                                                LocalDateTime.now().minusHours(3)
+                                            )
                                         ),
                                         fysiskpostSendt = Utsendingsinfo.FysiskpostSendt(
                                             """

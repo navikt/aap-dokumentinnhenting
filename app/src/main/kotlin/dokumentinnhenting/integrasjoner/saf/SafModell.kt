@@ -191,7 +191,7 @@ data class JournalpostUtsendingsinfo(
 )
 
 data class Utsendingsinfo(
-    val varselSendt: VarselSendt?,
+    val varselSendt: List<VarselSendt>?,
     val fysiskpostSendt: FysiskpostSendt?,
     val digitalpostSendt: DigitalpostSendt?,
 ) {
