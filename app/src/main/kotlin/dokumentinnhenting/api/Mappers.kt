@@ -2,14 +2,19 @@ package dokumentinnhenting.api
 
 import dokumentinnhenting.integrasjoner.saf.AvsenderMottaker
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseStatus
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.MottattDialogmeldingRecord
 import no.nav.aap.dokumentinnhenting.kontrakt.AvsenderMottakerDto
+import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.dokumentinnhenting.kontrakt.DialogmeldingStatusTilBehandslingsflytDto
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
 import no.nav.aap.dokumentinnhenting.kontrakt.InnkommendeUtgående
 import no.nav.aap.dokumentinnhenting.kontrakt.MeldingStatusDto
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -79,6 +84,42 @@ fun DokumentasjonType.tilDto(): no.nav.aap.dokumentinnhenting.kontrakt.Dokumenta
         DokumentasjonType.RETUR_LEGEERKLÆRING -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.RETUR_LEGEERKLÆRING
         DokumentasjonType.PURRING -> no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING
     }
+}
+
+fun DialogmeldingRecord.tilPåminnelseRecord(antallDagerFrist: Long): PåminnelseRecord {
+    require(antallDagerFrist > 0L) {
+        "Antall dager frist på påminnelse må være et positivt tall!"
+    }
+
+    return PåminnelseRecord(
+        id = 1,
+        dialogmeldingId = this.dialogmeldingUuid,
+        behandlingsReferanse = this.behandlingsReferanse,
+        status = PåminnelseStatus.PLANLAGT,
+        påminnelseDato = LocalDate.now().plusDays(antallDagerFrist),
+        opprettetTidspunkt = LocalDateTime.now(),
+        sisteForespørselSendt = null
+    )
+}
+
+fun BehandlingsflytToDokumentInnhentingBestillingDto.tilDialogmeldingRecord(
+    dialogmeldingUuid: UUID, samtaleRef: UUID? = null
+): DialogmeldingRecord {
+    return DialogmeldingRecord(
+        bestillerNavIdent = this.bestillerNavIdent,
+        dialogmeldingUuid = dialogmeldingUuid,
+        behandlerRef = this.behandlerRef,
+        behandlerHprNr = this.behandlerHprNr,
+        personIdent = this.personIdent,
+        personNavn = this.personNavn,
+        saksnummer = this.saksnummer,
+        dokumentasjonType = this.dokumentasjonType.fraDto(),
+        behandlerNavn = this.behandlerNavn,
+        fritekst = this.dialogmeldingTekst,
+        behandlingsReferanse = this.behandlingsReferanse,
+        tidligereBestillingReferanse = this.tidligereBestillingReferanse,
+        samtaleRef = samtaleRef ?: dialogmeldingUuid,
+    )
 }
 
 fun DialogmeldingFullRecord.tilFellesDialogmeldingDto(

@@ -10,8 +10,11 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKodeverk
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseStatus
 import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.repositories.PåminnelseRepository
+import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
 import kotlinx.coroutines.runBlocking
@@ -29,6 +32,7 @@ class BestillLegeerklæringSteg(
     private val dialogmeldingRepository: DialogmeldingRepositoryImpl,
     private val brevGeneratorService: DialogmeldingBrevGeneratorService,
     private val producer: KafkaProducer<String, String>,
+    private val påminnelseRepository: PåminnelseRepository
 ) : SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
     private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
@@ -43,7 +47,8 @@ class BestillLegeerklæringSteg(
             return BestillLegeerklæringSteg(
                 dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
                 brevGeneratorService = DialogmeldingBrevGeneratorService(BrevGateway()),
-                producer = kafkaProducer
+                producer = kafkaProducer,
+                påminnelseRepository = PåminnelseRepositoryImpl(connection),
             )
         }
     }
@@ -76,6 +81,8 @@ class BestillLegeerklæringSteg(
             return SyfoSteg.Resultat.STOPP
         }
         prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
+
+        påminnelseRepository.oppdaterPåminnelseStatus(dialogmeldingUuid, PåminnelseStatus.SENDT)
 
         return SyfoSteg.Resultat.FULLFØRT
     }

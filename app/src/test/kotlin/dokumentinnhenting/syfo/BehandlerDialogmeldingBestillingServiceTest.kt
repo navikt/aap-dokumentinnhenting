@@ -76,7 +76,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
 
             dialogmeldingLegerklæringUuid =
-                behandlerDialogmeldingBestillingService.dialogmeldingBestilling(legeerklæring)
+                behandlerDialogmeldingBestillingService.bestillDialogmeldingPåminnelse(legeerklæring)
             dialogmeldingRepository.leggTilJournalpostPåBestilling(
                 dialogmeldingLegerklæringUuid,
                 "journalpostid",
@@ -252,7 +252,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
         val dialogmeldingUuid = dataSource.transaction { connection ->
             val behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
-            behandlerDialogmeldingBestillingService.dialogmeldingBestilling(legeerklæring)
+            behandlerDialogmeldingBestillingService.bestillDialogmeldingPåminnelse(legeerklæring)
         }
 
         val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1).atStartOfDay()
