@@ -50,8 +50,8 @@ class SafDokumentoversiktFagsakDataResponse(
     extensions: GraphQLExtensions?,
 ) : SafResponse(errors, extensions)
 
-class HentUtsendingsinfoResponse(
-    val data: SafUtsendingsinfoData?,
+class SafJournalpostUtsendingsinfoResponse(
+    val data: SafJournalpostUtsendingsinfoData?,
     errors: List<GraphQLError>?,
     extensions: GraphQLExtensions?,
 ): SafResponse(errors, extensions)
@@ -155,6 +155,8 @@ data class SafDokumentversiktBrukerData(val dokumentoversiktBruker: Dokumentover
 
 data class SafDokumentversiktJournalpostData(val journalpost: Journalpost?)
 
+data class SafJournalpostUtsendingsinfoData(val journalpost: JournalpostUtsendingsinfo?)
+
 enum class Variantformat {
     ARKIV,
     FULLVERSJON,
@@ -183,7 +185,7 @@ enum class Journalstatus {
     UKJENT
 }
 
-data class SafUtsendingsinfoData(
+data class JournalpostUtsendingsinfo(
     val journalpostId: String,
     val utsendingsinfo: Utsendingsinfo?,
 )

@@ -12,14 +12,15 @@ import dokumentinnhenting.integrasjoner.saf.AvsenderMottaker
 import dokumentinnhenting.integrasjoner.saf.DokumentInfo
 import dokumentinnhenting.integrasjoner.saf.DokumentoversiktFagsak
 import dokumentinnhenting.integrasjoner.saf.Dokumentvariant
-import dokumentinnhenting.integrasjoner.saf.HentUtsendingsinfoResponse
 import dokumentinnhenting.integrasjoner.saf.Journalpost
 import dokumentinnhenting.integrasjoner.saf.JournalpostSak
+import dokumentinnhenting.integrasjoner.saf.JournalpostUtsendingsinfo
 import dokumentinnhenting.integrasjoner.saf.Journalposttype
 import dokumentinnhenting.integrasjoner.saf.Journalstatus
 import dokumentinnhenting.integrasjoner.saf.SafDokumentoversiktFagsakDataResponse
 import dokumentinnhenting.integrasjoner.saf.SafDokumentversiktFagsakData
-import dokumentinnhenting.integrasjoner.saf.SafUtsendingsinfoData
+import dokumentinnhenting.integrasjoner.saf.SafJournalpostUtsendingsinfoData
+import dokumentinnhenting.integrasjoner.saf.SafJournalpostUtsendingsinfoResponse
 import dokumentinnhenting.integrasjoner.saf.Utsendingsinfo
 import dokumentinnhenting.integrasjoner.saf.Variantformat
 import dokumentinnhenting.integrasjoner.syfo.oppslag.BehandlerOppslagResponse
@@ -243,20 +244,25 @@ object Fakes : AutoCloseable {
                 val body = call.receiveText()
                 if (body.contains("utsendingsinfo")) {
                     return@post call.respond(
-                        HentUtsendingsinfoResponse(
-                            SafUtsendingsinfoData(
-                                journalpostId = "1234",
-                                utsendingsinfo = Utsendingsinfo(
-                                    varselSendt = Utsendingsinfo.VarselSendt("SMS", LocalDateTime.now().minusHours(3)),
-                                    fysiskpostSendt = Utsendingsinfo.FysiskpostSendt(
-                                        """
-                                        Rask Fiskebolle
-                                        Testveien 1
-                                        0123 Teststed
-                                        Norge
-                                    """.trimIndent()
-                                    ),
-                                    digitalpostSendt = Utsendingsinfo.DigitalpostSendt("Digital adresse - ${UUID.randomUUID()}"),
+                        SafJournalpostUtsendingsinfoResponse(
+                            SafJournalpostUtsendingsinfoData(
+                                journalpost = JournalpostUtsendingsinfo(
+                                    journalpostId = "1234",
+                                    utsendingsinfo = Utsendingsinfo(
+                                        varselSendt = Utsendingsinfo.VarselSendt(
+                                            "SMS",
+                                            LocalDateTime.now().minusHours(3)
+                                        ),
+                                        fysiskpostSendt = Utsendingsinfo.FysiskpostSendt(
+                                            """
+                                                Rask Fiskebolle
+                                                Testveien 1
+                                                0123 Teststed
+                                                Norge
+                                            """.trimIndent()
+                                        ),
+                                        digitalpostSendt = Utsendingsinfo.DigitalpostSendt("Digital adresse - ${UUID.randomUUID()}"),
+                                    )
                                 )
                             ),
                             errors = null,

@@ -117,11 +117,11 @@ object SafGateway {
         }
 
         if (response.status.isSuccess()) {
-            val body = response.body<HentUtsendingsinfoResponse>()
+            val body = response.body<SafJournalpostUtsendingsinfoResponse>()
             if (body.errors != null) {
                 throw mapSafException(body.errors)
             } else {
-                return body.data?.utsendingsinfo
+                return body.data?.journalpost?.utsendingsinfo
             }
         } else {
             throw InternfeilException(
