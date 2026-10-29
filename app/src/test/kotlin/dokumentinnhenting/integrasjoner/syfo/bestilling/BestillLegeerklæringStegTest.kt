@@ -71,6 +71,7 @@ class BestillLegeerklæringStegTest {
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
                 connection
             )
+            påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
             // Andre del, henter data i steg og sender til kafka
             dialogmeldingUuid = behandlerDialogmeldingBestillingService.bestillNyDialogmelding(dto)

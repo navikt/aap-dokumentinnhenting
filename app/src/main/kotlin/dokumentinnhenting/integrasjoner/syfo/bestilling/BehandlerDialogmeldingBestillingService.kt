@@ -163,9 +163,11 @@ class BehandlerDialogmeldingBestillingService(
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = dto.tilDialogmeldingRecord(dialogmeldingUuid, samtaleRef)
 
+        val dialogmeldingUUID = dialogmeldingBestilling(dialogMeldingRecord)
+
         opprettPåminnelseHvisNødvendig(dialogMeldingRecord)
 
-        return dialogmeldingBestilling(dialogMeldingRecord)
+        return dialogmeldingUUID
     }
 
     fun dialogmeldingBestilling(dialogmeldingRecord: DialogmeldingRecord): UUID {
