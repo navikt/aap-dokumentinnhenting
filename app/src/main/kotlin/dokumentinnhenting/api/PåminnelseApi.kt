@@ -6,17 +6,43 @@ import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.util.Tags
-import io.ktor.http.HttpStatusCode
-import no.nav.aap.dokumentinnhenting.kontrakt.AvbrytPåminnelseRequest
-import no.nav.aap.dokumentinnhenting.kontrakt.GjenopptaAutomatiskPåminnelseRequest
-import no.nav.aap.dokumentinnhenting.kontrakt.PåminnelseRequest
+import io.ktor.http.*
+import no.nav.aap.behandlingsflyt.kontrakt.avklaringsbehov.Definisjon
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
+import no.nav.aap.tilgang.Rolle
 import no.nav.aap.tilgang.authorizedPost
-import java.util.UUID
+import no.nav.aap.tilgang.plugin.kontrakt.Behandlingsreferanse
+import java.util.*
 import javax.sql.DataSource
 
+
+data class PåminnelseRequest(
+    val dialogmeldingUuid: UUID,
+    val behandlingReferanse: BehandlingReferanse
+) : Behandlingsreferanse {
+    override fun behandlingsreferanseResolverInput(): String = behandlingReferanse.toString()
+
+    override fun hentPåkrevdRolle(): List<Rolle> = Definisjon.BESTILL_LEGEERKLÆRING.løsesAv
+}
+
+data class AvbrytPåminnelseRequest(
+    val dialogmeldingUuid: UUID, val behandlingReferanse: BehandlingReferanse
+) : Behandlingsreferanse {
+    override fun behandlingsreferanseResolverInput(): String = behandlingReferanse.toString()
+
+    override fun hentPåkrevdRolle(): List<Rolle> = Definisjon.BESTILL_LEGEERKLÆRING.løsesAv
+}
+
+data class GjenopptaAutomatiskPåminnelseRequest(
+    val dialogmeldingUuid: UUID, val behandlingReferanse: BehandlingReferanse
+) : Behandlingsreferanse {
+    override fun behandlingsreferanseResolverInput(): String = behandlingReferanse.toString()
+
+    override fun hentPåkrevdRolle(): List<Rolle> = Definisjon.BESTILL_LEGEERKLÆRING.løsesAv
+}
 
 fun NormalOpenAPIRoute.påminnelseApi(
     dataSource: DataSource
@@ -26,7 +52,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
         route("/send").authorizedPost<Unit, UUID, PåminnelseRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
-                applicationRole = paaminnelseApiRolle
+                applicationRole = paaminnelseApiRolle,
             )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
@@ -40,7 +66,6 @@ fun NormalOpenAPIRoute.påminnelseApi(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = paaminnelseApiRolle,
-                applicationsOnly = true
             )
         ) { _, req ->
             dataSource.transaction { connection ->
@@ -54,7 +79,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
                 applicationRole = paaminnelseApiRolle,
-                applicationsOnly = true
+                påkrevdRolle = Definisjon.BESTILL_LEGEERKLÆRING.løsesAv
             )
         ) { _, req ->
             dataSource.transaction { connection ->
