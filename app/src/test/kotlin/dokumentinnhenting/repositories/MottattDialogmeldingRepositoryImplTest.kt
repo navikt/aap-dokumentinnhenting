@@ -27,7 +27,7 @@ import java.util.UUID
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class MottattDialogmeldingRepositoryTest {
+class MottattDialogmeldingRepositoryImplTest {
 
     private lateinit var dataSource: TestDataSource
 
@@ -60,11 +60,11 @@ class MottattDialogmeldingRepositoryTest {
         val msgId = UUID.fromString(dialogmeldingMottatt.msgId)
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).lagre(dialogmeldingMottatt, saksnummer)
+            MottattDialogmeldingRepositoryImpl(connection).lagre(dialogmeldingMottatt, saksnummer)
         }
 
         val lagret = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForMsgId(msgId)
+            MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(msgId)
         }
 
         assertNotNull(lagret)
@@ -92,11 +92,11 @@ class MottattDialogmeldingRepositoryTest {
         val msgId = UUID.fromString(dialogmeldingMottatt.msgId)
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).lagre(dialogmeldingMottatt, "SAKSNUMMER")
+            MottattDialogmeldingRepositoryImpl(connection).lagre(dialogmeldingMottatt, "SAKSNUMMER")
         }
 
         val lagret = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForMsgId(msgId)
+            MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(msgId)
         }
 
         assertEquals("Helt annen behandler", lagret!!.navnHelsepersonell)
@@ -114,11 +114,11 @@ class MottattDialogmeldingRepositoryTest {
         )
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).lagre(dialogmeldingMottatt, saksnummer)
+            MottattDialogmeldingRepositoryImpl(connection).lagre(dialogmeldingMottatt, saksnummer)
         }
 
         val lagret = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForMsgId(UUID.fromString(dialogmeldingMottatt.msgId))
+            MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(UUID.fromString(dialogmeldingMottatt.msgId))
         }!!
 
         assertEquals(conversationRef, lagret.conversationRef)
@@ -135,11 +135,11 @@ class MottattDialogmeldingRepositoryTest {
         )
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).lagre(dialogmeldingMottatt, saksnummer)
+            MottattDialogmeldingRepositoryImpl(connection).lagre(dialogmeldingMottatt, saksnummer)
         }
 
         val lagret = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForMsgId(UUID.fromString(dialogmeldingMottatt.msgId))
+            MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(UUID.fromString(dialogmeldingMottatt.msgId))
         }!!
 
         assertNull(lagret.conversationRef)
@@ -154,18 +154,18 @@ class MottattDialogmeldingRepositoryTest {
         val duplikat = lagMottattDialogmelding(msgId = msgId.toString())
 
         dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.lagre(dialogmeldingMottatt, "ORIGINAL")
         }
 
         dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             // lagre samme på nytt
             assertThrows<Exception> { repo.lagre(duplikat, "DUPLIKAT") }
         }
 
         val lagret = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForMsgId(msgId)
+            MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(msgId)
         }!!
 
         assertEquals("ORIGINAL", lagret.saksnummer)
@@ -174,7 +174,7 @@ class MottattDialogmeldingRepositoryTest {
     @Test
     fun `hentForMsgId returnerer null for ukjent msgId`() {
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForMsgId(UUID.randomUUID())
+            MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(UUID.randomUUID())
         }
 
         assertNull(resultat)
@@ -183,7 +183,7 @@ class MottattDialogmeldingRepositoryTest {
     @Test
     fun `hentForSamtale returnerer tom liste når ingen meldinger finnes`() {
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForSamtale(UUID.randomUUID(), randomPersonIdent())
+            MottattDialogmeldingRepositoryImpl(connection).hentForSamtale(UUID.randomUUID(), randomPersonIdent())
         }
 
         assertTrue(resultat.isEmpty())
@@ -200,7 +200,7 @@ class MottattDialogmeldingRepositoryTest {
 
 
         dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.lagre(melding1, randomSaksnummer())
             repo.lagre(melding2, randomSaksnummer())
 
@@ -220,7 +220,7 @@ class MottattDialogmeldingRepositoryTest {
         }
 
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForSamtale(samtaleRef, personIdent)
+            MottattDialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, personIdent)
         }
 
         assertThat(resultat.map { it.msgId }).containsExactlyInAnyOrder(
@@ -238,13 +238,13 @@ class MottattDialogmeldingRepositoryTest {
             lagMottattDialogmelding(conversationRef = UUID.randomUUID().toString(), personIdentPasient = personIdent)
 
         dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.lagre(melding, randomSaksnummer())
             repo.lagre(annenMelding, randomSaksnummer())
         }
 
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForSamtale(samtaleRef, personIdent)
+            MottattDialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, personIdent)
         }
 
         assertThat(resultat.map { it.msgId }).containsExactly(UUID.fromString(melding.msgId))
@@ -261,13 +261,13 @@ class MottattDialogmeldingRepositoryTest {
             lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdentB)
 
         dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.lagre(meldingA, randomSaksnummer())
             repo.lagre(meldingB, randomSaksnummer())
         }
 
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForSamtale(samtaleRef, personIdentA)
+            MottattDialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, personIdentA)
         }
 
         assertThat(resultat.map { it.msgId }).containsExactly(UUID.fromString(meldingA.msgId))
@@ -276,7 +276,7 @@ class MottattDialogmeldingRepositoryTest {
     @Test
     fun `hentForSaksnummer returnerer tom liste når ingen meldinger finnes`() {
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForSaksnummer(randomSaksnummer())
+            MottattDialogmeldingRepositoryImpl(connection).hentForSaksnummer(randomSaksnummer())
         }
 
         assertTrue(resultat.isEmpty())
@@ -293,7 +293,7 @@ class MottattDialogmeldingRepositoryTest {
             lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
 
         dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.lagre(melding1, saksnummer)
             repo.lagre(melding2, saksnummer)
 
@@ -313,7 +313,7 @@ class MottattDialogmeldingRepositoryTest {
         }
 
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForSaksnummer(saksnummer)
+            MottattDialogmeldingRepositoryImpl(connection).hentForSaksnummer(saksnummer)
         }
 
         assertThat(resultat.map { it.msgId }).containsExactlyInAnyOrder(
@@ -332,13 +332,13 @@ class MottattDialogmeldingRepositoryTest {
             lagMottattDialogmelding(conversationRef = UUID.randomUUID().toString(), personIdentPasient = personIdent)
 
         dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.lagre(melding, forsteSaksnummer)
             repo.lagre(annenMelding, randomSaksnummer())
         }
 
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForSaksnummer(forsteSaksnummer)
+            MottattDialogmeldingRepositoryImpl(connection).hentForSaksnummer(forsteSaksnummer)
         }
 
         assertThat(resultat.map { it.msgId }).containsExactly(UUID.fromString(melding.msgId))
@@ -366,7 +366,7 @@ class MottattDialogmeldingRepositoryTest {
             lagMottattDialogmelding(personIdentPasient = gammelIdent, conversationRef = annenSamtaleRefString)
 
         val meldingerNyIdentFørEndring = dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.lagre(meldingNyIdent, saksnummer)
             repo.lagre(meldingGammelIdent, saksnummer)
             repo.lagre(meldingAnnenPerson, saksnummer)
@@ -375,7 +375,7 @@ class MottattDialogmeldingRepositoryTest {
         }
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).oppdaterPersonIdentPåSamtaleRef(
+            MottattDialogmeldingRepositoryImpl(connection).oppdaterPersonIdentPåSamtaleRef(
                 samtaleRef,
                 identHistorikk,
                 nyPersonIdent
@@ -383,7 +383,7 @@ class MottattDialogmeldingRepositoryTest {
         }
 
         val (meldingerNyIdentEtterEndring, meldingerAnnenSamtaleEtterEndring) = dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             val meldingerSamtale = repo.hentForSamtale(samtaleRef, nyPersonIdent)
             val meldingerAnnenSamtale = repo.hentForSamtale(annenSamtaleRef, nyPersonIdent)
             meldingerSamtale to meldingerAnnenSamtale
@@ -408,7 +408,7 @@ class MottattDialogmeldingRepositoryTest {
         val meldingGammelIdent = lagMottattDialogmelding(personIdentPasient = gammelIdent, parentRef = parentRefString)
 
         val meldingerParentNyIdentFørEndring = dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.lagre(meldingParent, saksnummer)
             repo.lagre(meldingNyIdent, saksnummer)
             repo.lagre(meldingGammelIdent, saksnummer)
@@ -416,7 +416,7 @@ class MottattDialogmeldingRepositoryTest {
         }
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).oppdaterPersonIdentPåParentRef(
+            MottattDialogmeldingRepositoryImpl(connection).oppdaterPersonIdentPåParentRef(
                 parentRef,
                 identHistorikk,
                 nyPersonIdent
@@ -424,7 +424,7 @@ class MottattDialogmeldingRepositoryTest {
         }
 
         val meldingerParentNyIdentEtterEndring = dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepository(connection)
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
             repo.hentForParent(parentRef, nyPersonIdent)
         }
 

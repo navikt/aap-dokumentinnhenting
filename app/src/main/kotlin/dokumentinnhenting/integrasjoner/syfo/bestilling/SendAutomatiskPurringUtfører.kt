@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.syfo.bestilling
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.repositories.PåminnelseKjøringRepository
+import dokumentinnhenting.repositories.PåminnelseKjøringRepositoryImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.Jobb
@@ -61,7 +62,7 @@ class SendAutomatiskPurringUtfører(
             return SendAutomatiskPurringUtfører(
                 bestillingService = BehandlerDialogmeldingBestillingService.konstruer(connection),
                 behandlingsflytGateway = BehandlingsflytGateway,
-                påminnelseKjøringRepository = PåminnelseKjøringRepository(connection)
+                påminnelseKjøringRepository = PåminnelseKjøringRepositoryImpl(connection)
             )
         }
 

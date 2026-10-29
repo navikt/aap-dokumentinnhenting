@@ -7,6 +7,7 @@ import dokumentinnhenting.integrasjoner.dokarkiv.KnyttTilAnnenSakRequest
 import dokumentinnhenting.integrasjoner.dokarkiv.OpprettJournalpostRequest
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -58,7 +59,7 @@ class HåndterMottattDialogmeldingUtfører(
             return HåndterMottattDialogmeldingUtfører(
                 DokarkivGateway(SystemTokenProvider),
                 FlytJobbRepository(connection),
-                MottattDialogmeldingRepository(connection),
+                MottattDialogmeldingRepositoryImpl(connection),
             )
         }
 

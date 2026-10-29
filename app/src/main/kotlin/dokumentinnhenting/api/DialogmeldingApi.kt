@@ -8,7 +8,7 @@ import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.Azp
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingUthentingService
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
-import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
 import dokumentinnhenting.util.Tags
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
@@ -42,7 +42,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                         DialogmeldingRepositoryImpl(connection).eksisterer(params.dialogmeldingId)
 
                     val eksistererMottattDialogmelding by lazy {
-                        MottattDialogmeldingRepository(connection).eksisterer(params.dialogmeldingId)
+                        MottattDialogmeldingRepositoryImpl(connection).eksisterer(params.dialogmeldingId)
                     }
 
                     eksistererUtsendtDialogmelding || eksistererMottattDialogmelding
@@ -64,7 +64,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                 respond(dataSource.transaction { connection ->
                     val dialogmeldingUthentingService = DialogmeldingUthentingService(
                         DialogmeldingRepositoryImpl(connection),
-                        MottattDialogmeldingRepository(connection)
+                        MottattDialogmeldingRepositoryImpl(connection)
                     )
                     dialogmeldingUthentingService.hentFellesDialogmeldingerForSak(params.saksnummer)
 
@@ -82,7 +82,7 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                 respond(dataSource.transaction { connection ->
                     val dialogmeldingUthentingService = DialogmeldingUthentingService(
                         DialogmeldingRepositoryImpl(connection),
-                        MottattDialogmeldingRepository(connection)
+                        MottattDialogmeldingRepositoryImpl(connection)
                     )
                     dialogmeldingUthentingService.hentLegeerklæringForespørslerForSak(BehandlingReferanse(params.behandlingsReferanse))
                 })
