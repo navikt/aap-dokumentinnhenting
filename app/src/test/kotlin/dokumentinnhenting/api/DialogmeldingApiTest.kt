@@ -16,7 +16,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraS
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
-import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
@@ -133,8 +133,8 @@ class DialogmeldingApiTest {
             DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record1)
             DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record2)
             DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record3)
-            MottattDialogmeldingRepository(connection).lagre(mottattRecord1, riktigSaksnummer)
-            MottattDialogmeldingRepository(connection).lagre(mottattRecord2, annetSaksnummer)
+            MottattDialogmeldingRepositoryImpl(connection).lagre(mottattRecord1, riktigSaksnummer)
+            MottattDialogmeldingRepositoryImpl(connection).lagre(mottattRecord2, annetSaksnummer)
         }
 
         val response = client.get("/dialogmelding/$riktigSaksnummer/dialogmeldinger") {

@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class PåminnelseKjøringRepositoryTest {
+class PåminnelseKjøringRepositoryImplTest {
     private lateinit var dataSource: TestDataSource
 
     @BeforeAll
@@ -29,7 +29,7 @@ class PåminnelseKjøringRepositoryTest {
     @Test
     fun `skal lagre og hente sist kjørt for dato`() {
         val sistKjørtForDato = dataSource.transaction { connection ->
-            val repository = PåminnelseKjøringRepository(connection)
+            val repository = PåminnelseKjøringRepositoryImpl(connection)
             repository.lagreKjøringForDato(dato = LocalDate.now().minusDays(24))
             repository.lagreKjøringForDato(dato = LocalDate.now().minusDays(23))
             repository.hentSistKjørtForDato()

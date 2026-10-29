@@ -9,6 +9,7 @@ import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRecord
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
 import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.unleash.UnleashGatewayImpl
@@ -189,7 +190,7 @@ class FiltrerDialogmeldingUtfører(
             return FiltrerDialogmeldingUtfører(
                 flytJobbRepository = FlytJobbRepository(connection),
                 dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
-                mottattDialogmeldingRepository = MottattDialogmeldingRepository(connection),
+                mottattDialogmeldingRepository = MottattDialogmeldingRepositoryImpl(connection),
                 unleash = UnleashGatewayImpl
             )
         }

@@ -9,7 +9,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraS
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.randomPersonIdent
-import dokumentinnhenting.repositories.MottattDialogmeldingRepository
+import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.random.Random
@@ -60,7 +60,7 @@ class HåndterMottattDialogmeldingUtførerTest {
         utfør(payload)
 
         val lagret = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForMsgId(msgId)
+            MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(msgId)
         }
 
         assertNotNull(lagret)
@@ -78,7 +78,7 @@ class HåndterMottattDialogmeldingUtførerTest {
         utfør(payload)
 
         val lagret = dataSource.transaction { connection ->
-            MottattDialogmeldingRepository(connection).hentForMsgId(msgId)
+            MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(msgId)
         }
 
         assertNull(lagret)
@@ -89,7 +89,7 @@ class HåndterMottattDialogmeldingUtførerTest {
             HåndterMottattDialogmeldingUtfører(
                 DokarkivGateway(SystemTokenProvider),
                 FlytJobbRepository(connection),
-                MottattDialogmeldingRepository(connection),
+                MottattDialogmeldingRepositoryImpl(connection),
             ).utfør(JobbInput(HåndterMottattDialogmeldingUtfører).medPayload(DefaultJsonMapper.toJson(payload)))
         }
     }
