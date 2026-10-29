@@ -21,7 +21,7 @@ data class DialogmeldingMottakDTO(
     val dialogmelding: Dialogmelding,
     val antallVedlegg: Int,
     val journalpostId: String,
-    val fellesformatXML: String,
+    val fellesformatXML: String? = null,
 )
 
 data class Dialogmelding(
