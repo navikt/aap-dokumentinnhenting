@@ -1,14 +1,23 @@
 package dokumentinnhenting.repositories
 
+import dokumentinnhenting.domene.Behandler
+import dokumentinnhenting.domene.Forespørsel
+import dokumentinnhenting.domene.Journalreferanse
+import dokumentinnhenting.domene.Person
+import dokumentinnhenting.domene.Påminnelse
+import dokumentinnhenting.domene.Statushendelse
+import dokumentinnhenting.domene.UtgåendeDialogmelding
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.util.motor.syfo.ProsesseringSyfoStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.komponenter.repository.RepositoryFactory
+import no.nav.aap.verdityper.dokument.JournalpostId
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -85,6 +94,80 @@ class DialogmeldingRepositoryImpl(private val connection: DBConnection) : Dialog
             }
         }
     }
+
+    override fun hentForespørsel(dialogmeldingUuid: UUID): Forespørsel? {
+        val original = hentByDialogId(dialogmeldingUuid) ?: return null
+        return tilForespørsel(original)
+    }
+
+    private fun tilForespørsel(original: DialogmeldingFullRecord): Forespørsel {
+        val dialogmeldingUuid = original.dialogmeldingUuid
+        val påminnelser = connection.queryList(
+            """
+                SELECT * FROM DIALOGMELDING
+                WHERE TIDLIGERE_BESTILLING_REFERANSE = ? AND DOKUMENTASJONTYPE = ?
+                ORDER BY OPPRETTET_TID, ID
+            """.trimIndent()
+        ) {
+            setParams {
+                setString(1, dialogmeldingUuid.toString())
+                setString(2, DokumentasjonType.PURRING.name)
+            }
+            setRowMapper(::mapDialogmeldingFullRecord)
+        }
+        val meldingsIder = listOf(original.dialogmeldingUuid) + påminnelser.map { it.dialogmeldingUuid }
+        val historikk = connection.queryList(
+            """
+                SELECT * FROM DIALOGMELDING_STATUS_HISTORIKK
+                WHERE DIALOGMELDING_UUID = ANY(?::uuid[])
+                ORDER BY HENDELSE_TIDSPUNKT, MOTTATT_TIDSPUNKT, ID
+            """.trimIndent()
+        ) {
+            setParams { setArray(1, meldingsIder.map(UUID::toString)) }
+            setRowMapper { row ->
+                row.getUUID("DIALOGMELDING_UUID") to Statushendelse(
+                    kildehendelseId = row.getString("KILDEHENDELSE_ID"),
+                    status = row.getEnum("STATUS"),
+                    hendelseTidspunkt = row.getInstant("HENDELSE_TIDSPUNKT"),
+                    mottattTidspunkt = row.getInstant("MOTTATT_TIDSPUNKT"),
+                    tekst = row.getStringOrNull("TEKST"),
+                )
+            }
+        }.groupBy({ it.first }, { it.second })
+
+        return Forespørsel(
+            melding = original.tilDomene(historikk[original.dialogmeldingUuid].orEmpty()),
+            dokumentasjonstype = original.dokumentasjonType,
+            automatiskPåminnelseAktiv = original.automatiskPåminnelse,
+            påminnelser = påminnelser.map {
+                Påminnelse(
+                    melding = it.tilDomene(historikk[it.dialogmeldingUuid].orEmpty()),
+                    forespørselId = dialogmeldingUuid,
+                )
+            },
+        )
+    }
+
+    private fun DialogmeldingFullRecord.tilDomene(historikk: List<Statushendelse>) = UtgåendeDialogmelding(
+        id = dialogmeldingUuid,
+        behandlingsreferanse = BehandlingReferanse(behandlingsReferanse),
+        saksnummer = Saksnummer(saksnummer),
+        person = Person(personIdent, personNavn),
+        behandler = Behandler(behandlerRef, behandlerHprNr, behandlerNavn),
+        bestillerNavIdent = bestillerNavIdent,
+        tekst = fritekst,
+        opprettetTidspunkt = opprettet,
+        journalreferanse = if (journalpostId == null && dokumentId == null) {
+            null
+        } else {
+            Journalreferanse(journalpostId?.let(::JournalpostId), dokumentId)
+        },
+        gjeldendeStatus = status,
+        statusTekst = statusTekst,
+        samtaleRef = samtaleRef,
+        flytStatus = flytStatus,
+        statushistorikk = historikk,
+    )
 
     override fun leggTilJournalpostPåBestilling(dialogmeldingUuid: UUID, journalpostId: String, dokumentId: String) {
         val query = """
@@ -281,7 +364,7 @@ class DialogmeldingRepositoryImpl(private val connection: DBConnection) : Dialog
         behandlingReferanse: BehandlingReferanse,
         dokumentasjonstype: DokumentasjonType,
         opprettetDato: LocalDate
-    ): List<DialogmeldingFullRecord> {
+    ): List<Forespørsel> {
         val query = """
         SELECT d.* FROM DIALOGMELDING d
         WHERE d.behandlingsReferanse = ?
@@ -304,7 +387,7 @@ class DialogmeldingRepositoryImpl(private val connection: DBConnection) : Dialog
             setRowMapper {
                 mapDialogmeldingFullRecord(it)
             }
-        }
+        }.map(::tilForespørsel)
     }
 
     override fun settAutomatiskPåminnelse(automatiskPåminnelse: Boolean, dialogmeldingUuid: UUID) {
