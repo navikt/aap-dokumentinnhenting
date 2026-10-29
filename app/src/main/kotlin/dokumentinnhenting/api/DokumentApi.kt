@@ -18,17 +18,18 @@ import dokumentinnhenting.integrasjoner.saf.Journalstatus
 import dokumentinnhenting.integrasjoner.saf.SafGateway
 import dokumentinnhenting.integrasjoner.saf.SafHentDokumentGateway
 import dokumentinnhenting.integrasjoner.saf.Saksnummer
+import dokumentinnhenting.integrasjoner.saf.Utsendingsinfo
 import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
 import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
 import dokumentinnhenting.util.dokument.tilBegrensetDto
 import io.ktor.http.HttpStatusCode
+import java.io.InputStream
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostListeResponse
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostResponse
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.verdityper.dokument.JournalpostId
-import java.io.InputStream
 
 fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
     route("/api/dokumenter").tag(Tags.Dokumenter) {
@@ -91,6 +92,12 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
             respond(HentDokumentResponse(response.dokument))
         }
 
+        route("/{journalpostId}/utsendingsinfo").get<JournalpostIdParams, HentUtsendingsinfoResponse> { params ->
+            val utsendingsinfo = SafGateway.hentUtsendingsinfo(JournalpostId(params.journalpostId), token())
+
+            respond(HentUtsendingsinfoResponse(utsendingsinfo))
+        }
+
         route("/{journalpostId}/knyttTilAnnenSak").post<JournalpostIdParams, KnyttTilAnnenSakResponse, KnyttTilAnnenSakRequest> { params, req ->
             val dokarkivResponse =
                 dokarkivGateway.knyttJournalpostTilAnnenSak(params.journalpostId, req, token())
@@ -134,6 +141,7 @@ data class HentDokumentoversiktJournalpostListeParams(val journalpostIdListe: Li
 
 @BinaryResponse(contentTypes = ["application/pdf"])
 class HentDokumentResponse(val dokument: InputStream)
+class HentUtsendingsinfoResponse(val utsendingsinfo: Utsendingsinfo?)
 
 data class JournalpostIdParams(
     @param:PathParam(description = "Journalpost-ID") val journalpostId: String,

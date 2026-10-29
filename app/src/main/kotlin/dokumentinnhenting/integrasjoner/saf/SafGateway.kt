@@ -7,11 +7,14 @@ import dokumentinnhenting.util.graphql.GraphQLError
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.metrics.recordSafBrukerJournalposterCount
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import java.time.LocalDateTime
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.exception.ApiException
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
@@ -20,7 +23,6 @@ import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.verdityper.dokument.JournalpostId
-import java.time.LocalDateTime
 
 object SafGateway {
     private val graphqlUrl = requiredConfigForKey("INTEGRASJON_SAF_URL_GRAPHQL")
@@ -100,6 +102,33 @@ object SafGateway {
         }
         prometheus.recordSafBrukerJournalposterCount(journalposter.size)
         return journalposter
+    }
+
+    suspend fun hentUtsendingsinfo(journalpostId: JournalpostId, token: OidcToken): Utsendingsinfo? {
+        val request = SafRequest(
+            query = getQuery("/saf/utsendingsinfo.graphql"),
+            variables = UtsendingsinfoJournalpostVariables(journalpostId.identifikator)
+        )
+
+        val response = defaultHttpClient.post(graphqlUrl) {
+            bearerAuth(OboTokenProvider.getToken(scope, token))
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+        if (response.status.isSuccess()) {
+            val body = response.body<SafJournalpostUtsendingsinfoResponse>()
+            if (body.errors != null) {
+                throw mapSafException(body.errors)
+            } else {
+                return body.data?.journalpost?.utsendingsinfo
+            }
+        } else {
+            throw InternfeilException(
+                "Ukjent feil oppsto ved henting av utsendingsinfo",
+                ResponseException(response, "Ukjent feil oppsto ved henting av utsendingsinfo")
+            )
+        }
     }
 
     private fun getQuery(name: String): String {
