@@ -144,18 +144,10 @@ class KafkaStreamsTest {
         val incomingRecord = DialogmeldingMottakDTO(
             "msgId",
             "msgType",
-            "navLogId",
             LocalDateTime.now(),
             "conversationRef",
             "parentRef",
             "personIdentPasient",
-            "pasientAktoerId",
-            "personIdentBehandler",
-            "behandlerAktoerId",
-            "legekontorOrgNr",
-            "legekontorHerId",
-            "legekontorReshId",
-            "legekontorOrgName",
             "legehpr",
             Dialogmelding(
                 "id",
@@ -171,9 +163,7 @@ class KafkaStreamsTest {
                 "navnHelsepersonell",
                 LocalDateTime.now()
             ),
-            1,
             "journalpostId",
-            "fellesformatXML"
         )
 
         mottakInputTopic.pipeInput("key", incomingRecord)

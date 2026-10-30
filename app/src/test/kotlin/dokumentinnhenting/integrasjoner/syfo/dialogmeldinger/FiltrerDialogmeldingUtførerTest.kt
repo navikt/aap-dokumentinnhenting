@@ -369,15 +369,10 @@ class FiltrerDialogmeldingUtførerTest {
     ) = DialogmeldingMottakDTO(
         msgId = randomUUID().toString(),
         msgType = randomUUID().toString(),
-        navLogId = randomUUID().toString(),
         mottattTidspunkt = LocalDateTime.now(),
         conversationRef = conversationRef,
         parentRef = parentRef,
         personIdentPasient = personIdentPasient,
-        personIdentBehandler = randomPersonIdent(),
-        legekontorOrgNr = null,
-        legekontorHerId = null,
-        legekontorOrgName = randomUUID().toString(),
         legehpr = null,
         dialogmelding = Dialogmelding(
             id = randomUUID().toString(),
@@ -387,9 +382,7 @@ class FiltrerDialogmeldingUtførerTest {
             navnHelsepersonell = randomUUID().toString(),
             signaturDato = LocalDateTime.now(),
         ),
-        antallVedlegg = 0,
         journalpostId = journalpostId,
-        fellesformatXML = randomUUID().toString(),
     )
 
     private fun lagForesporselSvar() = ForesporselFraSaksbehandlerForesporselSvar(
