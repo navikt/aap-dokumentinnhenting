@@ -112,15 +112,10 @@ class HåndterMottattDialogmeldingUtførerTest {
         dialogmeldingMottatt = DialogmeldingMottakDTO(
             msgId = UUID.randomUUID().toString(),
             msgType = "DIALOG_NOTAT",
-            navLogId = UUID.randomUUID().toString(),
             mottattTidspunkt = LocalDateTime.now(),
             conversationRef = UUID.randomUUID().toString(),
             parentRef = null,
             personIdentPasient = randomPersonIdent(),
-            personIdentBehandler = randomPersonIdent(),
-            legekontorOrgNr = "123456789",
-            legekontorHerId = "HER-123",
-            legekontorOrgName = "Testlegekontor",
             legehpr = Random.nextInt().toString(),
             dialogmelding = Dialogmelding(
                 id = UUID.randomUUID().toString(),
@@ -142,9 +137,7 @@ class HåndterMottattDialogmeldingUtførerTest {
                 navnHelsepersonell = "Dr. Testesen",
                 signaturDato = LocalDateTime.now(),
             ),
-            antallVedlegg = 0,
             journalpostId = Random.nextLong().toString(),
-            fellesformatXML = "<xml/>",
         ),
         sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer = "ABC123"),
     )

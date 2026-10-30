@@ -446,15 +446,10 @@ class MottattDialogmeldingRepositoryImplTest {
     ) = DialogmeldingMottakDTO(
         msgId = msgId,
         msgType = "DIALOG_NOTAT",
-        navLogId = UUID.randomUUID().toString(),
         mottattTidspunkt = mottattTidspunkt,
         conversationRef = conversationRef,
         parentRef = parentRef,
         personIdentPasient = personIdentPasient,
-        personIdentBehandler = randomPersonIdent(),
-        legekontorOrgNr = "123456789",
-        legekontorHerId = "HER-123",
-        legekontorOrgName = "Testveien Legekontor AS",
         legehpr = legehpr,
         dialogmelding = Dialogmelding(
             id = UUID.randomUUID().toString(),
@@ -478,8 +473,6 @@ class MottattDialogmeldingRepositoryImplTest {
             navnHelsepersonell = navnHelsepersonell,
             signaturDato = mockk()
         ),
-        antallVedlegg = 0,
         journalpostId = journalpostId,
-        fellesformatXML = "<xml/>",
     )
 }

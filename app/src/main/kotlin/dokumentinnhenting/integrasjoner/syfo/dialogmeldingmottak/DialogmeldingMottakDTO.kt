@@ -1,27 +1,24 @@
 package dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDateTime
 
+/**
+ * Innkommende dialogmelding fra fastleger og andre behandlere.
+ *
+ * @see: https://github.com/navikt/padm2/blob/master/documentation/kafka/dialogmelding.md
+ **/
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class DialogmeldingMottakDTO(
     val msgId: String,
     val msgType: String,
-    val navLogId: String,
     val mottattTidspunkt: LocalDateTime,
     val conversationRef: String?,
     val parentRef: String?,
     val personIdentPasient: String,
-    val pasientAktoerId: String? = null, // deprecated
-    val personIdentBehandler: String,
-    val behandlerAktoerId: String? = null, // deprecated
-    val legekontorOrgNr: String?,
-    val legekontorHerId: String?,
-    val legekontorReshId: String? = null, // deprecated
-    val legekontorOrgName: String,
     val legehpr: String?,
     val dialogmelding: Dialogmelding,
-    val antallVedlegg: Int,
     val journalpostId: String,
-    val fellesformatXML: String? = null,
 )
 
 data class Dialogmelding(
@@ -43,7 +40,6 @@ data class HenvendelseFraLegeHenvendelse(
 
 data class InnkallingMoterespons(
     val temaKode: TemaKode?,
-    val teamakode: TemaKode?,
     val tekstNotatInnhold: String?,
     val dokIdNotat: String?,
     val foresporsel: Foresporsel?
