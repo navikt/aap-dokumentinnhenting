@@ -1,5 +1,6 @@
 package dokumentinnhenting.api
 
+import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
@@ -88,7 +89,7 @@ fun NormalOpenAPIRoute.syfoApi(
         route("/status/{saksnummer}").authorizedGet<SaksnummerParameter, List<DialogmeldingStatusTilBehandslingsflytDto>>(
             AuthorizationParamPathConfig(
                 applicationRole = syfoApiRolle,
-                applicationsOnly = true,
+                applicationsOnly = false,
                 sakPathParam = SakPathParam("saksnummer")
             )
         ) { req ->
