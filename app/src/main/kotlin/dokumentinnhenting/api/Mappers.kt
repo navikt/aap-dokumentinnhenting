@@ -172,13 +172,14 @@ fun DialogmeldingFullRecord.tilPåminnelseRecord(
             else
                 PåminnelseStatus.AVBRUTT
 
-    val antattSisteForespørselSendt = if (utledetStatus == PåminnelseStatus.SENDT) påminnelseFrist else null
+    val statusTilLagring = påminnelseStatus ?: utledetStatus
+    val antattSisteForespørselSendt = if (statusTilLagring == PåminnelseStatus.SENDT) påminnelseFrist else null
 
     return PåminnelseRecord(
         id = -1,        // Blir satt i DB
         dialogmeldingId = this.dialogmeldingUuid,
         behandlingsReferanse = this.behandlingsReferanse,
-        status = påminnelseStatus ?: utledetStatus,
+        status = statusTilLagring,
         påminnelseDato = påminnelseFrist.toLocalDate(),
         opprettetTidspunkt = this.opprettet, // Burde vært opprettet samtidig som forespørselen
         sisteForespørselSendt = antattSisteForespørselSendt

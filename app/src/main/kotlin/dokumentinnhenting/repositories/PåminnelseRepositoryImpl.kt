@@ -6,6 +6,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -137,6 +138,22 @@ class PåminnelseRepositoryImpl(private val connection: DBConnection) : Påminne
             setParams {
                 setEnumName(1, status)
                 setUUID(2, dialogmeldingId)
+            }
+        }
+    }
+
+    override fun setForespørselSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime) {
+        val query = """
+            UPDATE PAAMINNELSE
+            SET SISTE_FORESPORSEL_SENDT = ?, STATUS = ?
+            WHERE DIALOGMELDING_UUID = ?
+        """.trimIndent()
+
+        connection.execute(query) {
+            setParams {
+                setLocalDateTime(1, tidspunkt)
+                setString(2, PåminnelseStatus.SENDT.toString())
+                setUUID(3, dialogmeldingId)
             }
         }
     }
