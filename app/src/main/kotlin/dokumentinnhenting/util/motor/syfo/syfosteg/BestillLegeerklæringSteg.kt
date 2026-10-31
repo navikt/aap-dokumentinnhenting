@@ -10,7 +10,6 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKodeverk
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseStatus
 import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepository
@@ -82,7 +81,7 @@ class BestillLegeerklæringSteg(
         }
         prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
 
-        påminnelseRepository.oppdaterPåminnelseStatus(dialogmeldingUuid, PåminnelseStatus.SENDT)
+        påminnelseRepository.setForespørselSendt(dialogmeldingUuid, LocalDateTime.now())
 
         return SyfoSteg.Resultat.FULLFØRT
     }

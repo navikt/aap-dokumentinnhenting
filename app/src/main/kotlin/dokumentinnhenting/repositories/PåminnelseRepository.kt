@@ -5,6 +5,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.repository.Repository
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface PåminnelseRepository : Repository {
@@ -15,5 +16,6 @@ interface PåminnelseRepository : Repository {
     fun hentPåminnelseForDialogmeldinger(dialogmeldingIdListe: List<UUID>): List<PåminnelseRecord>
     fun hentPåminnelseForBehandlingsReferanse(behandlingsReferanse: BehandlingReferanse): List<PåminnelseRecord>
     fun oppdaterPåminnelseStatus(dialogmeldingId: UUID, status: PåminnelseStatus)
+    fun setForespørselSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime)
     fun oppdaterPåminnelseDato(dialogmeldingId: UUID, dato: LocalDate)
 }

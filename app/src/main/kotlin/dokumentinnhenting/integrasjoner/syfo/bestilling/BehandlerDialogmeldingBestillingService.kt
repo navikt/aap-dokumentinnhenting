@@ -238,9 +238,4 @@ class BehandlerDialogmeldingBestillingService(
             )
         )
     }
-
-    private fun setPåminnelseStatus(dialogmeldingId: UUID, status: PåminnelseStatus) {
-        log.info("Setter påminnelsestatus ${status} for dialogmeldingId ${dialogmeldingId}")
-        påminnelseRepository.oppdaterPåminnelseStatus(dialogmeldingId, status)
-    }
 }
