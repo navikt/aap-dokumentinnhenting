@@ -12,7 +12,15 @@ data class PåminnelseRecord(
     val påminnelseDato: LocalDate,
     val opprettetTidspunkt: LocalDateTime,
     val sisteForespørselSendt: LocalDateTime?,
-)
+) {
+    val erForespørselSendt: Boolean
+        get() = sisteForespørselSendt != null
+    fun erForespørselSendtSisteAntallDager(antallDager: Long) =
+        sisteForespørselSendt != null &&
+        sisteForespørselSendt.plusDays(antallDager) > LocalDateTime.now()
+    fun harPåminnelseDatoPassert() =
+        påminnelseDato.isBefore(LocalDate.now())
+}
 
 enum class PåminnelseStatus {
     PLANLAGT, AVBRUTT, SENDT

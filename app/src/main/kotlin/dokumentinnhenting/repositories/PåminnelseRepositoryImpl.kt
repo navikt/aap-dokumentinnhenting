@@ -6,19 +6,19 @@ import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class PåminnelseRepositoryImpl(private val connection: DBConnection) : PåminnelseRepository {
 
-    override fun opprettPåminnelseVedBehov(påminnelse: PåminnelseRecord) {
+    override fun opprettPåminnelseEllerOppdaterStatus(påminnelse: PåminnelseRecord) {
         val query = """
             INSERT INTO PAAMINNELSE (
                 DIALOGMELDING_UUID, BEHANDLINGSREFERANSE, STATUS, PAMINNELSESDATO, OPPRETTET_TIDSPUNKT, SISTE_FORESPORSEL_SENDT
             )
             SELECT ?, ?, ?, ?, ?, ?
-            ON CONFLICT (DIALOGMELDING_UUID) DO NOTHING
+            ON CONFLICT (DIALOGMELDING_UUID) DO UPDATE SET 
+                STATUS = ?
         """.trimIndent()
 
         return connection.execute(query) {
@@ -29,6 +29,35 @@ class PåminnelseRepositoryImpl(private val connection: DBConnection) : Påminne
                 setLocalDate(4, påminnelse.påminnelseDato)
                 setLocalDateTime(5, påminnelse.opprettetTidspunkt.truncatedTo(ChronoUnit.MILLIS))
                 setLocalDateTime(6, påminnelse.sisteForespørselSendt)
+                setString(7, påminnelse.status.toString())
+            }
+        }
+    }
+
+    override fun opprettPåminnelseListeEllerOppdaterStatus(påminnelser: List<PåminnelseRecord>) {
+        if (påminnelser.isEmpty()) {
+            return
+        }
+
+        val query = """
+            INSERT INTO PAAMINNELSE (
+                DIALOGMELDING_UUID, BEHANDLINGSREFERANSE, STATUS, 
+                PAMINNELSESDATO, OPPRETTET_TIDSPUNKT, SISTE_FORESPORSEL_SENDT
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT (DIALOGMELDING_UUID) DO UPDATE SET
+                STATUS = ?
+        """.trimIndent()
+
+        connection.executeBatch(query, påminnelser) {
+            setParams { påminnelse ->
+                setUUID(1, påminnelse.dialogmeldingId)
+                setUUID(2, påminnelse.behandlingsReferanse)
+                setString(3, påminnelse.status.toString())
+                setLocalDate(4, påminnelse.påminnelseDato)
+                setLocalDateTime(5, påminnelse.opprettetTidspunkt.truncatedTo(ChronoUnit.MILLIS))
+                setLocalDateTime(6, påminnelse.sisteForespørselSendt)
+                setString(7, påminnelse.status.toString())
             }
         }
     }

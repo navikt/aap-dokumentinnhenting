@@ -4,6 +4,7 @@ import dokumentinnhenting.integrasjoner.saf.AvsenderMottaker
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA
 import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseStatus
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
@@ -86,18 +87,17 @@ fun DokumentasjonType.tilDto(): no.nav.aap.dokumentinnhenting.kontrakt.Dokumenta
     }
 }
 
-fun DialogmeldingRecord.tilPåminnelseRecord(antallDagerFrist: Long): PåminnelseRecord {
-    require(antallDagerFrist > 0L) {
-        "Antall dager frist på påminnelse må være et positivt tall!"
-    }
-
+fun DialogmeldingRecord.tilPåminnelseRecord(
+    påminnelseDato: LocalDate,
+    opprettetTidspunkt: LocalDateTime
+): PåminnelseRecord {
     return PåminnelseRecord(
         id = 1,
         dialogmeldingId = this.dialogmeldingUuid,
         behandlingsReferanse = this.behandlingsReferanse,
         status = PåminnelseStatus.PLANLAGT,
-        påminnelseDato = LocalDate.now().plusDays(antallDagerFrist),
-        opprettetTidspunkt = LocalDateTime.now(),
+        påminnelseDato = påminnelseDato,
+        opprettetTidspunkt = opprettetTidspunkt,
         sisteForespørselSendt = null
     )
 }
@@ -143,6 +143,45 @@ fun DialogmeldingFullRecord.tilFellesDialogmeldingDto(
         },
         kanSendeManuellPåminnelse = kanPåminnesMedSisteForespørselDato.contains(this.dialogmeldingUuid),
         sisteForespørselSendt = kanPåminnesMedSisteForespørselDato[this.dialogmeldingUuid]
+    )
+}
+
+fun DialogmeldingFullRecord.tilPåminnelseRecord(
+    antallDagerPåminnelseFrist: Long = PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA,
+    påminnelseStatus: PåminnelseStatus? = null,
+): PåminnelseRecord {
+    require(antallDagerPåminnelseFrist > 0) {
+        "Antallet dager frist på påminnelse må være et positivt tall!"
+    }
+
+    val påminnelseFrist = this.opprettet.plusDays(antallDagerPåminnelseFrist)
+    val erAutomatiskPåminnelseDatoPassert = påminnelseFrist < LocalDateTime.now()
+    val utledetStatus =
+        // Hvis det har blitt sendt en manuell påminnelse (etter fristen på 3 uker), så skal påminnelsen eksistere i
+        // tabellen allerede, og vi kan derfor se bort fra det scenarioet.
+        if (erAutomatiskPåminnelseDatoPassert)
+        // Antar her at 'automatiskPåminnelse' ikke kan bli endret etter påminnelsesdatoen har passert
+            if (this.automatiskPåminnelse)
+            // Evt. sjekke er sted om den faktisk er sendt eller ikke
+                PåminnelseStatus.SENDT
+            else
+                PåminnelseStatus.AVBRUTT
+        else
+            if (this.automatiskPåminnelse)
+                PåminnelseStatus.PLANLAGT
+            else
+                PåminnelseStatus.AVBRUTT
+
+    val antattSisteForespørselSendt = if (utledetStatus == PåminnelseStatus.SENDT) påminnelseFrist else null
+
+    return PåminnelseRecord(
+        id = -1,        // Blir satt i DB
+        dialogmeldingId = this.dialogmeldingUuid,
+        behandlingsReferanse = this.behandlingsReferanse,
+        status = påminnelseStatus ?: utledetStatus,
+        påminnelseDato = påminnelseFrist.toLocalDate(),
+        opprettetTidspunkt = this.opprettet, // Burde vært opprettet samtidig som forespørselen
+        sisteForespørselSendt = antattSisteForespørselSendt
     )
 }
 

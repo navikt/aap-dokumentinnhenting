@@ -8,7 +8,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 interface PåminnelseRepository : Repository {
-    fun opprettPåminnelseVedBehov(påminnelse: PåminnelseRecord)
+    fun opprettPåminnelseEllerOppdaterStatus(påminnelse: PåminnelseRecord)
+    fun opprettPåminnelseListeEllerOppdaterStatus(påminnelser: List<PåminnelseRecord>)
     fun hentPåminnelseForId(påminnelseId: Long): PåminnelseRecord?
     fun hentPåminnelseForDialogmeldingId(dialogmeldingId: UUID): List<PåminnelseRecord>
     fun hentPåminnelseForDialogmeldinger(dialogmeldingIdListe: List<UUID>): List<PåminnelseRecord>

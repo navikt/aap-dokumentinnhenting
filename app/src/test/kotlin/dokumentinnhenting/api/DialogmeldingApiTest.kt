@@ -9,7 +9,6 @@ import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
@@ -17,6 +16,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
 import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
+import dokumentinnhenting.unleash.FakeUnleashGateway
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
@@ -29,6 +29,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.mockk
+import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.server.auth.IdentityProvider
@@ -247,7 +248,7 @@ class DialogmeldingApiTest {
             routing {
                 authenticate(IdentityProvider.ENTRA_ID.value) {
                     apiRouting {
-                        dialogmeldingApi(dataSource)
+                        dialogmeldingApi(dataSource, FakeUnleashGateway(enabled = true))
                     }
                 }
             }

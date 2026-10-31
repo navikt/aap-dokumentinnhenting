@@ -5,6 +5,8 @@ import dokumentinnhenting.api.tilPåminnelseRecord
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
+import dokumentinnhenting.unleash.FeatureToggles
+import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
@@ -13,24 +15,26 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = LoggerFactory.getLogger(BehandlerDialogmeldingBestillingService::class.java)
 
 const val BESTILLING_REFERANSE_PARAMETER_NAVN = "referanse"
-const val ANTALL_DAGER_PÅMINNELSE_FRIST = 22L
 
 class BehandlerDialogmeldingBestillingService(
     private val connection: DBConnection,
+    private val unleash: UnleashGateway,
 ) {
     private val jobbRepository = FlytJobbRepository(connection)
     private val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
     private val påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
     companion object {
-        fun konstruer(connection: DBConnection): BehandlerDialogmeldingBestillingService {
+        fun konstruer(connection: DBConnection, unleash: UnleashGateway): BehandlerDialogmeldingBestillingService {
             return BehandlerDialogmeldingBestillingService(
-                connection = connection
+                connection = connection,
+                unleash = unleash,
             )
         }
     }
@@ -70,7 +74,7 @@ class BehandlerDialogmeldingBestillingService(
             dialogmeldingUuid = dialogmeldingUuid
         )
 
-        setPåminnelseStatus(dialogmeldingUuid, PåminnelseStatus.AVBRUTT)
+        opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.AVBRUTT)
     }
 
 
@@ -87,7 +91,7 @@ class BehandlerDialogmeldingBestillingService(
             dialogmeldingUuid = dialogmeldingUuid
         )
 
-        setPåminnelseStatus(dialogmeldingUuid, PåminnelseStatus.PLANLAGT)
+        opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.PLANLAGT)
     }
 
     fun sendAutomatiskPåminnelseHvisBestillingFinnes(
@@ -112,6 +116,17 @@ class BehandlerDialogmeldingBestillingService(
                     tidligereBestillingReferanse = it.dialogmeldingUuid,
                 )
             )
+            påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
+                PåminnelseRecord(
+                    id = 1,
+                    dialogmeldingId = it.dialogmeldingUuid,
+                    behandlingsReferanse = behandlingReferanse.referanse,
+                    status = PåminnelseStatus.SENDT,
+                    påminnelseDato = bestillingOpprettetDato.plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
+                    opprettetTidspunkt = it.opprettet,
+                    sisteForespørselSendt = LocalDateTime.now()
+                )
+            )
             connection.markerSavepoint()
         }
     }
@@ -125,12 +140,19 @@ class BehandlerDialogmeldingBestillingService(
             dokumentasjonstype = DokumentasjonType.L40,
             opprettetDato = bestillingOpprettetDato
         )
-        val påminnelser = påminnelseRepository.hentPåminnelseForBehandlingsReferanse(behandlingsreferanse)
-        val bestillingerMedPåminnelse = bestillinger.filter{ skalBestillingPåminnes(it, påminnelser) }
 
-        log.info("Fant ${bestillingerMedPåminnelse.size} bestillinger som skal purres på for behandling $behandlingsreferanse")
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+            val påminnelser = påminnelseRepository.hentPåminnelseForBehandlingsReferanse(behandlingsreferanse)
+            val bestillingerMedPåminnelse = bestillinger.filter { skalBestillingPåminnes(it, påminnelser) }
 
-        return bestillingerMedPåminnelse
+            log.info("Fant ${bestillingerMedPåminnelse.size} bestillinger som skal purres på for behandling $behandlingsreferanse")
+
+            return bestillingerMedPåminnelse
+        }
+
+        log.info("Fant ${bestillinger.size} bestillinger som skal purres på for behandling $behandlingsreferanse")
+
+        return bestillinger
     }
 
     private fun skalBestillingPåminnes(bestilling: DialogmeldingFullRecord, påminnelser: List<PåminnelseRecord>): Boolean {
@@ -146,17 +168,24 @@ class BehandlerDialogmeldingBestillingService(
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = dto.tilDialogmeldingRecord(dialogmeldingUuid, samtaleRef)
 
-        return dialogmeldingBestilling(dialogMeldingRecord)
+        val dialogmeldingUUID = dialogmeldingBestilling(dialogMeldingRecord)
+
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+            opprettPåminnelseNyForespørselHvisNødvendig(dialogMeldingRecord)
+        }
+
+        return dialogmeldingUUID
     }
 
-    // TODO: Forslag til et mer passende navn her? For å skille mellom ny forespørsel og påminnelse
-    fun bestillNyDialogmelding(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID? = null): UUID {
+    fun bestillNyDialogmeldingForespørsel(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID? = null): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = dto.tilDialogmeldingRecord(dialogmeldingUuid, samtaleRef)
 
         val dialogmeldingUUID = dialogmeldingBestilling(dialogMeldingRecord)
 
-        opprettPåminnelseHvisNødvendig(dialogMeldingRecord)
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+            opprettPåminnelseNyForespørselHvisNødvendig(dialogMeldingRecord)
+        }
 
         return dialogmeldingUUID
     }
@@ -179,15 +208,30 @@ class BehandlerDialogmeldingBestillingService(
         return dialogmeldingRepository.opprettDialogmelding(melding)
     }
 
-    private fun opprettPåminnelseHvisNødvendig(dialogmelding: DialogmeldingRecord) {
+    private fun opprettPåminnelseNyForespørselHvisNødvendig(dialogmelding: DialogmeldingRecord) {
         log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer})")
-        påminnelseRepository.opprettPåminnelseVedBehov(
-            dialogmelding.tilPåminnelseRecord(ANTALL_DAGER_PÅMINNELSE_FRIST)
+        påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
+            dialogmelding.tilPåminnelseRecord(
+                LocalDate.now().plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
+                LocalDateTime.now()
+            )
+        )
+    }
+
+    private fun opprettEllerOppdaterPåminnelseEksisterendeForespørsel(
+        dialogmelding: DialogmeldingFullRecord,
+        status: PåminnelseStatus
+    ) {
+        log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer})")
+        påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
+            dialogmelding.tilPåminnelseRecord(
+                påminnelseStatus = status
+            )
         )
     }
 
     private fun setPåminnelseStatus(dialogmeldingId: UUID, status: PåminnelseStatus) {
         log.info("Setter påminnelsestatus ${status} for dialogmeldingId ${dialogmeldingId}")
-        påminnelseRepository.oppdaterPåminnelseStatus(dialogmeldingId, PåminnelseStatus.AVBRUTT)
+        påminnelseRepository.oppdaterPåminnelseStatus(dialogmeldingId, status)
     }
 }

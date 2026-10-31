@@ -10,6 +10,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingUthentingSe
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
+import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.Tags
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.FellesDialogmeldingDto
@@ -27,6 +28,7 @@ data class DialogmeldingEksistererDto(val eksisterer: Boolean)
 
 fun NormalOpenAPIRoute.dialogmeldingApi(
     dataSource: DataSource,
+    unleash: UnleashGateway
 ) {
     val logger = LoggerFactory.getLogger("DialogmeldingApi")
     val dialogmeldingApiRolle = "dialogmelding-api"
@@ -66,7 +68,8 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                     val dialogmeldingUthentingService = DialogmeldingUthentingService(
                         DialogmeldingRepositoryImpl(connection),
                         MottattDialogmeldingRepositoryImpl(connection),
-                        PåminnelseRepositoryImpl(connection)
+                        PåminnelseRepositoryImpl(connection),
+                        unleash
                     )
                     dialogmeldingUthentingService.hentFellesDialogmeldingerForSak(params.saksnummer)
 
@@ -85,9 +88,10 @@ fun NormalOpenAPIRoute.dialogmeldingApi(
                     val dialogmeldingUthentingService = DialogmeldingUthentingService(
                         DialogmeldingRepositoryImpl(connection),
                         MottattDialogmeldingRepositoryImpl(connection),
-                        PåminnelseRepositoryImpl(connection)
+                        PåminnelseRepositoryImpl(connection),
+                        unleash
                     )
-                    dialogmeldingUthentingService.hentLegeerklæringForespørslerForSak(BehandlingReferanse(params.behandlingsReferanse))
+                    dialogmeldingUthentingService.hentLegeerklæringForespørslerForSakUtenSjekkManuellPåminnelse(BehandlingReferanse(params.behandlingsReferanse))
                 })
             }
         }

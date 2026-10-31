@@ -15,6 +15,7 @@ import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.HentFastlegeDtoSaksreferanse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import dokumentinnhenting.util.BestillingCache
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
@@ -65,8 +66,8 @@ fun NormalOpenAPIRoute.syfoApi(
 
             val response = dataSource.transaction { connection ->
                 BestillingCache.add(req.saksnummer)
-                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
-                service.bestillNyDialogmelding(req)
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection, UnleashGatewayImpl)
+                service.bestillNyDialogmeldingForespørsel(req)
             }
             respond(response)
         }
@@ -80,7 +81,7 @@ fun NormalOpenAPIRoute.syfoApi(
             )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
-                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection, UnleashGatewayImpl)
                 service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
             }
             respond(response)
