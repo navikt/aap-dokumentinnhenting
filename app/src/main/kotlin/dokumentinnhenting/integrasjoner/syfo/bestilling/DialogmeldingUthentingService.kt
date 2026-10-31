@@ -33,7 +33,9 @@ class DialogmeldingUthentingService(
                 sendteDialogmeldinger.filter { it.dokumentasjonType == DokumentasjonType.L40 }
             )
 
-            val dialogmeldingIDerSomKanPåminnes = utledKanSendeManuellPåminnelseMedDato(sendteDialogmeldinger)
+            val dialogmeldingIDerSomKanPåminnes = utledKanSendeManuellPåminnelseMedDato(
+                sendteDialogmeldinger.filter { it.dokumentasjonType == DokumentasjonType.L40 }
+            )
 
             return sendteDialogmeldinger.map {
                 it.tilFellesDialogmeldingDto(dialogmeldingIDerSomKanPåminnes)
