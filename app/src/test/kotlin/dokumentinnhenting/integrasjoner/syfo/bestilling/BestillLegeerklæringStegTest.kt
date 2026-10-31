@@ -5,6 +5,7 @@ import dokumentinnhenting.WithFakes
 import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
+import dokumentinnhenting.unleash.FakeUnleashGateway
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
 import dokumentinnhenting.util.motor.syfo.syfosteg.SYFO_BESTILLING_DIALOGMELDING_TOPIC
 import dokumentinnhenting.util.motor.syfo.syfosteg.SyfoSteg
@@ -69,12 +70,13 @@ class BestillLegeerklæringStegTest {
             // Første del, lagring av dialogmelding i repository
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
-                connection
+                connection,
+                FakeUnleashGateway(enabled = true)
             )
             påminnelseRepository = PåminnelseRepositoryImpl(connection)
 
             // Andre del, henter data i steg og sender til kafka
-            dialogmeldingUuid = behandlerDialogmeldingBestillingService.bestillNyDialogmelding(dto)
+            dialogmeldingUuid = behandlerDialogmeldingBestillingService.bestillNyDialogmeldingForespørsel(dto)
             dialogmeldingRepository.leggTilJournalpostPåBestilling(dialogmeldingUuid, "journalpostid", "dokumentid")
             val azureTokenGen = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting")
             azureTokenGen.generate()

@@ -3,8 +3,8 @@ package dokumentinnhenting.integrasjoner.syfo.bestilling
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.repositories.PåminnelseKjøringRepository
 import dokumentinnhenting.repositories.PåminnelseKjøringRepositoryImpl
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
@@ -15,8 +15,6 @@ import java.time.LocalDate
 
 private val log = LoggerFactory.getLogger(SendAutomatiskPurringUtfører::class.java)
 
-private val dagerÅTrekkeFra = if (Miljø.erProd()) 22L else 1L
-
 class SendAutomatiskPurringUtfører(
     private val bestillingService: BehandlerDialogmeldingBestillingService,
     private val behandlingsflytGateway: BehandlingsflytGateway,
@@ -26,15 +24,15 @@ class SendAutomatiskPurringUtfører(
         val sistKjørtForBestillingsdato = påminnelseKjøringRepository.hentSistKjørtForDato()
         val datoerSomMåSendesPåminnelseFor = if (sistKjørtForBestillingsdato == null) {
             log.info("Ingen tidligere kjøring funnet, sender påminnelse for bestillinger opprettet for tre uker og en dag siden.")
-            listOf(LocalDate.now().minusDays(dagerÅTrekkeFra))
+            listOf(LocalDate.now().minusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA))
         } else {
             log.info(
                 "Sist kjørt for bestillingsdato: $sistKjørtForBestillingsdato, sender påminnelse for alle bestillinger opprettet mellom $sistKjørtForBestillingsdato og ${
-                    LocalDate.now().minusDays(dagerÅTrekkeFra)
+                    LocalDate.now().minusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA)
                 }"
             )
             val startDatoForKjøring = sistKjørtForBestillingsdato.plusDays(1)
-            val sluttDatoForKjøring = LocalDate.now().minusDays(dagerÅTrekkeFra)
+            val sluttDatoForKjøring = LocalDate.now().minusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA)
             startDatoForKjøring.datesUntil(sluttDatoForKjøring.plusDays(1))
                 .toList()
         }
@@ -60,7 +58,7 @@ class SendAutomatiskPurringUtfører(
     companion object : Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return SendAutomatiskPurringUtfører(
-                bestillingService = BehandlerDialogmeldingBestillingService.konstruer(connection),
+                bestillingService = BehandlerDialogmeldingBestillingService.konstruer(connection, UnleashGatewayImpl),
                 behandlingsflytGateway = BehandlingsflytGateway,
                 påminnelseKjøringRepository = PåminnelseKjøringRepositoryImpl(connection)
             )

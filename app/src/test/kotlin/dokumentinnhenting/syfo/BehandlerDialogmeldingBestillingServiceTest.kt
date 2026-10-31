@@ -4,6 +4,7 @@ import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.unleash.FakeUnleashGateway
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -42,7 +43,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
     fun `feiler om purring mangler tilhørende legeerklæring`() {
         dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
 
             assertThrows<RuntimeException> {
                 behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
@@ -72,7 +76,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
         dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
-                connection = connection
+                connection = connection,
+                FakeUnleashGateway(enabled = true)
             )
 
             dialogmeldingLegerklæringUuid =
@@ -87,7 +92,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
         dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
             behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
-                connection = connection
+                connection = connection,
+                FakeUnleashGateway(enabled = true)
             )
 
             assertThrows<RuntimeException> {
@@ -105,7 +111,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
         dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                 BehandlingReferanse(behandlingsReferanse),
@@ -129,7 +138,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
         dataSource.transaction { connection ->
             // lager manuell påminnelse
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
             behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
                 dialogmeldingUuid
             )
@@ -138,7 +150,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 .filter { it.dokumentasjonType == DokumentasjonType.PURRING }
             assertThat(påminnelserFørAutomatisk).hasSize(1)
 
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                 BehandlingReferanse(behandlingsReferanse),
@@ -162,14 +177,20 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
         // setter påminnelse avbrutt
         dataSource.transaction { connection ->
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
             behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(bestillingUuid)
         }
 
 
         dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                 BehandlingReferanse(behandlingsReferanse),
@@ -191,20 +212,29 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
         // setter påminnelse avbrutt
         dataSource.transaction { connection ->
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
             behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(bestillingUuid)
         }
 
         // setter purring gjenopptatt
         dataSource.transaction { connection ->
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
             behandlerDialogmeldingBestillingService.gjenopptaPåminnelseForBestilling(bestillingUuid)
         }
 
 
         dataSource.transaction { connection ->
             dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
-            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
 
             behandlerDialogmeldingBestillingService.sendAutomatiskPåminnelseHvisBestillingFinnes(
                 BehandlingReferanse(behandlingsReferanse),
@@ -251,7 +281,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
         )
 
         val dialogmeldingUuid = dataSource.transaction { connection ->
-            val behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(connection)
+            val behandlerDialogmeldingBestillingService = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
             behandlerDialogmeldingBestillingService.bestillDialogmeldingPåminnelse(legeerklæring)
         }
 

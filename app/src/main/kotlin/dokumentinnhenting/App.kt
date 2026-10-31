@@ -17,6 +17,7 @@ import dokumentinnhenting.integrasjoner.dokarkiv.DokarkivGateway
 import dokumentinnhenting.integrasjoner.syfo.kafkaStreams
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.prosessering.DokumentinnhentingLogInfoProvider
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import dokumentinnhenting.util.kafka.config.ProducerConfig
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.motor.ProsesseringsJobber
@@ -117,7 +118,7 @@ fun Application.server(
                 motorApi(dataSource, påkrevdeRollerMotor)
                 syfoApi(dataSource, brevGateway, syfoGateway)
                 dokumentApi(dokarkivGateway)
-                dialogmeldingApi(dataSource)
+                dialogmeldingApi(dataSource, UnleashGatewayImpl)
                 påminnelseApi(dataSource)
 
                 driftApi(dataSource)
