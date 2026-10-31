@@ -43,6 +43,10 @@ class BehandlerDialogmeldingBestillingService(
         val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(dialogmeldingUuid)
             ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
 
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.PLANLAGT)
+        }
+
         return bestillDialogmeldingPåminnelse(
             BehandlingsflytToDokumentInnhentingBestillingDto(
                 bestillerNavIdent = bestilling.bestillerNavIdent,
@@ -121,7 +125,7 @@ class BehandlerDialogmeldingBestillingService(
                     id = 1,
                     dialogmeldingId = it.dialogmeldingUuid,
                     behandlingsReferanse = behandlingReferanse.referanse,
-                    status = PåminnelseStatus.SENDT,
+                    status = PåminnelseStatus.PLANLAGT,
                     påminnelseDato = bestillingOpprettetDato.plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
                     opprettetTidspunkt = it.opprettet,
                     sisteForespørselSendt = LocalDateTime.now()
@@ -168,11 +172,7 @@ class BehandlerDialogmeldingBestillingService(
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = dto.tilDialogmeldingRecord(dialogmeldingUuid, samtaleRef)
 
-        val dialogmeldingUUID = dialogmeldingBestilling(dialogMeldingRecord)
-
-        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            opprettPåminnelseNyForespørselHvisNødvendig(dialogMeldingRecord)
-        }
+        val dialogmeldingUUID = lagreDialogmeldingBestillingOgOpprettJobb(dialogMeldingRecord)
 
         return dialogmeldingUUID
     }
@@ -181,16 +181,16 @@ class BehandlerDialogmeldingBestillingService(
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = dto.tilDialogmeldingRecord(dialogmeldingUuid, samtaleRef)
 
-        val dialogmeldingUUID = dialogmeldingBestilling(dialogMeldingRecord)
+        val dialogmeldingUUID = lagreDialogmeldingBestillingOgOpprettJobb(dialogMeldingRecord)
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            opprettPåminnelseNyForespørselHvisNødvendig(dialogMeldingRecord)
+            opprettEllerOppdaterPåminnelsePurring(dialogMeldingRecord)
         }
 
         return dialogmeldingUUID
     }
 
-    fun dialogmeldingBestilling(dialogmeldingRecord: DialogmeldingRecord): UUID {
+    fun lagreDialogmeldingBestillingOgOpprettJobb(dialogmeldingRecord: DialogmeldingRecord): UUID {
         val id = skrivDialogmeldingTilRepository(dialogmeldingRecord)
         val jobb =
             JobbInput(ProsesserLegeerklæringBestillingUtfører)
@@ -208,7 +208,7 @@ class BehandlerDialogmeldingBestillingService(
         return dialogmeldingRepository.opprettDialogmelding(melding)
     }
 
-    private fun opprettPåminnelseNyForespørselHvisNødvendig(dialogmelding: DialogmeldingRecord) {
+    private fun opprettEllerOppdaterPåminnelsePurring(dialogmelding: DialogmeldingRecord) {
         log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer})")
         påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
             dialogmelding.tilPåminnelseRecord(

@@ -160,10 +160,10 @@ fun DialogmeldingFullRecord.tilPåminnelseRecord(
         // Hvis det har blitt sendt en manuell påminnelse (etter fristen på 3 uker), så skal påminnelsen eksistere i
         // tabellen allerede, og vi kan derfor se bort fra det scenarioet.
         if (erAutomatiskPåminnelseDatoPassert)
-        // Antar her at 'automatiskPåminnelse' ikke kan bli endret etter påminnelsesdatoen har passert
+            // Antar her at 'automatiskPåminnelse' ikke kan bli endret etter påminnelsesdatoen har passert
             if (this.automatiskPåminnelse)
-            // Evt. sjekke er sted om den faktisk er sendt eller ikke
-                PåminnelseStatus.SENDT
+                // Har den blitt sendt så vil den eksistere med status SENDT allerede
+                PåminnelseStatus.PLANLAGT
             else
                 PåminnelseStatus.AVBRUTT
         else
