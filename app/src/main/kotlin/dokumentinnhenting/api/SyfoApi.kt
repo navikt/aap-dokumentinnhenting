@@ -15,11 +15,10 @@ import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.HentFastlegeDtoSaksreferanse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import dokumentinnhenting.util.BestillingCache
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
-import java.util.UUID
-import javax.sql.DataSource
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlerDto
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
@@ -37,6 +36,8 @@ import no.nav.aap.tilgang.Rolle
 import no.nav.aap.tilgang.SakPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.tilgang.authorizedPost
+import java.util.UUID
+import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.syfoApi(
     dataSource: DataSource,
@@ -65,8 +66,8 @@ fun NormalOpenAPIRoute.syfoApi(
 
             val response = dataSource.transaction { connection ->
                 BestillingCache.add(req.saksnummer)
-                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
-                service.dialogmeldingBestilling(req)
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection, UnleashGatewayImpl)
+                service.bestillNyDialogmeldingForespørsel(req)
             }
             respond(response)
         }
@@ -80,7 +81,7 @@ fun NormalOpenAPIRoute.syfoApi(
             )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
-                val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                val service = BehandlerDialogmeldingBestillingService.konstruer(connection, UnleashGatewayImpl)
                 service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
             }
             respond(response)

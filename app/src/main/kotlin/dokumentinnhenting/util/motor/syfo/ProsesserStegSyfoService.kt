@@ -1,11 +1,15 @@
 package dokumentinnhenting.util.motor.syfo
 
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
-import dokumentinnhenting.util.motor.syfo.syfosteg.*
+import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
+import dokumentinnhenting.util.motor.syfo.syfosteg.FerdigLegeerklæringBestillingSteg
+import dokumentinnhenting.util.motor.syfo.syfosteg.JournalførBestillingSteg
+import dokumentinnhenting.util.motor.syfo.syfosteg.StartLegeerklæringBestillingSteg
+import dokumentinnhenting.util.motor.syfo.syfosteg.SyfoSteg
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.slf4j.LoggerFactory
-import java.util.*
 import org.slf4j.MDC
+import java.util.UUID
 
 class ProsesserStegSyfoService(
     private val connection: DBConnection,
