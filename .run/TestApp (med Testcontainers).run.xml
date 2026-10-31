@@ -1,6 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="TestApp (med Testcontainers)" type="KtorApplicationConfigurationType" factoryName="Ktor">
-    <option name="ALTERNATIVE_JRE_PATH" value="temurin-25" />
+    <option name="ALTERNATIVE_JRE_PATH" value="openjdk-25" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
       <env name="NAIS_CLUSTER_NAME" value="LOCAL" />
     </envs>
@@ -22,8 +23,8 @@
         <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
       </ENTRIES>
     </extension>
-    <option name="alternativeJrePath" value="temurin-25" />
-    <option name="alternativeJrePathEnabled" value="false" />
+    <option name="alternativeJrePath" value="openjdk-25" />
+    <option name="alternativeJrePathEnabled" value="true" />
     <option name="includeProvidedScope" value="false" />
     <option name="mainClass" value="dokumentinnhenting.TestAppKt" />
     <option name="passParentEnvs" value="true" />
