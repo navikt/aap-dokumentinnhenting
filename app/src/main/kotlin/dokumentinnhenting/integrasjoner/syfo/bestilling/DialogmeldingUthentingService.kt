@@ -75,10 +75,7 @@ class DialogmeldingUthentingService(
                 påminnelse.harPåminnelseDatoPassert() &&
                 !påminnelse.erForespørselSendtSisteAntallDager(MINSTE_ANTALL_DØGN_SIDEN_FORRIGE_PÅMINNELSE)
             }
-            .groupBy { it.dialogmeldingId}
-            .mapValues { (_, påminnelse) ->
-                påminnelse.maxOf { requireNotNull(it.sisteForespørselSendt) }
-            }
+            .associate { it.dialogmeldingId to it.sisteForespørselSendt }
     }
 
     // TODO 2522: Bruk av denne ved henting kan fjernes i fremtiden hvis vi setter et tak på hvor lenge man kan purre
