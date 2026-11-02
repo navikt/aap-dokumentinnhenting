@@ -81,7 +81,13 @@ class BestillLegeerklæringStegTest {
             val azureTokenGen = AzureTokenGen("dokumentinnhenting", "dokumentinnhenting")
             azureTokenGen.generate()
             val steg =
-                BestillLegeerklæringSteg(dialogmeldingRepository, dialogmeldingBrevGeneratorService, mockProducer, påminnelseRepository)
+                BestillLegeerklæringSteg(
+                    dialogmeldingRepository,
+                    dialogmeldingBrevGeneratorService,
+                    mockProducer,
+                    påminnelseRepository,
+                    FakeUnleashGateway(enabled = true)
+                )
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))
         }
 

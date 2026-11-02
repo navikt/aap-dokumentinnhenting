@@ -87,7 +87,9 @@ class BehandlerDialogmeldingBestillingService(
             dialogmeldingUuid = dialogmeldingUuid
         )
 
-        opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.AVBRUTT)
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.AVBRUTT)
+        }
     }
 
 
@@ -104,7 +106,9 @@ class BehandlerDialogmeldingBestillingService(
             dialogmeldingUuid = dialogmeldingUuid
         )
 
-        opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.PLANLAGT)
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.PLANLAGT)
+        }
     }
 
     fun sendAutomatiskPåminnelseHvisBestillingFinnes(
@@ -129,17 +133,19 @@ class BehandlerDialogmeldingBestillingService(
                     tidligereBestillingReferanse = it.dialogmeldingUuid,
                 )
             )
-            påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
-                PåminnelseRecord(
-                    id = 1,
-                    dialogmeldingId = it.dialogmeldingUuid,
-                    behandlingsReferanse = behandlingReferanse.referanse,
-                    status = PåminnelseStatus.PLANLAGT,
-                    påminnelseDato = bestillingOpprettetDato.plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
-                    opprettetTidspunkt = it.opprettet,
-                    sisteForespørselSendt = LocalDateTime.now()
+            if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+                påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
+                    PåminnelseRecord(
+                        id = 1,
+                        dialogmeldingId = it.dialogmeldingUuid,
+                        behandlingsReferanse = behandlingReferanse.referanse,
+                        status = PåminnelseStatus.PLANLAGT,
+                        påminnelseDato = bestillingOpprettetDato.plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
+                        opprettetTidspunkt = it.opprettet,
+                        sisteForespørselSendt = LocalDateTime.now()
+                    )
                 )
-            )
+            }
             connection.markerSavepoint()
         }
     }

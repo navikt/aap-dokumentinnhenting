@@ -14,6 +14,9 @@ import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepository
 import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
+import dokumentinnhenting.unleash.FeatureToggles
+import dokumentinnhenting.unleash.UnleashGateway
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
 import kotlinx.coroutines.runBlocking
@@ -31,7 +34,8 @@ class BestillLegeerklæringSteg(
     private val dialogmeldingRepository: DialogmeldingRepositoryImpl,
     private val brevGeneratorService: DialogmeldingBrevGeneratorService,
     private val producer: KafkaProducer<String, String>,
-    private val påminnelseRepository: PåminnelseRepository
+    private val påminnelseRepository: PåminnelseRepository,
+    private val unleash: UnleashGateway
 ) : SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
     private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
@@ -48,6 +52,7 @@ class BestillLegeerklæringSteg(
                 brevGeneratorService = DialogmeldingBrevGeneratorService(BrevGateway()),
                 producer = kafkaProducer,
                 påminnelseRepository = PåminnelseRepositoryImpl(connection),
+                unleash = UnleashGatewayImpl
             )
         }
     }
@@ -81,7 +86,9 @@ class BestillLegeerklæringSteg(
         }
         prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
 
-        påminnelseRepository.setForespørselSendt(dialogmeldingUuid, LocalDateTime.now())
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+            påminnelseRepository.setForespørselSendt(dialogmeldingUuid, LocalDateTime.now())
+        }
 
         return SyfoSteg.Resultat.FULLFØRT
     }

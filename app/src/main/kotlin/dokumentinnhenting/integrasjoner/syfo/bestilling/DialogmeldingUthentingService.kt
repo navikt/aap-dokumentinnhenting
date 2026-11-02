@@ -69,22 +69,21 @@ class DialogmeldingUthentingService(
             dialogmeldingForespørsler.map { it.dialogmeldingUuid }
         )
 
-        // Antagelse 1: At man ikke kan sende manuell forespørsel før fristen for automatisk påminnelse har passert,
-        // enten automatisk påminnelse har blitt sendt eller ikke.
-        // Antagelse 2: At det opprettes en automatisk påminnelse for hver forespørsel om L40.
-        // Antagelse 3: Maks ett påminnelseobjekt per dialogmelding/forespørsel på L40.
+        // Antagelse: At det opprettes en automatisk påminnelse for hver forespørsel om L40.
         return påminnelser
-            .asSequence()
             .filter { påminnelse ->
                 påminnelse.harPåminnelseDatoPassert() &&
                 !påminnelse.erForespørselSendtSisteAntallDager(MINSTE_ANTALL_DØGN_SIDEN_FORRIGE_PÅMINNELSE)
             }
-            .associate { it.dialogmeldingId to it.sisteForespørselSendt }
+            .groupBy { it.dialogmeldingId}
+            .mapValues { (_, påminnelse) ->
+                påminnelse.maxOf { requireNotNull(it.sisteForespørselSendt) }
+            }
     }
 
     // TODO 2522: Bruk av denne ved henting kan fjernes i fremtiden hvis vi setter et tak på hvor lenge man kan purre
-    //  etter at en forespørsel er sendt, f.eks. 5 uker, slik at vi kan være sikre på at alle eksisterende og aktive
-    //  forespørsler om L40 vil ha et påminnelseobjekt ved opprettelse.
+    //  etter at en forespørsel er sendt, f.eks. 5 uker, slik at vi kan være sikre på at alle aktive
+    //  forespørsler om L40 vil ha fått et påminnelseobjekt ved opprettelse.
     // TODO 2522: Alternativt å lage en jobb som oppretter Påminnelserader for de L40-forespørslene som mangler dette,
     //  da kan i så fall denne droppes mye tidligere.
     private fun leggTilManglendePåminnelser(
