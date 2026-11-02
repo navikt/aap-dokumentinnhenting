@@ -87,7 +87,19 @@ class BestillLegeerklæringSteg(
         prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            påminnelseRepository.setForespørselSendt(dialogmeldingUuid, LocalDateTime.now())
+            if (funnetBestilling.dokumentasjonType == DokumentasjonType.PURRING) {
+                requireNotNull(funnetBestilling.tidligereBestillingReferanse)
+
+                påminnelseRepository.setPåminnelseSendt(
+                    funnetBestilling.tidligereBestillingReferanse,
+                    LocalDateTime.now()
+                )
+            } else {
+                påminnelseRepository.setOpprinneligForespørselSendt(
+                    dialogmeldingUuid,
+                    LocalDateTime.now()
+                )
+            }
         }
 
         return SyfoSteg.Resultat.FULLFØRT

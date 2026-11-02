@@ -244,7 +244,7 @@ class PåminnelseRepositoryImplTest {
     }
 
     @Test
-    fun `setForespørselSendt oppdaterer status og tidspunkt`() {
+    fun `setOpprinneligForespørselSendt oppdaterer tidspunkt, men ikke status`() {
         val dialogmelding1 = lagDialogmeldingRecord()
         val dialogmelding2 = lagDialogmeldingRecord()
         val sisteForespørselSendt = LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS)
@@ -277,7 +277,69 @@ class PåminnelseRepositoryImplTest {
             påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(førstePåminnelseOpprinnelig)
             påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(andrePåminnelse)
 
-            påminnelseRepository.setForespørselSendt(
+            påminnelseRepository.setOpprinneligForespørselSendt(
+                dialogmelding1.dialogmeldingUuid,
+                sisteForespørselSendt
+            )
+        }
+
+        val lagredePåminnelser = dataSource.transaction { connection ->
+            val påminnelseRepository = PåminnelseRepositoryImpl(connection)
+
+            påminnelseRepository.hentPåminnelseForDialogmeldinger(
+                listOf(dialogmelding1.dialogmeldingUuid, dialogmelding2.dialogmeldingUuid)
+            )
+        }.sortedBy { it.id }
+
+        assertThat(lagredePåminnelser).hasSize(2)
+        assertThat(lagredePåminnelser[0])?.isEqualTo(
+            førstePåminnelseOpprinnelig.copy(
+                id = lagredePåminnelser[0].id,
+                sisteForespørselSendt = sisteForespørselSendt
+            )
+        )
+        assertThat(lagredePåminnelser[1])?.isEqualTo(
+            andrePåminnelse.copy(
+                id = lagredePåminnelser[1].id
+            )
+        )
+    }
+
+    @Test
+    fun `setPåminnelseSendt oppdaterer tidspunkt og setter status til sendt`() {
+        val dialogmelding1 = lagDialogmeldingRecord()
+        val dialogmelding2 = lagDialogmeldingRecord()
+        val sisteForespørselSendt = LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS)
+
+        val returnerteDialogmeldingUUIDer = dataSource.transaction { connection ->
+            val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
+
+            val dialogmeldingUUID1 = dialogmeldingRepository.opprettDialogmelding(dialogmelding1)
+            val dialogmeldingUUID2 = dialogmeldingRepository.opprettDialogmelding(dialogmelding2)
+
+            listOf(dialogmeldingUUID1, dialogmeldingUUID2)
+        }
+
+        val førstePåminnelseOpprinnelig = lagPåminnelseRecord(
+            id = 1,
+            dialogmeldingId = returnerteDialogmeldingUUIDer[0],
+            påminnelseDato = LocalDate.now().plusDays(5),
+            status = PåminnelseStatus.PLANLAGT
+        )
+        val andrePåminnelse = lagPåminnelseRecord(
+            id = 2,
+            dialogmeldingId = returnerteDialogmeldingUUIDer[1],
+            påminnelseDato = LocalDate.now().plusDays(15),
+            status = PåminnelseStatus.PLANLAGT
+        )
+
+        dataSource.transaction { connection ->
+            val påminnelseRepository = PåminnelseRepositoryImpl(connection)
+
+            påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(førstePåminnelseOpprinnelig)
+            påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(andrePåminnelse)
+
+            påminnelseRepository.setPåminnelseSendt(
                 dialogmelding1.dialogmeldingUuid,
                 sisteForespørselSendt
             )
