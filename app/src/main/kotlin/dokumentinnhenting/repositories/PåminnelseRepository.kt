@@ -16,7 +16,7 @@ interface PåminnelseRepository : Repository {
     fun hentPåminnelseForDialogmeldinger(dialogmeldingIdListe: List<UUID>): List<PåminnelseRecord>
     fun hentPåminnelseForBehandlingsReferanse(behandlingsReferanse: BehandlingReferanse): List<PåminnelseRecord>
     fun oppdaterPåminnelseStatus(dialogmeldingId: UUID, status: PåminnelseStatus)
-    fun setOpprinneligForespørselSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime)
-    fun setPåminnelseSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime)
+    fun settOpprinneligForespørselSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime)
+    fun settPåminnelseSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime)
     fun oppdaterPåminnelseDato(dialogmeldingId: UUID, dato: LocalDate)
 }

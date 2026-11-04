@@ -92,7 +92,7 @@ fun DialogmeldingRecord.tilPåminnelseRecord(
     opprettetTidspunkt: LocalDateTime
 ): PåminnelseRecord {
     return PåminnelseRecord(
-        id = 1,
+        id = null,
         dialogmeldingId = this.dialogmeldingUuid,
         behandlingsReferanse = this.behandlingsReferanse,
         status = PåminnelseStatus.PLANLAGT,
@@ -155,29 +155,27 @@ fun DialogmeldingFullRecord.tilPåminnelseRecord(
         "Antallet dager frist på påminnelse må være et positivt tall!"
     }
 
-    val påminnelseFrist = this.opprettet.plusDays(antallDagerPåminnelseFrist)
-    val erAutomatiskPåminnelseDatoPassert = påminnelseFrist < LocalDateTime.now()
+    val påminnelseFrist = this.opprettet.plusDays(antallDagerPåminnelseFrist).toLocalDate().atStartOfDay()
     val utledetStatus =
         // Hvis det har blitt sendt en manuell påminnelse (etter fristen på 3 uker), så skal påminnelsen eksistere i
         // tabellen allerede, og vi kan derfor se bort fra det scenarioet.
-        if (erAutomatiskPåminnelseDatoPassert)
-            // Antar her at 'automatiskPåminnelse' ikke kan bli endret etter påminnelsesdatoen har passert
-            if (this.automatiskPåminnelse)
-                // Har den blitt sendt så vil den eksistere med status SENDT allerede
-                PåminnelseStatus.PLANLAGT
-            else
-                PåminnelseStatus.AVBRUTT
+        // Antar her at 'automatiskPåminnelse' ikke kan bli endret etter påminnelsesdatoen har passert
+        if (this.automatiskPåminnelse)
+            // Har påminnelsen blitt sendt allerede så vil recorden eksistere med status SENDT i tabellen, og da skal
+            //  vi ikke komme inn i denne metoden.
+            // Hvis datoen har passert og recorden opprettes fordi den ikke er sendt ennå, så vil status settes til
+            //  SENDT under sending. For at den skal tas med i neste utsendelse av påminnelser, så må status settes til
+            //  PLANLAGT inntil videre.
+            // Har ikke datoen passert så skal den settes til PLANLAGT uansett
+            PåminnelseStatus.PLANLAGT
         else
-            if (this.automatiskPåminnelse)
-                PåminnelseStatus.PLANLAGT
-            else
-                PåminnelseStatus.AVBRUTT
+            PåminnelseStatus.AVBRUTT
 
     val statusTilLagring = påminnelseStatus ?: utledetStatus
     val antattSisteForespørselSendt = if (statusTilLagring == PåminnelseStatus.SENDT) påminnelseFrist else null
 
     return PåminnelseRecord(
-        id = -1,        // Blir satt i DB
+        id = null,
         dialogmeldingId = this.dialogmeldingUuid,
         behandlingsReferanse = this.behandlingsReferanse,
         status = statusTilLagring,
