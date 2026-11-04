@@ -88,14 +88,16 @@ class BestillLegeerklæringSteg(
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             if (funnetBestilling.dokumentasjonType == DokumentasjonType.PURRING) {
-                requireNotNull(funnetBestilling.tidligereBestillingReferanse)
+                requireNotNull(funnetBestilling.tidligereBestillingReferanse) {
+                    "'tidligereBestillingReferanse' må være satt for purringer for å kunne oppdatere status på riktig purring/påminnelse!"
+                }
 
-                påminnelseRepository.setPåminnelseSendt(
+                påminnelseRepository.settPåminnelseSendt(
                     funnetBestilling.tidligereBestillingReferanse,
                     LocalDateTime.now()
                 )
             } else {
-                påminnelseRepository.setOpprinneligForespørselSendt(
+                påminnelseRepository.settOpprinneligForespørselSendt(
                     dialogmeldingUuid,
                     LocalDateTime.now()
                 )

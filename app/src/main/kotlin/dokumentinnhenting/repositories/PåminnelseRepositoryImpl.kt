@@ -142,7 +142,7 @@ class PåminnelseRepositoryImpl(private val connection: DBConnection) : Påminne
         }
     }
 
-    override fun setOpprinneligForespørselSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime) {
+    override fun settOpprinneligForespørselSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime) {
         val query = """
             UPDATE PAAMINNELSE
             SET SISTE_FORESPORSEL_SENDT = ?
@@ -157,7 +157,7 @@ class PåminnelseRepositoryImpl(private val connection: DBConnection) : Påminne
         }
     }
 
-    override fun setPåminnelseSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime) {
+    override fun settPåminnelseSendt(dialogmeldingId: UUID, tidspunkt: LocalDateTime) {
         val query = """
             UPDATE PAAMINNELSE
             SET SISTE_FORESPORSEL_SENDT = ?, STATUS = ?

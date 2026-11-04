@@ -6,7 +6,6 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseStatus
 import dokumentinnhenting.randomNavIdent
-import dokumentinnhenting.randomNumeriskId
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -37,8 +36,6 @@ class PåminnelseRepositoryImplTest {
         dataSource.close()
     }
 
-    // TOOO: 2522 - Sjekk om noe gjenstår, f.eks. setting av tilstand i påminnelsetabellen!
-
     @Test
     fun `opprettPåminnelseEllerOppdaterStatus oppretter påminnelse hvis den ikke eksisterer fra før av`() {
         val dialogmelding = lagDialogmeldingRecord()
@@ -49,7 +46,7 @@ class PåminnelseRepositoryImplTest {
             dialogmeldingRepository.opprettDialogmelding(dialogmelding)
         }
 
-        val påminnelse = lagPåminnelseRecord(id = 1, dialogmeldingId = returnertDialogmeldingId)
+        val påminnelse = lagPåminnelseRecord(id = null, dialogmeldingId = returnertDialogmeldingId)
 
         dataSource.transaction { connection ->
             val påminnelseRepository = PåminnelseRepositoryImpl(connection)
@@ -244,7 +241,7 @@ class PåminnelseRepositoryImplTest {
     }
 
     @Test
-    fun `setOpprinneligForespørselSendt oppdaterer tidspunkt, men ikke status`() {
+    fun `settOpprinneligForespørselSendt oppdaterer tidspunkt, men ikke status`() {
         val dialogmelding1 = lagDialogmeldingRecord()
         val dialogmelding2 = lagDialogmeldingRecord()
         val sisteForespørselSendt = LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS)
@@ -277,7 +274,7 @@ class PåminnelseRepositoryImplTest {
             påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(førstePåminnelseOpprinnelig)
             påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(andrePåminnelse)
 
-            påminnelseRepository.setOpprinneligForespørselSendt(
+            påminnelseRepository.settOpprinneligForespørselSendt(
                 dialogmelding1.dialogmeldingUuid,
                 sisteForespørselSendt
             )
@@ -306,7 +303,7 @@ class PåminnelseRepositoryImplTest {
     }
 
     @Test
-    fun `setPåminnelseSendt oppdaterer tidspunkt og setter status til sendt`() {
+    fun `settPåminnelseSendt oppdaterer tidspunkt og setter status til sendt`() {
         val dialogmelding1 = lagDialogmeldingRecord()
         val dialogmelding2 = lagDialogmeldingRecord()
         val sisteForespørselSendt = LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS)
@@ -339,7 +336,7 @@ class PåminnelseRepositoryImplTest {
             påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(førstePåminnelseOpprinnelig)
             påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(andrePåminnelse)
 
-            påminnelseRepository.setPåminnelseSendt(
+            påminnelseRepository.settPåminnelseSendt(
                 dialogmelding1.dialogmeldingUuid,
                 sisteForespørselSendt
             )
@@ -615,7 +612,7 @@ class PåminnelseRepositoryImplTest {
 
     private fun lagPåminnelseRecord(
         dialogmeldingId: UUID,
-        id: Long = randomNumeriskId(),
+        id: Long? = null,
         behandlingsreferanse: UUID = randomUUID(),
         status: PåminnelseStatus = PåminnelseStatus.PLANLAGT,
         påminnelseDato: LocalDate = LocalDate.now().plusDays(22),

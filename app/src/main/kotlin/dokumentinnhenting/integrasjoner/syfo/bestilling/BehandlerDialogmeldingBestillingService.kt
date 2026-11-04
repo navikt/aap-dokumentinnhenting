@@ -127,13 +127,13 @@ class BehandlerDialogmeldingBestillingService(
             if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
                 påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
                     PåminnelseRecord(
-                        id = 1,
+                        id = null,
                         dialogmeldingId = it.dialogmeldingUuid,
                         behandlingsReferanse = behandlingReferanse.referanse,
                         status = PåminnelseStatus.PLANLAGT,
                         påminnelseDato = bestillingOpprettetDato.plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
                         opprettetTidspunkt = it.opprettet,
-                        sisteForespørselSendt = LocalDateTime.now()
+                        sisteForespørselSendt = null
                     )
                 )
             }
@@ -167,10 +167,10 @@ class BehandlerDialogmeldingBestillingService(
 
     private fun skalBestillingPåminnes(bestilling: DialogmeldingFullRecord, påminnelser: List<PåminnelseRecord>): Boolean {
         val sisteRelevantePåminnelse = påminnelser
-            .filter { it.dialogmeldingId.equals(bestilling.dialogmeldingUuid) }
+            .filter { it.dialogmeldingId == bestilling.dialogmeldingUuid }
             .maxByOrNull { it.opprettetTidspunkt }
 
-        // Er null for forespørslene som ble sendt før opprettelse av Paaminnelsetabellen
+        // Er null for forespørslene som ble sendt før opprettelse av påminnelsetabellen
         return sisteRelevantePåminnelse == null || sisteRelevantePåminnelse.status == PåminnelseStatus.PLANLAGT
     }
 
@@ -218,8 +218,8 @@ class BehandlerDialogmeldingBestillingService(
         log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer})")
         påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
             dialogmelding.tilPåminnelseRecord(
-                LocalDate.now().plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
-                LocalDateTime.now()
+                påminnelseDato = LocalDate.now().plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
+                opprettetTidspunkt = LocalDateTime.now()
             )
         )
     }
