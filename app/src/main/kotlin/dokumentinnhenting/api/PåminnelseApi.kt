@@ -62,5 +62,48 @@ fun NormalOpenAPIRoute.påminnelseApi(
             }
             respond(HttpStatusCode.NoContent)
         }
+
+
+        // TODO slett duplikate endepunkter når frontend er over på nye
+        route("/v2") {
+            route("/send").authorizedPost<Unit, UUID, PåminnelseRequest>(
+                AuthorizationBodyPathConfig(
+                    operasjon = Operasjon.SAKSBEHANDLE,
+                )
+            ) { _, req ->
+                val response = dataSource.transaction { connection ->
+                    val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                    service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
+                    service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
+                }
+                respond(response)
+            }
+
+            route("/avbryt-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseRequest>(
+                AuthorizationBodyPathConfig(
+                    operasjon = Operasjon.SAKSBEHANDLE,
+                )
+            ) { _, req ->
+                dataSource.transaction { connection ->
+                    val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                    service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
+                    service.avbrytPåminnelseForBestilling(req.dialogmeldingUuid)
+                }
+                respond(HttpStatusCode.NoContent)
+            }
+
+            route("/gjenoppta-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseRequest>(
+                AuthorizationBodyPathConfig(
+                    operasjon = Operasjon.SAKSBEHANDLE,
+                )
+            ) { _, req ->
+                dataSource.transaction { connection ->
+                    val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                    service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
+                    service.gjenopptaPåminnelseForBestilling(req.dialogmeldingUuid)
+                }
+                respond(HttpStatusCode.NoContent)
+            }
+        }
     }
 }
