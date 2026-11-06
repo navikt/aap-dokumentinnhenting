@@ -73,6 +73,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
             ) { _, req ->
                 val response = dataSource.transaction { connection ->
                     val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                    service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                     service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
                 }
                 respond(response)
@@ -85,6 +86,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
             ) { _, req ->
                 dataSource.transaction { connection ->
                     val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                    service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                     service.avbrytPåminnelseForBestilling(req.dialogmeldingUuid)
                 }
                 respond(HttpStatusCode.NoContent)
@@ -97,6 +99,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
             ) { _, req ->
                 dataSource.transaction { connection ->
                     val service = BehandlerDialogmeldingBestillingService.konstruer(connection)
+                    service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                     service.gjenopptaPåminnelseForBestilling(req.dialogmeldingUuid)
                 }
                 respond(HttpStatusCode.NoContent)

@@ -7,6 +7,7 @@ import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfø
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.slf4j.LoggerFactory
@@ -50,6 +51,14 @@ class BehandlerDialogmeldingBestillingService(
                 tidligereBestillingReferanse = bestilling.dialogmeldingUuid,
             )
         )
+    }
+
+    fun validerBehandlingsreferanseForBestilling(dialogmeldingUuid: UUID, behandlingsreferanse: UUID) {
+        val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
+            ?: throw IllegalArgumentException("Fant ingen bestilling for dialogmeldingUuid $dialogmeldingUuid")
+        if (behandlingsreferanse != bestilling.behandlingsReferanse) {
+            throw IkkeTillattException("Behandlingsreferanse i request stemmer ikke overens med behandlingsreferanse i bestilling.")
+        }
     }
 
     fun avbrytPåminnelseForBestilling(dialogmeldingUuid: UUID) {
