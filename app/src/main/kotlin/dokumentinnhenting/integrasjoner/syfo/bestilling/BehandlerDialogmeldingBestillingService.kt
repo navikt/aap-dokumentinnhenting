@@ -199,7 +199,7 @@ class BehandlerDialogmeldingBestillingService(
         val dialogmeldingUUID = lagreDialogmeldingBestillingOgOpprettJobb(dialogMeldingRecord)
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            opprettEllerOppdaterPåminnelsePurring(dialogMeldingRecord)
+            opprettEllerOppdaterPåminnelseRecord(dialogMeldingRecord)
         }
 
         return dialogmeldingUUID
@@ -223,7 +223,7 @@ class BehandlerDialogmeldingBestillingService(
         return dialogmeldingRepository.opprettDialogmelding(melding)
     }
 
-    private fun opprettEllerOppdaterPåminnelsePurring(dialogmelding: DialogmeldingRecord) {
+    private fun opprettEllerOppdaterPåminnelseRecord(dialogmelding: DialogmeldingRecord) {
         log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer})")
         påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
             dialogmelding.tilPåminnelseRecord(
