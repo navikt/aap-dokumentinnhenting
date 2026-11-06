@@ -127,14 +127,14 @@ class DialogmeldingStatusHistorikkTest {
     }
 
     @Test
-    fun `OK på purring ekspederer uten å varsle bruker`() {
+    fun `OK på purring`() {
         val bestilling = opprettBestilling(DokumentasjonType.PURRING, opprettBestilling())
         val brevGateway = mockk<BrevGateway>(relaxed = true)
 
         utfør(jobb(status(bestilling, MeldingStatusType.OK)), brevGateway)
 
         coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
-        assertThat(varslingsjobber(bestilling)).isEmpty()
+        assertThat(varslingsjobber(bestilling)).hasSize(1)
         assertThat(historikk(bestilling)).hasSize(1)
     }
 
