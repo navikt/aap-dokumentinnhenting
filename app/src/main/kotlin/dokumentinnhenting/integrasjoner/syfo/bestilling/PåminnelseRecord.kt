@@ -13,8 +13,6 @@ data class PåminnelseRecord(
     val opprettetTidspunkt: LocalDateTime,
     val sisteForespørselSendt: LocalDateTime?,
 ) {
-    val erForespørselSendt: Boolean
-        get() = sisteForespørselSendt != null
     fun erForespørselSendtSisteAntallDager(antallDager: Long) =
         sisteForespørselSendt != null &&
         sisteForespørselSendt.plusDays(antallDager) > LocalDateTime.now()
