@@ -8,6 +8,7 @@ enum class FeatureToggles : FeatureToggle {
     // Feature toggles opprettes i Unleash: https://aap-unleash-web.iap.nav.cloud.nais.io/projects/default
     TestToggle,
     HaandterEndringAvIdentIDialogmelding,
+    KnappForManuellPaaminnelse,
     ;
 
     override fun key(): String = name

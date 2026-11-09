@@ -12,6 +12,11 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.repositories.PåminnelseRepository
+import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
+import dokumentinnhenting.unleash.FeatureToggles
+import dokumentinnhenting.unleash.UnleashGateway
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
 import kotlinx.coroutines.runBlocking
@@ -29,6 +34,8 @@ class BestillLegeerklæringSteg(
     private val dialogmeldingRepository: DialogmeldingRepositoryImpl,
     private val brevGeneratorService: DialogmeldingBrevGeneratorService,
     private val producer: KafkaProducer<String, String>,
+    private val påminnelseRepository: PåminnelseRepository,
+    private val unleash: UnleashGateway
 ) : SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
     private val log = LoggerFactory.getLogger(StartLegeerklæringBestillingSteg::class.java)
@@ -43,7 +50,9 @@ class BestillLegeerklæringSteg(
             return BestillLegeerklæringSteg(
                 dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
                 brevGeneratorService = DialogmeldingBrevGeneratorService(BrevGateway()),
-                producer = kafkaProducer
+                producer = kafkaProducer,
+                påminnelseRepository = PåminnelseRepositoryImpl(connection),
+                unleash = UnleashGatewayImpl
             )
         }
     }
@@ -76,6 +85,24 @@ class BestillLegeerklæringSteg(
             return SyfoSteg.Resultat.STOPP
         }
         prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
+
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+            if (funnetBestilling.dokumentasjonType == DokumentasjonType.PURRING) {
+                requireNotNull(funnetBestilling.tidligereBestillingReferanse) {
+                    "'tidligereBestillingReferanse' må være satt for purringer for å kunne oppdatere status på riktig purring/påminnelse!"
+                }
+
+                påminnelseRepository.settPåminnelseSendt(
+                    funnetBestilling.tidligereBestillingReferanse,
+                    LocalDateTime.now()
+                )
+            } else {
+                påminnelseRepository.settOpprinneligForespørselSendt(
+                    dialogmeldingUuid,
+                    LocalDateTime.now()
+                )
+            }
+        }
 
         return SyfoSteg.Resultat.FULLFØRT
     }

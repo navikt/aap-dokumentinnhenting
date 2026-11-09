@@ -12,5 +12,8 @@ public data class FellesDialogmeldingDto(
     val tekst: String?,
     val meldingStatus: MeldingStatusDto?,
     val journalpostId: String?,
-    val automatiskPåminnelse: Boolean? = null
+    val automatiskPåminnelse: Boolean? = null,
+    val bestillerNavIdent: String? = null,
+    val kanSendeManuellPåminnelse: Boolean,
+    val sisteForespørselSendt: LocalDateTime?,
 )

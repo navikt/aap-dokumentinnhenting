@@ -14,3 +14,7 @@ fun randomPersonIdent(): String {
 fun randomSaksnummer(): String {
     return "SAK${nextInt(1111, 9999)}"
 }
+
+fun randomNumeriskId(): Long {
+    return Random.nextLong(1L, 9999999999L)
+}
