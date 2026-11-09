@@ -1,8 +1,10 @@
 package dokumentinnhenting.util.motor.syfo.syfosteg
 
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
+import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
@@ -13,7 +15,8 @@ import java.util.*
 
 class JournalførBestillingSteg(
     private val dialogmeldingRepository: DialogmeldingRepository,
-    private val brevGateway: BrevGateway
+    private val brevGateway: BrevGateway,
+    private val varslingService: VarslingService,
 ) : SyfoSteg.Utfører {
     private val log = LoggerFactory.getLogger(JournalførBestillingSteg::class.java)
 
@@ -26,7 +29,8 @@ class JournalførBestillingSteg(
         override fun konstruer(connection: DBConnection): SyfoSteg.Utfører {
             return JournalførBestillingSteg(
                 DialogmeldingRepositoryImpl(connection),
-                BrevGateway()
+                BrevGateway(),
+                VarslingService(UnleashGatewayImpl)
             )
         }
     }
@@ -39,7 +43,11 @@ class JournalførBestillingSteg(
 
         try {
             val journalpostResponse = runBlocking {
-                brevGateway.journalførBestilling(bestilling, tidligereTilhørendeBestillingsdato)
+                brevGateway.journalførBestilling(
+                    bestilling,
+                    tidligereTilhørendeBestillingsdato,
+                    varslingService.skalVarsleBruker(bestilling.dokumentasjonType)
+                )
             }
             val dokumentId = journalpostResponse.dokumenter[0]
 

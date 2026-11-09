@@ -30,13 +30,14 @@ class BrevGateway {
     suspend fun journalførBestilling(
         bestilling: DialogmeldingFullRecord,
         tidligereBestillingDato: LocalDateTime?,
+        skalVarsleBruker: Boolean,
     ): JournalførBehandlerBestillingResponse {
         return defaultHttpClient.post("$baseUri/api/dokumentinnhenting/journalfor-behandler-bestilling") {
             bearerAuth(SystemTokenProvider.getToken(scope, null))
             header("Nav-Consumer-Id", "aap-dokumentinnhenting")
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
-            setBody(konstruerBrev(bestilling, tidligereBestillingDato))
+            setBody(konstruerBrev(bestilling, tidligereBestillingDato, skalVarsleBruker))
         }.body()
     }
 
@@ -60,6 +61,7 @@ class BrevGateway {
     private fun konstruerBrev(
         bestilling: DialogmeldingFullRecord,
         tidligereBestillingDato: LocalDateTime?,
+        skalVarsleBruker: Boolean,
     ): JournalførBehandlerBestillingRequest {
         val tittel = when (bestilling.dokumentasjonType) {
             DokumentasjonType.L40 -> "Forespørsel om legeerklæring ved arbeidsuførhet"
@@ -69,7 +71,7 @@ class BrevGateway {
             DokumentasjonType.RETUR_LEGEERKLÆRING -> "Retur til lege"
             DokumentasjonType.PURRING -> "Påminnelse om forespørsel om legeerklæring ved arbeidsuførhet"
         }
-        val pdfBrevIAvsnitt = mapPdfBrev(bestilling, tidligereBestillingDato)
+        val pdfBrevIAvsnitt = mapPdfBrev(bestilling, tidligereBestillingDato, skalVarsleBruker)
 
         val request = JournalførBehandlerBestillingRequest(
             brukerFnr = bestilling.personIdent,
@@ -82,7 +84,7 @@ class BrevGateway {
             brevAvsnitt = pdfBrevIAvsnitt,
             dato = bestilling.opprettet.toLocalDate(),
             bestillerNavIdent = bestilling.bestillerNavIdent,
-            overstyrInnsynsregel = bestilling.dokumentasjonType.skalVarsleBruker()
+            overstyrInnsynsregel = skalVarsleBruker
         )
         return request
     }
@@ -111,6 +113,7 @@ class BrevGateway {
     private fun mapPdfBrev(
         bestilling: DialogmeldingFullRecord,
         tidligereBestillingDato: LocalDateTime?,
+        skalVarsleBruker: Boolean,
     ): List<String> {
         return genererDialogmelding(
             BrevGenerering(
@@ -119,6 +122,7 @@ class BrevGateway {
                 dialogmeldingTekst = bestilling.fritekst,
                 dokumentasjonType = bestilling.dokumentasjonType,
                 tidligereBestillingDato = tidligereBestillingDato,
+                skalVarsleBruker = skalVarsleBruker,
                 signatur = null // Signatur er i PDF-mal
             )
         ).split("\n\n")

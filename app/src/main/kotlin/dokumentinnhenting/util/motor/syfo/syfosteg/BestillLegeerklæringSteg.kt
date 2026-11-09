@@ -10,6 +10,7 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKodeverk
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepository
@@ -49,7 +50,10 @@ class BestillLegeerklæringSteg(
         override fun konstruer(connection: DBConnection): SyfoSteg.Utfører {
             return BestillLegeerklæringSteg(
                 dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
-                brevGeneratorService = DialogmeldingBrevGeneratorService(BrevGateway()),
+                brevGeneratorService = DialogmeldingBrevGeneratorService(
+                    BrevGateway(),
+                    VarslingService(UnleashGatewayImpl)
+                ),
                 producer = kafkaProducer,
                 påminnelseRepository = PåminnelseRepositoryImpl(connection),
                 unleash = UnleashGatewayImpl

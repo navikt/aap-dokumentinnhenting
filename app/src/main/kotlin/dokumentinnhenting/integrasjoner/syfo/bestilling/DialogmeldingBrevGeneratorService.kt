@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 
 class DialogmeldingBrevGeneratorService(
     private val brevGateway: BrevGateway,
+    private val varslingService: VarslingService,
 ) {
     suspend fun genererMedSignatur(
         personNavn: String,
@@ -22,6 +23,7 @@ class DialogmeldingBrevGeneratorService(
                 dialogmeldingTekst = dialogmeldingTekst,
                 dokumentasjonType = dokumentasjonType,
                 tidligereBestillingDato = tidligereBestillingDato,
+                skalVarsleBruker = varslingService.skalVarsleBruker(dokumentasjonType),
                 signatur = signatur,
             )
         )

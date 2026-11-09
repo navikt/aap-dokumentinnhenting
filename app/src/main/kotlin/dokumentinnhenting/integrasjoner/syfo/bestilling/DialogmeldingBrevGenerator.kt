@@ -24,7 +24,7 @@ fun genererDialogmelding(dto: BrevGenerering): String {
             DokumentasjonType.PURRING -> brevPurring(dto.personNavn, dto.personIdent, dto.tidligereBestillingDato)
         }.also { append(it) }
 
-        if (dto.dokumentasjonType.skalVarsleBruker()) {
+        if (dto.skalVarsleBruker) {
             append("\n\nPasienten mottar en kopi av brevet.")
         }
         if (dto.signatur != null) {
@@ -143,5 +143,6 @@ data class BrevGenerering(
     val dialogmeldingTekst: String,
     val dokumentasjonType: DokumentasjonType,
     val tidligereBestillingDato: LocalDateTime? = null,
+    val skalVarsleBruker: Boolean,
     val signatur: Signatur?
 )
