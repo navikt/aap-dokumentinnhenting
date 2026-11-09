@@ -94,7 +94,8 @@ fun DialogmeldingFullRecord.tilFellesDialogmeldingDto(): FellesDialogmeldingDto 
             this.automatiskPåminnelse
         } else {
             null
-        }
+        },
+        bestillerNavIdent = this.bestillerNavIdent
     )
 }
 
