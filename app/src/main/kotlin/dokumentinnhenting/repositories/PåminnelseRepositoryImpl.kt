@@ -63,22 +63,6 @@ class PåminnelseRepositoryImpl(private val connection: DBConnection) : Påminne
         }
     }
 
-    override fun hentPåminnelseForId(påminnelseId: Long): PåminnelseRecord? {
-        val query = """
-            SELECT * FROM PAAMINNELSE
-            WHERE Id = ?
-        """.trimIndent()
-
-        return connection.queryFirstOrNull(query) {
-            setParams {
-                setLong(1, påminnelseId)
-            }
-            setRowMapper {
-                mapPåminnelseRecord(it)
-            }
-        }
-    }
-
     override fun hentPåminnelseForDialogmeldingId(dialogmeldingId: UUID): List<PåminnelseRecord> {
         val query = """
             SELECT * FROM PAAMINNELSE

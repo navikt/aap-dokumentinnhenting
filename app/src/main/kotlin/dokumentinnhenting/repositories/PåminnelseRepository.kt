@@ -11,7 +11,6 @@ import java.util.UUID
 interface PåminnelseRepository : Repository {
     fun opprettPåminnelseEllerOppdaterStatus(påminnelse: PåminnelseRecord)
     fun opprettPåminnelseListeEllerOppdaterStatus(påminnelser: List<PåminnelseRecord>)
-    fun hentPåminnelseForId(påminnelseId: Long): PåminnelseRecord?
     fun hentPåminnelseForDialogmeldingId(dialogmeldingId: UUID): List<PåminnelseRecord>
     fun hentPåminnelseForDialogmeldinger(dialogmeldingIdListe: List<UUID>): List<PåminnelseRecord>
     fun hentPåminnelseForBehandlingsReferanse(behandlingsReferanse: BehandlingReferanse): List<PåminnelseRecord>
