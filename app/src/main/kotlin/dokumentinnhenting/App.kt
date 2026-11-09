@@ -119,7 +119,7 @@ fun Application.server(
                 syfoApi(dataSource, brevGateway, syfoGateway)
                 dokumentApi(dokarkivGateway)
                 dialogmeldingApi(dataSource, UnleashGatewayImpl)
-                påminnelseApi(dataSource)
+                påminnelseApi(dataSource, UnleashGatewayImpl)
 
                 driftApi(dataSource)
 
