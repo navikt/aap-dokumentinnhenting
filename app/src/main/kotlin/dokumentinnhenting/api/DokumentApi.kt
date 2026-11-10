@@ -140,8 +140,8 @@ data class HentDokumentoversiktJournalpostParams(@param:PathParam(description = 
 data class HentDokumentoversiktJournalpostListeParams(val journalpostIdListe: List<String>)
 
 @BinaryResponse(contentTypes = ["application/pdf"])
-class HentDokumentResponse(val dokument: InputStream)
-class HentUtsendingsinfoResponse(val utsendingsinfo: Utsendingsinfo?)
+data class HentDokumentResponse(val dokument: InputStream)
+data class HentUtsendingsinfoResponse(val utsendingsinfo: Utsendingsinfo?)
 
 data class JournalpostIdParams(
     @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
