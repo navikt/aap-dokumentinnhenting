@@ -8,7 +8,6 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBe
 import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
-import no.nav.aap.dokumentinnhenting.kontrakt.PåminnelseDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
@@ -20,46 +19,41 @@ fun NormalOpenAPIRoute.påminnelseApi(
     dataSource: DataSource,
     unleash: UnleashGateway
 ) {
-    val paaminnelseApiRolle = "paaminnelse-api"
     route("/dialogmelding/paaminnelse").tag(Tags.Påminnelse) {
-        route("/send").authorizedPost<Unit, UUID, PåminnelseDto>(
+        route("/send").authorizedPost<Unit, UUID, PåminnelseRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
-                applicationRole = paaminnelseApiRolle,
-                applicationsOnly = true
             )
         ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection, unleash)
+                service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                 service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
             }
             respond(response)
         }
 
-
-        route("/avbryt-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseDto>(
+        route("/avbryt-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
-                applicationRole = paaminnelseApiRolle,
-                applicationsOnly = true
             )
         ) { _, req ->
             dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection, unleash)
+                service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                 service.avbrytPåminnelseForBestilling(req.dialogmeldingUuid)
             }
             respond(HttpStatusCode.NoContent)
         }
 
-        route("/gjenoppta-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseDto>(
+        route("/gjenoppta-automatisk-paaminnelse").authorizedPost<Unit, HttpStatusCode, PåminnelseRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SAKSBEHANDLE,
-                applicationRole = paaminnelseApiRolle,
-                applicationsOnly = true
             )
         ) { _, req ->
             dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection, unleash)
+                service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                 service.gjenopptaPåminnelseForBestilling(req.dialogmeldingUuid)
             }
             respond(HttpStatusCode.NoContent)
