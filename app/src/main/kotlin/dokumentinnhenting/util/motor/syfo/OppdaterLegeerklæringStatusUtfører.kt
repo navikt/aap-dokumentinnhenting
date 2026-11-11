@@ -2,11 +2,13 @@ package dokumentinnhenting.util.motor.syfo
 
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
+import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.unleash.UnleashGatewayImpl
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
@@ -28,7 +30,8 @@ import org.slf4j.LoggerFactory
 class OppdaterLegeerklæringStatusUtfører(
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val jobbRepository: FlytJobbRepository,
-    private val brevGateway: BrevGateway
+    private val brevGateway: BrevGateway,
+    private val varslingService: VarslingService,
 ) : JobbUtfører {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -76,7 +79,7 @@ class OppdaterLegeerklæringStatusUtfører(
                 )
             }
 
-            if (sak.dokumentasjonType.skalVarsleBruker()) {
+            if (varslingService.skalVarsleBruker(sak.dokumentasjonType)) {
                 val jobb =
                     JobbInput(SendVarslingsbrevUtfører)
                         .medCallId()
@@ -94,7 +97,8 @@ class OppdaterLegeerklæringStatusUtfører(
             return OppdaterLegeerklæringStatusUtfører(
                 DialogmeldingRepositoryImpl(connection),
                 FlytJobbRepository(connection),
-                BrevGateway()
+                BrevGateway(),
+                VarslingService(UnleashGatewayImpl)
             )
         }
 

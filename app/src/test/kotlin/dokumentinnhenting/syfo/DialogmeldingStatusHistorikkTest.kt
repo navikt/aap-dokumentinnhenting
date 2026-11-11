@@ -1,44 +1,33 @@
 package dokumentinnhenting.syfo
 
 import dokumentinnhenting.WithFakes
-import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
-import dokumentinnhenting.integrasjoner.syfo.SYFO_STATUS_DIALOGMELDING_TOPIC
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.integrasjoner.syfo.createDialogmeldingStreamTopology
+import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
-import dokumentinnhenting.util.kafka.createGenericSerde
+import dokumentinnhenting.unleash.FakeUnleashGateway
+import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører.Companion.MOTTATT_TIDSPUNKT_PARAMETER
 import dokumentinnhenting.util.motor.syfo.SendVarslingsbrevUtfører
-import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
-import io.mockk.verify
-import java.time.Instant
-import java.time.OffsetDateTime
-import java.util.Properties
-import java.util.UUID
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.TopologyTestDriver
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.util.*
 
 @WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -127,15 +116,34 @@ class DialogmeldingStatusHistorikkTest {
     }
 
     @Test
-    fun `OK på purring ekspederer uten å varsle bruker`() {
+    fun `OK på purring sender varslingsbrev når funksjonsbryteren er aktivert`() {
         val bestilling = opprettBestilling(DokumentasjonType.PURRING, opprettBestilling())
         val brevGateway = mockk<BrevGateway>(relaxed = true)
 
-        utfør(jobb(status(bestilling, MeldingStatusType.OK)), brevGateway)
+        utfør(
+            jobb(status(bestilling, MeldingStatusType.OK)),
+            brevGateway,
+            FakeUnleashGateway(enabled = true)
+        )
+
+        coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
+        assertThat(varslingsjobber(bestilling)).hasSize(1)
+        assertThat(historikk(bestilling)).hasSize(1)
+    }
+
+    @Test
+    fun `OK på purring sender ikke varslingsbrev når funksjonsbryteren er deaktivert`() {
+        val bestilling = opprettBestilling(DokumentasjonType.PURRING, opprettBestilling())
+        val brevGateway = mockk<BrevGateway>(relaxed = true)
+
+        utfør(
+            jobb(status(bestilling, MeldingStatusType.OK)),
+            brevGateway,
+            FakeUnleashGateway(enabled = false)
+        )
 
         coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
         assertThat(varslingsjobber(bestilling)).isEmpty()
-        assertThat(historikk(bestilling)).hasSize(1)
     }
 
     private fun opprettBestilling(
@@ -178,10 +186,17 @@ class DialogmeldingStatusHistorikkTest {
             .medPayload(DefaultJsonMapper.toJson(hendelse))
             .medParameter(MOTTATT_TIDSPUNKT_PARAMETER, mottattTidspunkt.toString())
 
-    private fun utfør(input: JobbInput, brevGateway: BrevGateway = mockk()) {
+    private fun utfør(
+        input: JobbInput,
+        brevGateway: BrevGateway = mockk(),
+        unleash: UnleashGateway = FakeUnleashGateway(enabled = false)
+    ) {
         dataSource.transaction { connection ->
             OppdaterLegeerklæringStatusUtfører(
-                DialogmeldingRepositoryImpl(connection), FlytJobbRepository(connection), brevGateway
+                DialogmeldingRepositoryImpl(connection),
+                FlytJobbRepository(connection),
+                brevGateway,
+                VarslingService(unleash)
             ).utfør(input)
         }
     }

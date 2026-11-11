@@ -11,6 +11,7 @@ import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.integrasjoner.syfo.oppslag.FritekstRequest
 import dokumentinnhenting.integrasjoner.syfo.oppslag.HentFastlegeDtoSaksreferanse
 import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
@@ -45,7 +46,10 @@ fun NormalOpenAPIRoute.syfoApi(
     syfoGateway: SyfoGateway
 ) {
     val syfoApiRolle = "syfo-api"
-    val brevGeneratorService = DialogmeldingBrevGeneratorService(brevGateway)
+    val brevGeneratorService = DialogmeldingBrevGeneratorService(
+        brevGateway,
+        VarslingService(UnleashGatewayImpl)
+    )
     route("/syfo").tag(Tags.Syfo) {
         route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDto>(
             AuthorizationBodyPathConfig(
