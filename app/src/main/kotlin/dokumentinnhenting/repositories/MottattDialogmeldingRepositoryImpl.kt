@@ -72,21 +72,6 @@ class MottattDialogmeldingRepositoryImpl(private val connection: DBConnection) :
         }
     }
 
-    override fun hentForParent(parentRef: UUID, personIdent: String): List<MottattDialogmeldingRecord> {
-        val query = """
-            SELECT * FROM MOTTATT_DIALOGMELDING
-            WHERE MSG_ID = ? AND PERSON_IDENT_PASIENT = ?
-        """.trimIndent()
-
-        return connection.queryList(query) {
-            setParams {
-                setUUID(1, parentRef)
-                setString(2, personIdent)
-            }
-            setRowMapper(::mapMottattDialogmeldingRecord)
-        }
-    }
-
     override fun hentForSaksnummer(saksnummer: String): List<MottattDialogmeldingRecord> {
         val query = """
             SELECT * FROM MOTTATT_DIALOGMELDING
@@ -119,7 +104,7 @@ class MottattDialogmeldingRepositoryImpl(private val connection: DBConnection) :
         }
     }
 
-    override fun oppdaterPersonIdentPåParentRef(parentRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
+    override fun oppdaterPersonIdentPåMelding(msgId: UUID, muligeIdenter: List<String>, nyIdent: String) {
         val query = """
             UPDATE MOTTATT_DIALOGMELDING
             SET PERSON_IDENT_PASIENT = ?
@@ -129,7 +114,7 @@ class MottattDialogmeldingRepositoryImpl(private val connection: DBConnection) :
         return connection.execute(query) {
             setParams {
                 setString(1, nyIdent)
-                setUUID(2, parentRef)
+                setUUID(2, msgId)
                 setArray(3, muligeIdenter)
             }
         }
