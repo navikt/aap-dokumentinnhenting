@@ -79,9 +79,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 connection = connection,
                 FakeUnleashGateway(enabled = true)
             )
-
             dialogmeldingLegerklæringUuid =
-                behandlerDialogmeldingBestillingService.bestillDialogmeldingPåminnelse(legeerklæring)
+                behandlerDialogmeldingBestillingService.bestillNyDialogmeldingForespørsel(legeerklæring)
             dialogmeldingRepository.leggTilJournalpostPåBestilling(
                 dialogmeldingLegerklæringUuid,
                 "journalpostid",
@@ -105,6 +104,28 @@ class BehandlerDialogmeldingBestillingServiceTest {
     }
 
     @Test
+    fun `manuell påminnelse beholder samtalereferansen fra opprinnelig forespørsel`() {
+        val (_, _, dialogmeldingUuid) = opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden()
+
+        dataSource.transaction { connection ->
+            val repository = DialogmeldingRepositoryImpl(connection)
+            val service = BehandlerDialogmeldingBestillingService(
+                connection,
+                FakeUnleashGateway(enabled = true)
+            )
+            val forespørsel = requireNotNull(repository.hentByDialogId(dialogmeldingUuid))
+
+            val påminnelseUuid = service.sendPåminnelseForBestilling(dialogmeldingUuid)
+            val påminnelse = requireNotNull(repository.hentByDialogId(påminnelseUuid))
+
+            assertThat(påminnelse.dialogmeldingUuid).isNotEqualTo(forespørsel.dialogmeldingUuid)
+            assertThat(påminnelse.samtaleRef).isEqualTo(forespørsel.samtaleRef)
+            assertThat(påminnelse.tidligereBestillingReferanse).isEqualTo(forespørsel.dialogmeldingUuid)
+            assertThat(påminnelse.saksnummer).isEqualTo(forespørsel.saksnummer)
+        }
+    }
+
+    @Test
     fun `sender automatisk purring når bestilling er 3 uker og 1 dag gammel`() {
         val (behandlingsReferanse, saksnummer, dialogmeldingUuid) = opprettForespørselOmLegeerklæringForTreUkerOgEnDagSiden()
 
@@ -123,11 +144,14 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
             val lagretBestillinger = dialogmeldingRepository.hentForSaksnummer(saksnummer)
 
-            val purring = lagretBestillinger.find {
+            val forespørsel = lagretBestillinger.single { it.dialogmeldingUuid == dialogmeldingUuid }
+            val purring = lagretBestillinger.single {
                 it.dokumentasjonType == DokumentasjonType.PURRING
             }
-            assertThat(purring).isNotNull
-            assertThat(purring!!.tidligereBestillingReferanse).isEqualTo(dialogmeldingUuid)
+            assertThat(purring.tidligereBestillingReferanse).isEqualTo(dialogmeldingUuid)
+            assertThat(purring.dialogmeldingUuid).isNotEqualTo(forespørsel.dialogmeldingUuid)
+            assertThat(purring.samtaleRef).isEqualTo(forespørsel.samtaleRef)
+            assertThat(purring.saksnummer).isEqualTo(forespørsel.saksnummer)
         }
     }
 
@@ -285,7 +309,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 connection,
                 FakeUnleashGateway(enabled = true)
             )
-            behandlerDialogmeldingBestillingService.bestillDialogmeldingPåminnelse(legeerklæring)
+            behandlerDialogmeldingBestillingService.bestillNyDialogmeldingForespørsel(legeerklæring)
         }
 
         val treUkerOgEnDagSiden = LocalDate.now().minusWeeks(3).minusDays(1).atStartOfDay()

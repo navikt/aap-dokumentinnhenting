@@ -49,7 +49,7 @@ class BehandlerDialogmeldingBestillingService(
         }
 
         return bestillDialogmeldingPåminnelse(
-            BehandlingsflytToDokumentInnhentingBestillingDto(
+            dto = BehandlingsflytToDokumentInnhentingBestillingDto(
                 bestillerNavIdent = bestilling.bestillerNavIdent,
                 behandlerRef = bestilling.behandlerRef,
                 behandlerNavn = bestilling.behandlerNavn,
@@ -61,7 +61,8 @@ class BehandlerDialogmeldingBestillingService(
                 dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING,
                 behandlingsReferanse = bestilling.behandlingsReferanse,
                 tidligereBestillingReferanse = bestilling.dialogmeldingUuid,
-            )
+            ),
+            samtaleRef = bestilling.samtaleRef
         )
     }
 
@@ -119,7 +120,7 @@ class BehandlerDialogmeldingBestillingService(
         bestillingerSomSkalPåminnes.forEach {
             log.info("Sender purring på behandling $behandlingReferanse på sak ${it.saksnummer} for opprinnelig bestilling med id ${it.dialogmeldingUuid}")
             bestillDialogmeldingPåminnelse(
-                BehandlingsflytToDokumentInnhentingBestillingDto(
+                dto = BehandlingsflytToDokumentInnhentingBestillingDto(
                     bestillerNavIdent = it.bestillerNavIdent,
                     behandlerRef = it.behandlerRef,
                     behandlerNavn = it.behandlerNavn,
@@ -131,7 +132,8 @@ class BehandlerDialogmeldingBestillingService(
                     dokumentasjonType = no.nav.aap.dokumentinnhenting.kontrakt.DokumentasjonType.PURRING,
                     behandlingsReferanse = it.behandlingsReferanse,
                     tidligereBestillingReferanse = it.dialogmeldingUuid,
-                )
+                ),
+                samtaleRef = it.samtaleRef
             )
             if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
                 påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
@@ -174,7 +176,10 @@ class BehandlerDialogmeldingBestillingService(
         return bestillinger
     }
 
-    private fun skalBestillingPåminnes(bestilling: DialogmeldingFullRecord, påminnelser: List<PåminnelseRecord>): Boolean {
+    private fun skalBestillingPåminnes(
+        bestilling: DialogmeldingFullRecord,
+        påminnelser: List<PåminnelseRecord>
+    ): Boolean {
         val sisteRelevantePåminnelse = påminnelser
             .filter { it.dialogmeldingId == bestilling.dialogmeldingUuid }
             .maxByOrNull { it.opprettetTidspunkt }
@@ -183,7 +188,7 @@ class BehandlerDialogmeldingBestillingService(
         return sisteRelevantePåminnelse == null || sisteRelevantePåminnelse.status == PåminnelseStatus.PLANLAGT
     }
 
-    fun bestillDialogmeldingPåminnelse(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID? = null): UUID {
+    fun bestillDialogmeldingPåminnelse(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
         val dialogMeldingRecord = dto.tilDialogmeldingRecord(dialogmeldingUuid, samtaleRef)
 
@@ -192,9 +197,9 @@ class BehandlerDialogmeldingBestillingService(
         return dialogmeldingUUID
     }
 
-    fun bestillNyDialogmeldingForespørsel(dto: BehandlingsflytToDokumentInnhentingBestillingDto, samtaleRef: UUID? = null): UUID {
+    fun bestillNyDialogmeldingForespørsel(dto: BehandlingsflytToDokumentInnhentingBestillingDto): UUID {
         val dialogmeldingUuid = UUID.randomUUID()
-        val dialogMeldingRecord = dto.tilDialogmeldingRecord(dialogmeldingUuid, samtaleRef)
+        val dialogMeldingRecord = dto.tilDialogmeldingRecord(dialogmeldingUuid = dialogmeldingUuid, samtaleRef = null)
 
         val dialogmeldingUUID = lagreDialogmeldingBestillingOgOpprettJobb(dialogMeldingRecord)
 
