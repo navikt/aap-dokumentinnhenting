@@ -395,41 +395,34 @@ class MottattDialogmeldingRepositoryImplTest {
     }
 
     @Test
-    fun `oppdaterPersonIdentPåParentRef oppdaterer kun gammel ident på parent`() {
-        val saksnummer = randomSaksnummer()
-        val parentRef = UUID.randomUUID()
-        val parentRefString = parentRef.toString()
-        val nyPersonIdent = randomPersonIdent()
+    fun `oppdaterPersonIdentPåMelding oppdaterer gammel ident på meldingen`() {
+        val msgId = UUID.randomUUID()
+        val nyIdent = randomPersonIdent()
         val gammelIdent = randomPersonIdent()
-        val identHistorikk = listOf(nyPersonIdent, gammelIdent)
-
-        val meldingParent = lagMottattDialogmelding(personIdentPasient = gammelIdent, msgId = parentRefString)
-        val meldingNyIdent = lagMottattDialogmelding(personIdentPasient = nyPersonIdent, parentRef = parentRefString)
-        val meldingGammelIdent = lagMottattDialogmelding(personIdentPasient = gammelIdent, parentRef = parentRefString)
-
-        val meldingerParentNyIdentFørEndring = dataSource.transaction { connection ->
-            val repo = MottattDialogmeldingRepositoryImpl(connection)
-            repo.lagre(meldingParent, saksnummer)
-            repo.lagre(meldingNyIdent, saksnummer)
-            repo.lagre(meldingGammelIdent, saksnummer)
-            repo.hentForParent(parentRef, nyPersonIdent)
-        }
+        val identHistorikk = listOf(nyIdent, gammelIdent)
+        val melding = lagMottattDialogmelding(personIdentPasient = gammelIdent, msgId = msgId.toString())
+        val urelatertMelding = lagMottattDialogmelding()
 
         dataSource.transaction { connection ->
-            MottattDialogmeldingRepositoryImpl(connection).oppdaterPersonIdentPåParentRef(
-                parentRef,
+            val repo = MottattDialogmeldingRepositoryImpl(connection)
+            repo.lagre(melding, randomSaksnummer())
+            repo.lagre(urelatertMelding, randomSaksnummer())
+            repo.oppdaterPersonIdentPåMelding(
+                msgId,
                 identHistorikk,
-                nyPersonIdent
+                nyIdent
             )
         }
 
-        val meldingerParentNyIdentEtterEndring = dataSource.transaction { connection ->
+        val (lagret, urelatertLagret) = dataSource.transaction { connection ->
             val repo = MottattDialogmeldingRepositoryImpl(connection)
-            repo.hentForParent(parentRef, nyPersonIdent)
+            repo.hentForMsgId(msgId) to repo.hentForMsgId(UUID.fromString(urelatertMelding.msgId))
         }
 
-        assertThat(meldingerParentNyIdentFørEndring.size).isEqualTo(0)
-        assertThat(meldingerParentNyIdentEtterEndring.size).isEqualTo(1)
+        assertNotNull(lagret)
+        assertEquals(nyIdent, lagret?.personIdentPasient)
+        assertNotNull(urelatertLagret)
+        assertEquals(urelatertMelding.personIdentPasient, urelatertLagret?.personIdentPasient)
     }
 
     private fun lagMottattDialogmelding(

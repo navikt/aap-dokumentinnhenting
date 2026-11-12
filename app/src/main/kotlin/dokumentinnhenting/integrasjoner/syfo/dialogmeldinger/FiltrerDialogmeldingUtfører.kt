@@ -43,8 +43,7 @@ class FiltrerDialogmeldingUtfører(
             return
         }
 
-        val personIdentMelding = payload.personIdentPasient
-        val saksnummer = finnSaksnummer(payload, personIdentMelding)
+        val saksnummer = finnSaksnummer(payload, payload.personIdentPasient)
 
         if (saksnummer != null) {
             opprettJobb(payload, saksnummer, skalLagreMottatDialogmelding = true)
@@ -54,7 +53,7 @@ class FiltrerDialogmeldingUtfører(
         if (payload.dialogmelding.foresporselFraSaksbehandlerForesporselSvar != null) {
             log.info("Fant ikke kobling fra mottatt til sendt dialogmelding. Henter saksinfo fra behandlingsflyt for dialogmelding med journalpostId ${payload.journalpostId}")
             val saksInfo = BehandlingsflytGateway.finnÅpenSakForIdentPåDato(
-                personIdentMelding,
+                payload.personIdentPasient,
                 payload.mottattTidspunkt.toLocalDate()
             )
 
@@ -68,7 +67,10 @@ class FiltrerDialogmeldingUtfører(
         }
     }
 
-    private fun finnSaksnummerPåIdentViaDialogmelding(dialogmelding: DialogmeldingMottakDTO, personIdent: String): String? {
+    private fun finnSaksnummerPåIdentViaDialogmelding(
+        dialogmelding: DialogmeldingMottakDTO,
+        personIdent: String
+    ): String? {
         return finnKoblingViaSendtDialogmelding(dialogmelding, personIdent)?.saksnummer
             ?: finnKoblingViaTidligereMottattDialogmelding(dialogmelding, personIdent)?.saksnummer
     }
@@ -77,7 +79,7 @@ class FiltrerDialogmeldingUtfører(
         val personIdentMelding = dialogmelding.personIdentPasient
         val identHistorikk = PdlIdentGateway().hentAlleIdenterForPerson(Ident(personIdentMelding))
 
-        identHistorikk.filter {it.identifikator != personIdentMelding}.forEach {
+        identHistorikk.filter { it.identifikator != personIdentMelding }.forEach {
             val saksnummer = finnSaksnummerPåIdentViaDialogmelding(dialogmelding, it.identifikator)
             if (saksnummer != null) {
                 oppdaterIdentPåDialogmeldinger(identHistorikk, dialogmelding)
@@ -141,20 +143,18 @@ class FiltrerDialogmeldingUtfører(
             throw VerdiIkkeFunnetException("Det fantes ingen aktiv ident i identhistorikken!")
         }
 
-        listOfNotNull(dialogmelding.conversationRef, dialogmelding.parentRef)
-            .map(UUID::fromString)
-            .forEach { ref ->
-                dialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
-                    ref,
-                    identHistorikk.map { it.identifikator },
-                    aktivIdent
-                )
-                mottattDialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
-                    ref,
-                    identHistorikk.map { it.identifikator },
-                    aktivIdent
-                )
-            }
+        val conversationRef = UUID.fromString(dialogmelding.conversationRef)
+
+        dialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
+            conversationRef,
+            identHistorikk.map { it.identifikator },
+            aktivIdent
+        )
+        mottattDialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
+            conversationRef,
+            identHistorikk.map { it.identifikator },
+            aktivIdent
+        )
     }
 
     private fun opprettJobb(
