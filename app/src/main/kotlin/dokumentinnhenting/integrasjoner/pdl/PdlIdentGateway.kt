@@ -4,9 +4,13 @@ package dokumentinnhenting.integrasjoner.pdl
 
 import org.intellij.lang.annotations.Language
 
-class PdlIdentGateway {
+interface PersonIdentGateway {
+    fun hentAlleIdenterForPerson(ident: Ident): List<Ident>
+}
 
-    fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
+class PdlIdentGateway : PersonIdentGateway {
+
+    override fun hentAlleIdenterForPerson(ident: Ident): List<Ident> {
         val request = PdlRequest(IDENT_QUERY, IdentVariables(ident.identifikator))
         val response: PdlIdenterDataResponse = PdlGateway.query(request)
 

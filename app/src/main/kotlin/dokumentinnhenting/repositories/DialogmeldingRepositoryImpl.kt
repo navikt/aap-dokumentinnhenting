@@ -182,65 +182,37 @@ class DialogmeldingRepositoryImpl(private val connection: DBConnection) : Dialog
         }
     }
 
-    override fun hentForParent(parentRef: UUID, personIdent: String): DialogmeldingFullRecord? {
+    override fun hentForParent(parentRef: UUID, personIdenter: List<String>): DialogmeldingFullRecord? {
+        if (personIdenter.isEmpty()) return null
+
         val query = """
             SELECT * FROM DIALOGMELDING
-            WHERE DIALOGMELDING_UUID = ? AND PERSON_ID = ?
+            WHERE DIALOGMELDING_UUID = ? AND PERSON_ID = ANY(?::text[])
         """.trimIndent()
 
         return connection.queryFirstOrNull(query) {
             setParams {
                 setUUID(1, parentRef)
-                setString(2, personIdent)
+                setArray(2, personIdenter)
             }
             setRowMapper(::mapDialogmeldingFullRecord)
         }
     }
 
-    override fun hentForSamtale(samtaleRef: UUID, personIdent: String): List<DialogmeldingFullRecord> {
+    override fun hentForSamtale(samtaleRef: UUID, personIdenter: List<String>): List<DialogmeldingFullRecord> {
+        if (personIdenter.isEmpty()) return emptyList()
+
         val query = """
             SELECT * FROM DIALOGMELDING
-            WHERE SAMTALE_REF = ? AND PERSON_ID = ?
+            WHERE SAMTALE_REF = ? AND PERSON_ID = ANY(?::text[])
         """.trimIndent()
 
         return connection.queryList(query) {
             setParams {
                 setUUID(1, samtaleRef)
-                setString(2, personIdent)
+                setArray(2, personIdenter)
             }
             setRowMapper(::mapDialogmeldingFullRecord)
-        }
-    }
-
-    override fun oppdaterPersonIdentPåSamtaleRef(samtaleRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
-        val query = """
-            UPDATE DIALOGMELDING
-            SET PERSON_ID = ?
-            WHERE SAMTALE_REF = ? AND PERSON_ID = ANY(?::text[])
-        """.trimIndent()
-
-        return connection.execute(query) {
-            setParams {
-                setString(1, nyIdent)
-                setUUID(2, samtaleRef)
-                setArray(3, muligeIdenter)
-            }
-        }
-    }
-
-    override fun oppdaterPersonIdentPåParentRef(parentRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
-        val query = """
-            UPDATE DIALOGMELDING
-            SET PERSON_ID = ?
-            WHERE DIALOGMELDING_UUID = ? AND PERSON_ID = ANY(?::text[])
-        """.trimIndent()
-
-        return connection.execute(query) {
-            setParams {
-                setString(1, nyIdent)
-                setUUID(2, parentRef)
-                setArray(3, muligeIdenter)
-            }
         }
     }
 

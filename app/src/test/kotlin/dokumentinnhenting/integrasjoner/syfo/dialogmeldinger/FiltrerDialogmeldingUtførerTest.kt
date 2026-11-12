@@ -4,6 +4,8 @@ import dokumentinnhenting.Fakes.behandlingsflytSakResponses
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.pdl.Ident
+import dokumentinnhenting.integrasjoner.pdl.PersonIdentGateway
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
@@ -14,8 +16,10 @@ import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
 import dokumentinnhenting.unleash.FakeUnleashGateway
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
+import io.mockk.verify
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -28,6 +32,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.UUID.randomUUID
@@ -38,6 +43,7 @@ import kotlin.random.Random.Default.nextInt
 class FiltrerDialogmeldingUtførerTest {
 
     private lateinit var dataSource: TestDataSource
+    private lateinit var personIdentGateway: PersonIdentGateway
 
     @BeforeAll
     fun setup() {
@@ -46,6 +52,11 @@ class FiltrerDialogmeldingUtførerTest {
 
     @BeforeEach
     fun leggTilRandomData() {
+        personIdentGateway = mockk()
+        every { personIdentGateway.hentAlleIdenterForPerson(any()) } answers {
+            listOf(firstArg<Ident>())
+        }
+
         // Lagrer tilfeldig data for bedre treffsikkerhet på asserts i testene
         opprettDialogmelding()
         opprettDialogmelding()
@@ -72,18 +83,37 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `skal legge til ny jobb når person har identhistorikk og treff på tidligere ident`() {
-        val dto = lagDialogmeldingMottakDTO()
+    fun `kobler mottatt melding til riktig sak etter identbytte når conversationRef matcher en sendt melding`() {
+        val gammelIdent = randomPersonIdent()
+        val nyIdent = randomPersonIdent()
+        val saksnummer = randomSaksnummer()
 
+        val sendtMelding = opprettDialogmelding(
+            personIdent = gammelIdent,
+            saksnummer = saksnummer,
+        )
         opprettDialogmelding(
-            samtaleRef = UUID.fromString(dto.conversationRef),
-            personIdent = "70078749472",
-            saksnummer = randomSaksnummer()
+            samtaleRef = sendtMelding.samtaleRef,
+            personIdent = gammelIdent,
+            saksnummer = saksnummer,
+        )
+        val mottattMelding = lagDialogmeldingMottakDTO(
+            personIdentPasient = nyIdent,
+            conversationRef = sendtMelding.samtaleRef.toString(),
+            parentRef = null,
         )
 
-        utfør(dto)
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
+        } returns listOf(Ident(nyIdent), Ident(gammelIdent, aktivIdent = false))
 
-        assertThat(hentJobber(dto.personIdentPasient)).hasSize(1)
+        utfør(mottattMelding)
+
+        verify(exactly = 1) {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
+        }
+
+        assertThat(hentJobber(saksnummer)).hasSize(1)
     }
 
     @Test
@@ -334,13 +364,179 @@ class FiltrerDialogmeldingUtførerTest {
         assertThat(hentJobber(dto.personIdentPasient)).hasSize(1)
     }
 
-    private fun utfør(dto: DialogmeldingMottakDTO) {
+    @Test
+    fun `kobler mottatt melding til riktig sak etter identbytte når parentRef matcher en sendt melding`() {
+        val gammelIdent = randomPersonIdent()
+        val nyIdent = randomPersonIdent()
+        val saksnummer = randomSaksnummer()
+
+        val sendtMelding = opprettDialogmelding(
+            personIdent = gammelIdent,
+            saksnummer = saksnummer,
+        )
+        val mottattMelding = lagDialogmeldingMottakDTO(
+            personIdentPasient = nyIdent,
+            conversationRef = null,
+            parentRef = sendtMelding.dialogmeldingUuid.toString(),
+        )
+
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
+        } returns listOf(Ident(nyIdent), Ident(gammelIdent, aktivIdent = false))
+
+        utfør(mottattMelding)
+
+        assertThat(hentJobber(saksnummer)).hasSize(1)
+    }
+
+    @Test
+    fun `kobler mottatt melding til riktig sak etter identbytte når conversationRef matcher en tidligere mottatt melding`() {
+        val gammelIdent = randomPersonIdent()
+        val nyIdent = randomPersonIdent()
+        val saksnummer = randomSaksnummer()
+        val conversationRef = randomUUID().toString()
+
+        lagreMottattDialogmelding(
+            conversationRef = conversationRef,
+            personIdentPasient = gammelIdent,
+            saksnummer = saksnummer,
+        )
+        lagreMottattDialogmelding(
+            conversationRef = conversationRef,
+            personIdentPasient = gammelIdent,
+            saksnummer = saksnummer,
+        )
+        val mottattMelding = lagDialogmeldingMottakDTO(
+            personIdentPasient = nyIdent,
+            conversationRef = conversationRef,
+            parentRef = null,
+        )
+
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
+        } returns listOf(Ident(nyIdent), Ident(gammelIdent, aktivIdent = false))
+
+        utfør(mottattMelding)
+
+        assertThat(hentJobber(saksnummer)).hasSize(1)
+    }
+
+    @Test
+    fun `når bryter er av brukes bare payload-ident uten PDL-oppslag`() {
+        val dto = lagDialogmeldingMottakDTO()
+        val saksnummer = randomSaksnummer()
+        opprettDialogmelding(
+            samtaleRef = UUID.fromString(dto.conversationRef),
+            personIdent = dto.personIdentPasient,
+            saksnummer = saksnummer,
+        )
+
+        utfør(dto, unleashEnabled = false)
+
+        verify(exactly = 0) {
+            personIdentGateway.hentAlleIdenterForPerson(any())
+        }
+
+        assertThat(hentJobber(saksnummer)).hasSize(1)
+    }
+
+    @Test
+    fun `PDL-feil feiler behandling uten å opprette jobb`() {
+        val dto = lagDialogmeldingMottakDTO()
+        val pdlFeil = IllegalArgumentException("PDL-feil")
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(dto.personIdentPasient))
+        } throws pdlFeil
+
+        val feil = assertThrows<IllegalArgumentException> { utfør(dto) }
+        assertThat(feil).isSameAs(pdlFeil)
+        verify(exactly = 1) {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(dto.personIdentPasient))
+        }
+
+        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
+    }
+
+    @Test
+    fun `tom PDL-liste feiler behandling uten å opprette jobb`() {
+        val dto = lagDialogmeldingMottakDTO()
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(dto.personIdentPasient))
+        } returns emptyList()
+
+        val feil = assertThrows<IllegalStateException> { utfør(dto) }
+        assertThat(feil.message).isEqualTo("PDL returnerte ingen folkeregisteridenter")
+        verify(exactly = 1) {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(dto.personIdentPasient))
+        }
+
+        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
+    }
+
+    @Test
+    fun `motstridende saksnumre i sendt samtale feiler behandling`() {
+        val dto = lagDialogmeldingMottakDTO(parentRef = null)
+        val historiskIdent = randomPersonIdent()
+        val samtaleRef = UUID.fromString(dto.conversationRef)
+        val førsteSaksnummer = randomSaksnummer()
+        val andreSaksnummer = randomSaksnummer()
+        opprettDialogmelding(
+            samtaleRef = samtaleRef,
+            personIdent = dto.personIdentPasient,
+            saksnummer = førsteSaksnummer,
+        )
+        opprettDialogmelding(
+            samtaleRef = samtaleRef,
+            personIdent = historiskIdent,
+            saksnummer = andreSaksnummer,
+        )
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(any())
+        } returns listOf(Ident(dto.personIdentPasient), Ident(historiskIdent, aktivIdent = false))
+
+        val feil = assertThrows<IllegalStateException> { utfør(dto) }
+        assertThat(feil.message)
+            .isEqualTo("Fant flere saksnumre for samme samtale i sendte dialogmeldinger")
+
+        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
+    }
+
+    @Test
+    fun `motstridende saksnumre i mottatt samtale stopper behandling`() {
+        val dto = lagDialogmeldingMottakDTO(parentRef = null)
+        val historiskIdent = randomPersonIdent()
+        val samtaleRef = dto.conversationRef
+        val førsteSaksnummer = randomSaksnummer()
+        val andreSaksnummer = randomSaksnummer()
+        lagreMottattDialogmelding(
+            conversationRef = samtaleRef,
+            personIdentPasient = dto.personIdentPasient,
+            saksnummer = førsteSaksnummer,
+        )
+        lagreMottattDialogmelding(
+            conversationRef = samtaleRef,
+            personIdentPasient = historiskIdent,
+            saksnummer = andreSaksnummer,
+        )
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(any())
+        } returns listOf(Ident(dto.personIdentPasient), Ident(historiskIdent, aktivIdent = false))
+
+        val feil = assertThrows<IllegalStateException> { utfør(dto) }
+        assertThat(feil.message)
+            .isEqualTo("Fant flere saksnumre for samme samtale i mottatte dialogmeldinger")
+
+        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
+    }
+
+    private fun utfør(dto: DialogmeldingMottakDTO, unleashEnabled: Boolean = true) {
         dataSource.transaction { connection ->
             FiltrerDialogmeldingUtfører(
                 FlytJobbRepository(connection),
                 DialogmeldingRepositoryImpl(connection),
                 MottattDialogmeldingRepositoryImpl(connection),
-                FakeUnleashGateway(enabled = true),
+                personIdentGateway,
+                FakeUnleashGateway(enabled = unleashEnabled),
             )
                 .utfør(lagJobbInput(dto))
         }
@@ -442,7 +638,7 @@ class FiltrerDialogmeldingUtførerTest {
         conversationRef: String? = randomUUID().toString(),
         personIdentPasient: String = randomPersonIdent(),
         saksnummer: String = randomSaksnummer(),
-    ) {
+    ): DialogmeldingMottakDTO {
         val tidligereMottatt = lagDialogmeldingMottakDTO(
             conversationRef = conversationRef,
             personIdentPasient = personIdentPasient,
@@ -450,5 +646,6 @@ class FiltrerDialogmeldingUtførerTest {
         dataSource.transaction { connection ->
             MottattDialogmeldingRepositoryImpl(connection).lagre(tidligereMottatt, saksnummer)
         }
+        return tidligereMottatt
     }
 }

@@ -3,19 +3,17 @@ package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.pdl.Ident
 import dokumentinnhenting.integrasjoner.pdl.PdlIdentGateway
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
+import dokumentinnhenting.integrasjoner.pdl.PersonIdentGateway
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
-import dokumentinnhenting.repositories.MottattDialogmeldingRecord
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
 import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.unleash.UnleashGatewayImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.httpklient.exception.VerdiIkkeFunnetException
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.FlytJobbRepository
@@ -29,6 +27,7 @@ class FiltrerDialogmeldingUtfører(
     private val flytJobbRepository: FlytJobbRepository,
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val mottattDialogmeldingRepository: MottattDialogmeldingRepository,
+    private val personIdentGateway: PersonIdentGateway,
     private val unleash: UnleashGateway,
 ) : JobbUtfører {
 
@@ -44,7 +43,7 @@ class FiltrerDialogmeldingUtfører(
             return
         }
 
-        val saksnummer = finnSaksnummer(payload, payload.personIdentPasient)
+        val saksnummer = finnSaksnummer(payload)
 
         if (saksnummer != null) {
             opprettJobb(payload, saksnummer, skalLagreMottatDialogmelding = true)
@@ -68,94 +67,71 @@ class FiltrerDialogmeldingUtfører(
         }
     }
 
-    private fun finnSaksnummerPåIdentViaDialogmelding(
-        dialogmelding: DialogmeldingMottakDTO,
-        personIdent: String
+    private fun finnSaksnummer(dialogmelding: DialogmeldingMottakDTO): String? {
+        val personIdenter = if (unleash.isEnabled(FeatureToggles.HaandterEndringAvIdentIDialogmelding)) {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(dialogmelding.personIdentPasient))
+                .map { it.identifikator }
+                .also {
+                    check(it.isNotEmpty()) { "PDL returnerte ingen folkeregisteridenter" }
+                }
+        } else {
+            listOf(dialogmelding.personIdentPasient)
+        }
+
+        return finnSaksnummerViaSendtDialogmelding(dialogmelding, personIdenter)
+            ?: finnSaksnummerViaTidligereMottattDialogmelding(dialogmelding, personIdenter)
+    }
+
+    private fun finnSaksnummerViaSendtDialogmelding(
+        mottattDialogmelding: DialogmeldingMottakDTO, personIdenter: List<String>
     ): String? {
-        return finnKoblingViaSendtDialogmelding(dialogmelding, personIdent)?.saksnummer
-            ?: finnKoblingViaTidligereMottattDialogmelding(dialogmelding, personIdent)?.saksnummer
-    }
-
-    private fun finnSaksnummerGjennomIdentHistorikk(dialogmelding: DialogmeldingMottakDTO): String? {
-        val personIdentMelding = dialogmelding.personIdentPasient
-        val identHistorikk = PdlIdentGateway().hentAlleIdenterForPerson(Ident(personIdentMelding))
-
-        identHistorikk.filter { it.identifikator != personIdentMelding }.forEach {
-            val saksnummer = finnSaksnummerPåIdentViaDialogmelding(dialogmelding, it.identifikator)
-            if (saksnummer != null) {
-                oppdaterIdentPåDialogmeldinger(identHistorikk, dialogmelding)
-                return saksnummer
-            }
-        }
-
-        return null
-    }
-
-    private fun finnSaksnummer(payload: DialogmeldingMottakDTO, personIdentMelding: String): String? {
-        val saksnummer = finnSaksnummerPåIdentViaDialogmelding(payload, personIdentMelding)
-
-        if (!unleash.isEnabled(FeatureToggles.HaandterEndringAvIdentIDialogmelding)) {
-            return saksnummer
-        }
-
-        return saksnummer ?: finnSaksnummerGjennomIdentHistorikk(payload)
-    }
-
-    private fun finnKoblingViaSendtDialogmelding(
-        mottattDialogmelding: DialogmeldingMottakDTO, personIdent: String
-    ): DialogmeldingFullRecord? {
         return mottattDialogmelding.conversationRef?.toUUIDOrNull()
             ?.let {
                 dialogmeldingRepository.hentForSamtale(
                     samtaleRef = it,
-                    personIdent = personIdent
+                    personIdenter = personIdenter
                 )
             }
-            ?.maxByOrNull { it.opprettet }
+            ?.map { it.saksnummer }
+            ?.distinct()
+            ?.also { saksnumre ->
+                check(saksnumre.size <= 1) {
+                    "Fant flere saksnumre for samme samtale i sendte dialogmeldinger"
+                }
+            }
+            ?.singleOrNull()
             ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
             ?: mottattDialogmelding.parentRef?.toUUIDOrNull()
                 ?.let {
                     dialogmeldingRepository.hentForParent(
                         parentRef = it,
-                        personIdent = personIdent
+                        personIdenter = personIdenter
                     )
                 }
+                ?.saksnummer
                 ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på parentRef. msgId: ${mottattDialogmelding.msgId}") }
     }
 
     // Midlertidig kobling med logging med tidligere mottatt melding som kan ha blitt koblet med parentRef til utgående melding.
     // Dette siden vi ikke har full historikk på conversationRef på utgående meldinger. Denne mappingen bør ikke treffe
     // etterhvert som vi har conversationRef på alle utestående forespøsler/utgående dialogmeldinger.
-    private fun finnKoblingViaTidligereMottattDialogmelding(
-        mottattDialogmelding: DialogmeldingMottakDTO, personIdent: String
-    ): MottattDialogmeldingRecord? {
+    private fun finnSaksnummerViaTidligereMottattDialogmelding(
+        mottattDialogmelding: DialogmeldingMottakDTO, personIdenter: List<String>
+    ): String? {
         return mottattDialogmelding.conversationRef?.toUUIDOrNull()
             ?.let { conversationRef ->
                 mottattDialogmeldingRepository
-                    .hentForSamtale(conversationRef, personIdent)
-                    .firstOrNull()
+                    .hentForSamtale(conversationRef, personIdenter)
+                    .map { it.saksnummer }
+                    .distinct()
+                    .also { saksnumre ->
+                        check(saksnumre.size <= 1) {
+                            "Fant flere saksnumre for samme samtale i mottatte dialogmeldinger"
+                        }
+                    }
+                    .singleOrNull()
             }
             ?.also { log.info("Fant kobling fra mottatt til tidligere mottatt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
-    }
-
-    private fun oppdaterIdentPåDialogmeldinger(identHistorikk: List<Ident>, dialogmelding: DialogmeldingMottakDTO) {
-        val aktivIdent = identHistorikk.firstOrNull { it.aktivIdent }?.identifikator
-        if (aktivIdent == null) {
-            throw VerdiIkkeFunnetException("Det fantes ingen aktiv ident i identhistorikken!")
-        }
-
-        val conversationRef = UUID.fromString(dialogmelding.conversationRef)
-
-        dialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
-            conversationRef,
-            identHistorikk.map { it.identifikator },
-            aktivIdent
-        )
-        mottattDialogmeldingRepository.oppdaterPersonIdentPåSamtaleRef(
-            conversationRef,
-            identHistorikk.map { it.identifikator },
-            aktivIdent
-        )
     }
 
     private fun opprettJobb(
@@ -192,6 +168,7 @@ class FiltrerDialogmeldingUtfører(
                 flytJobbRepository = FlytJobbRepository(connection),
                 dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
                 mottattDialogmeldingRepository = MottattDialogmeldingRepositoryImpl(connection),
+                personIdentGateway = PdlIdentGateway(),
                 unleash = UnleashGatewayImpl
             )
         }
