@@ -92,15 +92,16 @@ class FiltrerDialogmeldingUtfører(
                     personIdenter = personIdenter
                 )
             }
-            ?.map { it.saksnummer }
-            ?.distinct()
-            ?.also { saksnumre ->
+            .orEmpty()
+            .map { it.saksnummer }
+            .distinct()
+            .also { saksnumre ->
                 check(saksnumre.size <= 1) {
                     "Fant flere saksnumre for samme samtale i sendte dialogmeldinger"
                 }
             }
-            ?.singleOrNull()
-            ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
+            .singleOrNull()
+            .also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
             ?: mottattDialogmelding.parentRef?.toUUIDOrNull()
                 ?.let {
                     dialogmeldingRepository.hentForParent(
