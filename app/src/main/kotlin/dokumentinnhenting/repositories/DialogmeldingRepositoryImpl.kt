@@ -201,7 +201,6 @@ class DialogmeldingRepositoryImpl(private val connection: DBConnection) : Dialog
 
     override fun hentForSamtale(samtaleRef: UUID, personIdenter: List<String>): List<DialogmeldingFullRecord> {
         if (personIdenter.isEmpty()) return emptyList()
-
         val query = """
             SELECT * FROM DIALOGMELDING
             WHERE SAMTALE_REF = ? AND PERSON_ID = ANY(?::text[])
