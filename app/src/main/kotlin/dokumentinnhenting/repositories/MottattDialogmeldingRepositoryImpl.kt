@@ -57,16 +57,18 @@ class MottattDialogmeldingRepositoryImpl(private val connection: DBConnection) :
         }
     }
 
-    override fun hentForSamtale(samtaleRef: UUID, personIdent: String): List<MottattDialogmeldingRecord> {
+    override fun hentForSamtale(samtaleRef: UUID, personIdenter: List<String>): List<MottattDialogmeldingRecord> {
+        if (personIdenter.isEmpty()) return emptyList()
+
         val query = """
             SELECT * FROM MOTTATT_DIALOGMELDING
-            WHERE CONVERSATION_REF = ? AND PERSON_IDENT_PASIENT = ?
+            WHERE CONVERSATION_REF = ? AND PERSON_IDENT_PASIENT = ANY(?::text[])
         """.trimIndent()
 
         return connection.queryList(query) {
             setParams {
                 setUUID(1, samtaleRef)
-                setString(2, personIdent)
+                setArray(2, personIdenter)
             }
             setRowMapper(::mapMottattDialogmeldingRecord)
         }
@@ -84,38 +86,6 @@ class MottattDialogmeldingRepositoryImpl(private val connection: DBConnection) :
             }
             setRowMapper {
                 mapMottattDialogmeldingRecord(it)
-            }
-        }
-    }
-
-    override fun oppdaterPersonIdentPåSamtaleRef(samtaleRef: UUID, muligeIdenter: List<String>, nyIdent: String) {
-        val query = """
-            UPDATE MOTTATT_DIALOGMELDING
-            SET PERSON_IDENT_PASIENT = ?
-            WHERE CONVERSATION_REF = ? AND PERSON_IDENT_PASIENT = ANY(?::text[])
-        """.trimIndent()
-
-        return connection.execute(query) {
-            setParams {
-                setString(1, nyIdent)
-                setUUID(2, samtaleRef)
-                setArray(3, muligeIdenter)
-            }
-        }
-    }
-
-    override fun oppdaterPersonIdentPåMelding(msgId: UUID, muligeIdenter: List<String>, nyIdent: String) {
-        val query = """
-            UPDATE MOTTATT_DIALOGMELDING
-            SET PERSON_IDENT_PASIENT = ?
-            WHERE MSG_ID = ? AND PERSON_IDENT_PASIENT = ANY(?::text[])
-        """.trimIndent()
-
-        return connection.execute(query) {
-            setParams {
-                setString(1, nyIdent)
-                setUUID(2, msgId)
-                setArray(3, muligeIdenter)
             }
         }
     }

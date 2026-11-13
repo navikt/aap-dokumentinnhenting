@@ -33,11 +33,8 @@ interface DialogmeldingRepository : Repository {
     fun hentForSaksnummer(saksnummer: String): List<DialogmeldingFullRecord>
     fun hentByDialogId(dialogmeldingUuid: UUID): DialogmeldingFullRecord?
 
-    fun hentForSamtale(samtaleRef: UUID, personIdent: String): List<DialogmeldingFullRecord>
-    fun hentForParent(parentRef: UUID, personIdent: String): DialogmeldingFullRecord?
-
-    fun oppdaterPersonIdentPåSamtaleRef(samtaleRef: UUID, muligeIdenter: List<String>, nyIdent: String)
-    fun oppdaterPersonIdentPåParentRef(parentRef: UUID, muligeIdenter: List<String>, nyIdent: String)
+    fun hentForSamtale(samtaleRef: UUID, personIdenter: List<String>): List<DialogmeldingFullRecord>
+    fun hentForParent(parentRef: UUID, personIdenter: List<String>): DialogmeldingFullRecord?
 
     fun eksisterer(dialogmeldingUuid: UUID): Boolean
 

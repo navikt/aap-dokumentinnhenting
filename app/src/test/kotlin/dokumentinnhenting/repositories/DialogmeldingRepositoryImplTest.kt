@@ -347,6 +347,7 @@ class DialogmeldingRepositoryImplTest {
     @Test
     fun `hentForParent returnerer melding når parentRef og personIdent matcher`() {
         val record = lagRecord()
+        val annenPersonIdent = randomPersonIdent()
 
         dataSource.transaction { connection ->
             DialogmeldingRepositoryImpl(connection).opprettDialogmelding(lagRecord())
@@ -355,7 +356,10 @@ class DialogmeldingRepositoryImplTest {
         }
 
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).hentForParent(record.dialogmeldingUuid, record.personIdent)
+            DialogmeldingRepositoryImpl(connection).hentForParent(
+                record.dialogmeldingUuid,
+                listOf(annenPersonIdent, record.personIdent),
+            )
         }
 
         assertEquals(record.dialogmeldingUuid, resultat?.dialogmeldingUuid)
@@ -367,7 +371,7 @@ class DialogmeldingRepositoryImplTest {
             DialogmeldingRepositoryImpl(connection).opprettDialogmelding(lagRecord())
         }
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).hentForParent(UUID.randomUUID(), randomPersonIdent())
+            DialogmeldingRepositoryImpl(connection).hentForParent(UUID.randomUUID(), listOf(randomPersonIdent()))
         }
 
         assertNull(resultat)
@@ -384,15 +388,31 @@ class DialogmeldingRepositoryImplTest {
         }
 
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).hentForParent(record.dialogmeldingUuid, personB)
+            DialogmeldingRepositoryImpl(connection).hentForParent(record.dialogmeldingUuid, listOf(personB))
         }
 
         assertNull(resultat)
     }
 
     @Test
-    fun `hentForSamtale returnerer alle meldinger for samtaleRef og personIdent`() {
+    fun `hentForParent returnerer null når identlisten er tom`() {
+        val record = lagRecord()
+        dataSource.transaction { connection ->
+            DialogmeldingRepositoryImpl(connection).opprettDialogmelding(record)
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepositoryImpl(connection).hentForParent(record.dialogmeldingUuid, emptyList())
+        }
+
+        assertNull(resultat)
+    }
+
+    @Test
+    fun `hentForSamtale returnerer alle meldinger for samtaleRef og flere personIdenter`() {
         val personIdent = randomPersonIdent()
+        val historiskPersonIdent = randomPersonIdent()
+        val uvedkommendePersonIdent = randomPersonIdent()
         val samtaleRef = UUID.randomUUID()
         val uuid1 = UUID.randomUUID()
         val uuid2 = UUID.randomUUID()
@@ -400,12 +420,20 @@ class DialogmeldingRepositoryImplTest {
         dataSource.transaction { connection ->
             val repo = DialogmeldingRepositoryImpl(connection)
             repo.opprettDialogmelding(lagRecord(uuid = uuid1, personIdent = personIdent, samtaleRef = samtaleRef))
-            repo.opprettDialogmelding(lagRecord(uuid = uuid2, personIdent = personIdent, samtaleRef = samtaleRef))
-            repo.opprettDialogmelding(lagRecord(personIdent = personIdent, samtaleRef = UUID.randomUUID()))
+            repo.opprettDialogmelding(lagRecord(uuid = uuid2, personIdent = historiskPersonIdent, samtaleRef = samtaleRef))
+            repo.opprettDialogmelding(
+                lagRecord(personIdent = uvedkommendePersonIdent, samtaleRef = samtaleRef)
+            )
+            repo.opprettDialogmelding(
+                lagRecord(personIdent = historiskPersonIdent, samtaleRef = UUID.randomUUID())
+            )
         }
 
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, personIdent)
+            DialogmeldingRepositoryImpl(connection).hentForSamtale(
+                samtaleRef,
+                listOf(personIdent, historiskPersonIdent),
+            )
         }
 
         assertEquals(2, resultat.size)
@@ -416,7 +444,7 @@ class DialogmeldingRepositoryImplTest {
     @Test
     fun `hentForSamtale returnerer tom liste for ukjent samtaleRef`() {
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).hentForSamtale(UUID.randomUUID(), randomPersonIdent())
+            DialogmeldingRepositoryImpl(connection).hentForSamtale(UUID.randomUUID(), listOf(randomPersonIdent()))
         }
 
         assertTrue(resultat.isEmpty())
@@ -434,12 +462,27 @@ class DialogmeldingRepositoryImplTest {
         }
 
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, personB)
+            DialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, listOf(personB))
         }
 
         assertTrue(resultat.isEmpty())
     }
 
+    @Test
+    fun `hentForSamtale returnerer tom liste når identlisten er tom`() {
+        val samtaleRef = randomUUID()
+        dataSource.transaction { connection ->
+            DialogmeldingRepositoryImpl(connection).opprettDialogmelding(
+                lagRecord(samtaleRef = samtaleRef)
+            )
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            DialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, emptyList())
+        }
+
+        assertTrue(resultat.isEmpty())
+    }
 
     @Test
     fun `hent bestillinger gitt behandlingsreferanse`() {
@@ -506,90 +549,4 @@ class DialogmeldingRepositoryImplTest {
         )
     }
 
-    @Test
-    fun `oppdaterPersonIdentPåSamtaleRef oppdaterer kun gammel ident på alle i samme samtale`() {
-        val behandlingsreferanse = BehandlingReferanse(randomUUID())
-        val saksnummer = randomSaksnummer()
-        val samtaleRef = randomUUID()
-        val annenSamtaleRef = randomUUID()
-        val nyPersonIdent = randomPersonIdent()
-        val gammelIdent = randomPersonIdent()
-        val annenPersonIdent = randomPersonIdent()
-        val identHistorikk = listOf(nyPersonIdent, gammelIdent)
-
-        val meldingNyIdent = lagRecord(personIdent = nyPersonIdent, samtaleRef = samtaleRef,
-            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-        val meldingGammelIdent = lagRecord(personIdent = gammelIdent, samtaleRef = samtaleRef,
-            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-        val meldingAnnenPerson = lagRecord(personIdent = annenPersonIdent, samtaleRef = samtaleRef,
-            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-        val meldingAnnenSamtale = lagRecord(personIdent = gammelIdent, samtaleRef = annenSamtaleRef,
-            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-
-        val meldingerNyIdentFørEndring = dataSource.transaction { connection ->
-            val repo = DialogmeldingRepositoryImpl(connection)
-            repo.opprettDialogmelding(meldingNyIdent)
-            repo.opprettDialogmelding(meldingGammelIdent)
-            repo.opprettDialogmelding(meldingAnnenPerson)
-            repo.opprettDialogmelding(meldingAnnenSamtale)
-            repo.hentForSamtale(samtaleRef, nyPersonIdent)
-        }
-
-        dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).oppdaterPersonIdentPåSamtaleRef(samtaleRef, identHistorikk, nyPersonIdent)
-        }
-
-        val (meldingerNyIdentEtterEndring, meldingerNyIdentAnnenSamtale) = dataSource.transaction { connection ->
-            val repo = DialogmeldingRepositoryImpl(connection)
-            val meldingerRiktigSamtale = repo.hentForSamtale(samtaleRef, nyPersonIdent)
-            val meldingerAnnenSamtale = repo.hentForSamtale(annenSamtaleRef, nyPersonIdent)
-            meldingerRiktigSamtale to meldingerAnnenSamtale
-        }
-
-        assertThat(meldingerNyIdentFørEndring.size).isEqualTo(1)
-        assertThat(meldingerNyIdentEtterEndring.size).isEqualTo(2)
-        assertThat(meldingerNyIdentAnnenSamtale.size).isEqualTo(0)
-    }
-
-    @Test
-    fun `oppdaterPersonIdentPåParentRef oppdaterer kun gammel ident på parent`() {
-        val behandlingsreferanse = BehandlingReferanse(randomUUID())
-        val saksnummer = randomSaksnummer()
-        val samtaleRef = randomUUID()
-        val parentRef = randomUUID()
-        val nyPersonIdent = randomPersonIdent()
-        val gammelIdent = randomPersonIdent()
-        val annenPersonIdent = randomPersonIdent()
-        val identHistorikk = listOf(nyPersonIdent, gammelIdent)
-
-        val meldingParent = lagRecord(personIdent = gammelIdent, uuid = parentRef,
-            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-        val meldingSamtaleGammelIdent = lagRecord(personIdent = gammelIdent, samtaleRef = samtaleRef,
-            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-        val meldingSamtaleAnnenPerson = lagRecord(personIdent = annenPersonIdent, samtaleRef = samtaleRef,
-            behandlingsreferanse = behandlingsreferanse.referanse, dokumentasjonType = DokumentasjonType.L40, saksnummer = saksnummer)
-
-        val meldingerParentNyIdentFørEndring = dataSource.transaction { connection ->
-            val repo = DialogmeldingRepositoryImpl(connection)
-            repo.opprettDialogmelding(meldingParent)
-            repo.opprettDialogmelding(meldingSamtaleGammelIdent)
-            repo.opprettDialogmelding(meldingSamtaleAnnenPerson)
-            repo.hentForParent(parentRef, nyPersonIdent)
-        }
-
-        dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).oppdaterPersonIdentPåParentRef(parentRef, identHistorikk, nyPersonIdent)
-        }
-
-        val (meldingerParentNyIdentEtterEndring, meldingerSamtaleNyIdentEtterEndring) = dataSource.transaction { connection ->
-            val repo = DialogmeldingRepositoryImpl(connection)
-            val meldingerParent = repo.hentForParent(parentRef, nyPersonIdent)
-            val meldingerSamtale = repo.hentForSamtale(samtaleRef, nyPersonIdent)
-            meldingerParent to meldingerSamtale
-        }
-
-        assertThat(meldingerParentNyIdentFørEndring == null)
-        assertThat(meldingerParentNyIdentEtterEndring != null)
-        assertThat(meldingerSamtaleNyIdentEtterEndring.size).isEqualTo(0)
-    }
 }
