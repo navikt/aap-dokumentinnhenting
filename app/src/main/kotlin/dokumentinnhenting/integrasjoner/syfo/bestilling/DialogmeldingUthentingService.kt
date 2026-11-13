@@ -73,6 +73,7 @@ class DialogmeldingUthentingService(
         return påminnelser
             .filter { påminnelse ->
                 påminnelse.harPåminnelseDatoPassert() &&
+                påminnelse.status != PåminnelseStatus.PLANLAGT &&
                 !påminnelse.erForespørselSendtSisteAntallDager(MINSTE_ANTALL_DØGN_SIDEN_FORRIGE_PÅMINNELSE)
             }
             .associate { it.dialogmeldingId to it.sisteForespørselSendt }
