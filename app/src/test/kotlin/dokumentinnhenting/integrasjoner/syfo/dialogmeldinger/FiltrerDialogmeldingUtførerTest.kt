@@ -3,10 +3,10 @@ package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 import dokumentinnhenting.Fakes.behandlingsflytSakResponses
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.pdl.Ident
 import dokumentinnhenting.integrasjoner.pdl.PersonIdentGateway
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
@@ -15,12 +15,7 @@ import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomSaksnummer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
-import dokumentinnhenting.unleash.FakeUnleashGateway
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
-import io.mockk.verify
+import io.mockk.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -28,14 +23,9 @@ import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.*
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import java.util.UUID.randomUUID
 import kotlin.random.Random.Default.nextInt
 
@@ -474,25 +464,6 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `når bryter er av brukes bare payload-ident uten PDL-oppslag`() {
-        val dto = lagDialogmeldingMottakDTO()
-        val saksnummer = randomSaksnummer()
-        opprettDialogmelding(
-            samtaleRef = UUID.fromString(dto.conversationRef),
-            personIdent = dto.personIdentPasient,
-            saksnummer = saksnummer,
-        )
-
-        utfør(dto, unleashEnabled = false)
-
-        verify(exactly = 0) {
-            personIdentGateway.hentAlleIdenterForPerson(any())
-        }
-
-        assertThat(hentJobber(saksnummer)).hasSize(1)
-    }
-
-    @Test
     fun `PDL-feil feiler behandling uten å opprette jobb`() {
         val dto = lagDialogmeldingMottakDTO()
         val pdlFeil = IllegalArgumentException("PDL-feil")
@@ -581,14 +552,13 @@ class FiltrerDialogmeldingUtførerTest {
         assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
     }
 
-    private fun utfør(dto: DialogmeldingMottakDTO, unleashEnabled: Boolean = true) {
+    private fun utfør(dto: DialogmeldingMottakDTO) {
         dataSource.transaction { connection ->
             FiltrerDialogmeldingUtfører(
                 FlytJobbRepository(connection),
                 DialogmeldingRepositoryImpl(connection),
                 MottattDialogmeldingRepositoryImpl(connection),
                 personIdentGateway,
-                FakeUnleashGateway(enabled = unleashEnabled),
             )
                 .utfør(lagJobbInput(dto))
         }
