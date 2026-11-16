@@ -8,8 +8,6 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
-import dokumentinnhenting.unleash.FakeUnleashGateway
-import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører.Companion.MOTTATT_TIDSPUNKT_PARAMETER
 import dokumentinnhenting.util.motor.syfo.SendVarslingsbrevUtfører
@@ -123,7 +121,6 @@ class DialogmeldingStatusHistorikkTest {
         utfør(
             jobb(status(bestilling, MeldingStatusType.OK)),
             brevGateway,
-            FakeUnleashGateway(enabled = true)
         )
 
         coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
@@ -139,7 +136,6 @@ class DialogmeldingStatusHistorikkTest {
         utfør(
             jobb(status(bestilling, MeldingStatusType.OK)),
             brevGateway,
-            FakeUnleashGateway(enabled = false)
         )
 
         coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
@@ -189,14 +185,13 @@ class DialogmeldingStatusHistorikkTest {
     private fun utfør(
         input: JobbInput,
         brevGateway: BrevGateway = mockk(),
-        unleash: UnleashGateway = FakeUnleashGateway(enabled = false)
     ) {
         dataSource.transaction { connection ->
             OppdaterLegeerklæringStatusUtfører(
                 DialogmeldingRepositoryImpl(connection),
                 FlytJobbRepository(connection),
                 brevGateway,
-                VarslingService(unleash)
+                VarslingService()
             ).utfør(input)
         }
     }

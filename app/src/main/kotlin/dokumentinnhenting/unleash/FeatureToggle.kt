@@ -9,7 +9,6 @@ enum class FeatureToggles : FeatureToggle {
     TestToggle,
     HaandterEndringAvIdentIDialogmelding,
     KnappForManuellPaaminnelse,
-    VarsleBrukerVedPurring,
     ;
 
     override fun key(): String = name

@@ -48,7 +48,7 @@ fun NormalOpenAPIRoute.syfoApi(
     val syfoApiRolle = "syfo-api"
     val brevGeneratorService = DialogmeldingBrevGeneratorService(
         brevGateway,
-        VarslingService(UnleashGatewayImpl)
+        VarslingService()
     )
     route("/syfo").tag(Tags.Syfo) {
         route("/dialogmeldingbestilling").authorizedPost<Unit, UUID, BehandlingsflytToDokumentInnhentingBestillingDto>(
