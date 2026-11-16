@@ -114,7 +114,7 @@ class DialogmeldingStatusHistorikkTest {
     }
 
     @Test
-    fun `OK på purring sender varslingsbrev når funksjonsbryteren er aktivert`() {
+    fun `OK på purring sender varslingsbrev`() {
         val bestilling = opprettBestilling(DokumentasjonType.PURRING, opprettBestilling())
         val brevGateway = mockk<BrevGateway>(relaxed = true)
 
@@ -126,20 +126,6 @@ class DialogmeldingStatusHistorikkTest {
         coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
         assertThat(varslingsjobber(bestilling)).hasSize(1)
         assertThat(historikk(bestilling)).hasSize(1)
-    }
-
-    @Test
-    fun `OK på purring sender ikke varslingsbrev når funksjonsbryteren er deaktivert`() {
-        val bestilling = opprettBestilling(DokumentasjonType.PURRING, opprettBestilling())
-        val brevGateway = mockk<BrevGateway>(relaxed = true)
-
-        utfør(
-            jobb(status(bestilling, MeldingStatusType.OK)),
-            brevGateway,
-        )
-
-        coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
-        assertThat(varslingsjobber(bestilling)).isEmpty()
     }
 
     private fun opprettBestilling(
