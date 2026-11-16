@@ -101,7 +101,7 @@ class FiltrerDialogmeldingUtfører(
                 }
             }
             .singleOrNull()
-            .also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
+            ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
             ?: mottattDialogmelding.parentRef?.toUUIDOrNull()
                 ?.let {
                     dialogmeldingRepository.hentForParent(
