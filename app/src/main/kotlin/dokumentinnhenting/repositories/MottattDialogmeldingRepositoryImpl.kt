@@ -4,7 +4,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMo
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 class MottattDialogmeldingRepositoryImpl(private val connection: DBConnection) : MottattDialogmeldingRepository {
 
@@ -53,23 +53,6 @@ class MottattDialogmeldingRepositoryImpl(private val connection: DBConnection) :
 
         return connection.queryFirstOrNull(query) {
             setParams { setUUID(1, msgId) }
-            setRowMapper(::mapMottattDialogmeldingRecord)
-        }
-    }
-
-    override fun hentForSamtale(samtaleRef: UUID, personIdenter: List<String>): List<MottattDialogmeldingRecord> {
-        if (personIdenter.isEmpty()) return emptyList()
-
-        val query = """
-            SELECT * FROM MOTTATT_DIALOGMELDING
-            WHERE CONVERSATION_REF = ? AND PERSON_IDENT_PASIENT = ANY(?::text[])
-        """.trimIndent()
-
-        return connection.queryList(query) {
-            setParams {
-                setUUID(1, samtaleRef)
-                setArray(2, personIdenter)
-            }
             setRowMapper(::mapMottattDialogmeldingRecord)
         }
     }

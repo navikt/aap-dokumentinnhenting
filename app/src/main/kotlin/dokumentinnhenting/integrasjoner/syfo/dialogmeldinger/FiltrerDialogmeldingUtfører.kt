@@ -79,7 +79,6 @@ class FiltrerDialogmeldingUtfører(
         }
 
         return finnSaksnummerViaSendtDialogmelding(dialogmelding, personIdenter)
-            ?: finnSaksnummerViaTidligereMottattDialogmelding(dialogmelding, personIdenter)
     }
 
     private fun finnSaksnummerViaSendtDialogmelding(
@@ -111,28 +110,6 @@ class FiltrerDialogmeldingUtfører(
                 }
                 ?.saksnummer
                 ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på parentRef. msgId: ${mottattDialogmelding.msgId}") }
-    }
-
-    // Midlertidig kobling med logging med tidligere mottatt melding som kan ha blitt koblet med parentRef til utgående melding.
-    // Dette siden vi ikke har full historikk på conversationRef på utgående meldinger. Denne mappingen bør ikke treffe
-    // etterhvert som vi har conversationRef på alle utestående forespøsler/utgående dialogmeldinger.
-    private fun finnSaksnummerViaTidligereMottattDialogmelding(
-        mottattDialogmelding: DialogmeldingMottakDTO, personIdenter: List<String>
-    ): String? {
-        return mottattDialogmelding.conversationRef?.toUUIDOrNull()
-            ?.let { conversationRef ->
-                mottattDialogmeldingRepository
-                    .hentForSamtale(conversationRef, personIdenter)
-                    .map { it.saksnummer }
-                    .distinct()
-                    .also { saksnumre ->
-                        check(saksnumre.size <= 1) {
-                            "Fant flere saksnumre for samme samtale i mottatte dialogmeldinger"
-                        }
-                    }
-                    .singleOrNull()
-            }
-            ?.also { log.info("Fant kobling fra mottatt til tidligere mottatt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
     }
 
     private fun opprettJobb(
