@@ -11,6 +11,10 @@ fun randomPersonIdent(): String {
     return Random.nextLong(10000000000L, 99999999999L).toString()
 }
 
+fun randomHprNummer(): String {
+    return Random.nextLong(1000000L, 9999999L).toString()
+}
+
 fun randomSaksnummer(): String {
     return "SAK${nextInt(1111, 9999)}"
 }
