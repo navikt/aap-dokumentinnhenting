@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.syfo.dialogmeldinger
 
 import dokumentinnhenting.Fakes.behandlingsflytSakResponses
 import dokumentinnhenting.WithFakes
+import dokumentinnhenting.integrasjoner.behandlingsflyt.BehandlingsflytGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.pdl.Ident
@@ -113,7 +114,82 @@ class FiltrerDialogmeldingUtførerTest {
             personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
         }
 
-        assertThat(hentJobber(saksnummer)).hasSize(1)
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = true,
+                dialogmeldingMottatt = mottattMelding,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
+        )
+    }
+
+    @Test
+    fun `kobler mottatt melding til riktig sak etter identbytte når parentRef matcher en sendt melding`() {
+        val gammelIdent = randomPersonIdent()
+        val nyIdent = randomPersonIdent()
+        val saksnummer = randomSaksnummer()
+
+        val sendtMelding = opprettDialogmelding(
+            personIdent = gammelIdent,
+            saksnummer = saksnummer,
+        )
+        val mottattMelding = lagDialogmeldingMottakDTO(
+            personIdentPasient = nyIdent,
+            conversationRef = null,
+            parentRef = sendtMelding.dialogmeldingUuid.toString(),
+        )
+
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
+        } returns listOf(Ident(nyIdent), Ident(gammelIdent, aktivIdent = false))
+
+        utfør(mottattMelding)
+
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = true,
+                dialogmeldingMottatt = mottattMelding,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
+        )
+    }
+
+    @Test
+    fun `kobler mottatt melding til riktig sak etter identbytte når conversationRef matcher en tidligere mottatt melding`() {
+        val gammelIdent = randomPersonIdent()
+        val nyIdent = randomPersonIdent()
+        val saksnummer = randomSaksnummer()
+        val conversationRef = randomUUID().toString()
+
+        lagreMottattDialogmelding(
+            conversationRef = conversationRef,
+            personIdentPasient = gammelIdent,
+            saksnummer = saksnummer,
+        )
+        lagreMottattDialogmelding(
+            conversationRef = conversationRef,
+            personIdentPasient = gammelIdent,
+            saksnummer = saksnummer,
+        )
+        val mottattMelding = lagDialogmeldingMottakDTO(
+            personIdentPasient = nyIdent,
+            conversationRef = conversationRef,
+            parentRef = null,
+        )
+
+        every {
+            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
+        } returns listOf(Ident(nyIdent), Ident(gammelIdent, aktivIdent = false))
+
+        utfør(mottattMelding)
+
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = true,
+                dialogmeldingMottatt = mottattMelding,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
+        )
     }
 
     @Test
@@ -177,7 +253,13 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertThat(hentJobber(saksnummer)).hasSize(1)
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = true,
+                dialogmeldingMottatt = dto,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
+        )
     }
 
     @Test
@@ -196,7 +278,13 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertThat(hentJobber(saksnummer)).hasSize(1)
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = true,
+                dialogmeldingMottatt = dto,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
+        )
     }
 
     @Test
@@ -219,7 +307,13 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertThat(hentJobber(saksnummer)).hasSize(1)
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = true,
+                dialogmeldingMottatt = dto,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
+        )
     }
 
     @Test
@@ -236,7 +330,6 @@ class FiltrerDialogmeldingUtførerTest {
         val dto = lagDialogmeldingMottakDTO(
             conversationRef = randomUUID().toString(),
             parentRef = null,
-            foresporselSvar = null,
             personIdentPasient = personIdent,
         )
 
@@ -246,7 +339,7 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `skal ikke legge til jobb via conversationRef når samtaleRef tilhører annen person`() {
+    fun `skal ikke legge til jobb via conversationRef når den tilhører annen person`() {
         val saksnummer = randomSaksnummer()
         val samtaleRef = randomUUID()
         val personA = randomPersonIdent()
@@ -257,7 +350,6 @@ class FiltrerDialogmeldingUtførerTest {
         val dto = lagDialogmeldingMottakDTO(
             conversationRef = samtaleRef.toString(),
             personIdentPasient = personB,
-            foresporselSvar = null,
         )
 
         utfør(dto)
@@ -266,7 +358,7 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `skal ikke legge til jobb via parentRef når parentRef tilhører annen person`() {
+    fun `skal ikke legge til jobb via parentRef når den tilhører annen person`() {
         val saksnummer = randomSaksnummer()
         val dialogmeldingUuid = randomUUID()
         val personA = randomPersonIdent()
@@ -278,7 +370,6 @@ class FiltrerDialogmeldingUtførerTest {
             conversationRef = randomUUID().toString(),
             parentRef = dialogmeldingUuid.toString(),
             personIdentPasient = personB,
-            foresporselSvar = null,
         )
 
         utfør(dto)
@@ -303,7 +394,6 @@ class FiltrerDialogmeldingUtførerTest {
             conversationRef = conversationRef.toString(),
             parentRef = null,
             personIdentPasient = personB,
-            foresporselSvar = null,
         )
 
         utfør(dto)
@@ -327,7 +417,13 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertThat(hentJobber(saksnummer)).hasSize(1)
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = true,
+                dialogmeldingMottatt = dto,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
+        )
     }
 
     @Test
@@ -347,7 +443,13 @@ class FiltrerDialogmeldingUtførerTest {
 
         utfør(dto)
 
-        assertThat(hentJobber(saksnummer)).hasSize(1)
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = true,
+                dialogmeldingMottatt = dto,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
+        )
     }
 
     @Test
@@ -356,69 +458,19 @@ class FiltrerDialogmeldingUtførerTest {
             conversationRef = randomUUID().toString(),
             parentRef = randomUUID().toString(),
         )
+        val saksnummer = randomSaksnummer()
         behandlingsflytSakResponses[dto.personIdentPasient to dto.mottattTidspunkt.toLocalDate()] =
-            randomUUID().toString()
+            saksnummer
 
         utfør(dto)
 
-        assertThat(hentJobber(dto.personIdentPasient)).hasSize(1)
-    }
-
-    @Test
-    fun `kobler mottatt melding til riktig sak etter identbytte når parentRef matcher en sendt melding`() {
-        val gammelIdent = randomPersonIdent()
-        val nyIdent = randomPersonIdent()
-        val saksnummer = randomSaksnummer()
-
-        val sendtMelding = opprettDialogmelding(
-            personIdent = gammelIdent,
-            saksnummer = saksnummer,
+        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
+            FiltrertDialogmeldingMedSakstilknytning(
+                skalLagreMottattDialogmelding = false,
+                dialogmeldingMottatt = dto,
+                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
+            )
         )
-        val mottattMelding = lagDialogmeldingMottakDTO(
-            personIdentPasient = nyIdent,
-            conversationRef = null,
-            parentRef = sendtMelding.dialogmeldingUuid.toString(),
-        )
-
-        every {
-            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
-        } returns listOf(Ident(nyIdent), Ident(gammelIdent, aktivIdent = false))
-
-        utfør(mottattMelding)
-
-        assertThat(hentJobber(saksnummer)).hasSize(1)
-    }
-
-    @Test
-    fun `kobler mottatt melding til riktig sak etter identbytte når conversationRef matcher en tidligere mottatt melding`() {
-        val gammelIdent = randomPersonIdent()
-        val nyIdent = randomPersonIdent()
-        val saksnummer = randomSaksnummer()
-        val conversationRef = randomUUID().toString()
-
-        lagreMottattDialogmelding(
-            conversationRef = conversationRef,
-            personIdentPasient = gammelIdent,
-            saksnummer = saksnummer,
-        )
-        lagreMottattDialogmelding(
-            conversationRef = conversationRef,
-            personIdentPasient = gammelIdent,
-            saksnummer = saksnummer,
-        )
-        val mottattMelding = lagDialogmeldingMottakDTO(
-            personIdentPasient = nyIdent,
-            conversationRef = conversationRef,
-            parentRef = null,
-        )
-
-        every {
-            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
-        } returns listOf(Ident(nyIdent), Ident(gammelIdent, aktivIdent = false))
-
-        utfør(mottattMelding)
-
-        assertThat(hentJobber(saksnummer)).hasSize(1)
     }
 
     @Test
@@ -474,7 +526,7 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `motstridende saksnumre i sendt samtale feiler behandling`() {
+    fun `motstridende saksnumre i sendte dialogmeldinger for en samtale feiler behandling`() {
         val dto = lagDialogmeldingMottakDTO(parentRef = null)
         val historiskIdent = randomPersonIdent()
         val samtaleRef = UUID.fromString(dto.conversationRef)
@@ -502,7 +554,7 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `motstridende saksnumre i mottatt samtale stopper behandling`() {
+    fun `motstridende saksnumre i mottatte dialogmeldinger for en samtale stopper behandling`() {
         val dto = lagDialogmeldingMottakDTO(parentRef = null)
         val historiskIdent = randomPersonIdent()
         val samtaleRef = dto.conversationRef
@@ -542,14 +594,14 @@ class FiltrerDialogmeldingUtførerTest {
         }
     }
 
-    private fun hentJobber(innhold: String): List<String> =
+    private fun hentJobber(innhold: String): List<FiltrertDialogmeldingMedSakstilknytning> =
         dataSource.transaction { connection ->
             connection.queryList("SELECT PAYLOAD FROM JOBB WHERE TYPE = ? AND PAYLOAD LIKE ?") {
                 setParams {
                     setString(1, "dialogmelding.handler")
                     setString(2, "%$innhold%")
                 }
-                setRowMapper { it.getString("PAYLOAD") }
+                setRowMapper { DefaultJsonMapper.fromJson(it.getString("PAYLOAD")) }
             }
         }
 
