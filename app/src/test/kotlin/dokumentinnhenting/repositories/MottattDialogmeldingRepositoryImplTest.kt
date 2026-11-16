@@ -5,6 +5,7 @@ import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.Dialogmelding
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.DialogmeldingMottakDTO
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.ForesporselFraSaksbehandlerForesporselSvar
 import dokumentinnhenting.integrasjoner.syfo.dialogmeldingmottak.TemaKode
+import dokumentinnhenting.randomHprNummer
 import dokumentinnhenting.randomPersonIdent
 import dokumentinnhenting.randomSaksnummer
 import io.mockk.clearAllMocks
@@ -173,6 +174,9 @@ class MottattDialogmeldingRepositoryImplTest {
 
     @Test
     fun `hentForMsgId returnerer null for ukjent msgId`() {
+        dataSource.transaction { connection ->
+            MottattDialogmeldingRepositoryImpl(connection).lagre(lagMottattDialogmelding(), randomSaksnummer())
+        }
         val resultat = dataSource.transaction { connection ->
             MottattDialogmeldingRepositoryImpl(connection).hentForMsgId(UUID.randomUUID())
         }
@@ -182,8 +186,14 @@ class MottattDialogmeldingRepositoryImplTest {
 
     @Test
     fun `hentForSamtale returnerer tom liste når ingen meldinger finnes`() {
+        dataSource.transaction { connection ->
+            MottattDialogmeldingRepositoryImpl(connection).lagre(lagMottattDialogmelding(), randomSaksnummer())
+        }
         val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepositoryImpl(connection).hentForSamtale(UUID.randomUUID(), listOf(randomPersonIdent()))
+            MottattDialogmeldingRepositoryImpl(connection).hentForSamtale(
+                UUID.randomUUID(),
+                listOf(randomPersonIdent())
+            )
         }
 
         assertTrue(resultat.isEmpty())
@@ -285,7 +295,25 @@ class MottattDialogmeldingRepositoryImplTest {
     }
 
     @Test
+    fun `hentForSamtale returnerer tom liste når identlisten er tom`() {
+        val samtaleRef = UUID.randomUUID()
+        val melding = lagMottattDialogmelding(conversationRef = samtaleRef.toString())
+        dataSource.transaction { connection ->
+            MottattDialogmeldingRepositoryImpl(connection).lagre(melding, randomSaksnummer())
+        }
+
+        val resultat = dataSource.transaction { connection ->
+            MottattDialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, emptyList())
+        }
+
+        assertTrue(resultat.isEmpty())
+    }
+
+    @Test
     fun `hentForSaksnummer returnerer tom liste når ingen meldinger finnes`() {
+        dataSource.transaction { connection ->
+            MottattDialogmeldingRepositoryImpl(connection).lagre(lagMottattDialogmelding(), randomSaksnummer())
+        }
         val resultat = dataSource.transaction { connection ->
             MottattDialogmeldingRepositoryImpl(connection).hentForSaksnummer(randomSaksnummer())
         }
@@ -294,14 +322,10 @@ class MottattDialogmeldingRepositoryImplTest {
     }
 
     @Test
-    fun `hentForSaksnummer returnerer alle meldinger med matchende samtaleRef og personIdent`() {
-        val samtaleRef = UUID.randomUUID()
-        val personIdent = randomPersonIdent()
+    fun `hentForSaksnummer returnerer alle meldinger med matchende saksnummer`() {
         val saksnummer = randomSaksnummer()
-        val melding1 =
-            lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
-        val melding2 =
-            lagMottattDialogmelding(conversationRef = samtaleRef.toString(), personIdentPasient = personIdent)
+        val melding1 = lagMottattDialogmelding()
+        val melding2 = lagMottattDialogmelding()
 
         dataSource.transaction { connection ->
             val repo = MottattDialogmeldingRepositoryImpl(connection)
@@ -310,16 +334,10 @@ class MottattDialogmeldingRepositoryImplTest {
 
             // andre
             repo.lagre(
-                lagMottattDialogmelding(
-                    conversationRef = UUID.randomUUID().toString(),
-                    personIdentPasient = randomPersonIdent()
-                ), randomSaksnummer()
+                lagMottattDialogmelding(), randomSaksnummer()
             )
             repo.lagre(
-                lagMottattDialogmelding(
-                    conversationRef = UUID.randomUUID().toString(),
-                    personIdentPasient = randomPersonIdent()
-                ), randomSaksnummer()
+                lagMottattDialogmelding(), randomSaksnummer()
             )
         }
 
@@ -355,27 +373,12 @@ class MottattDialogmeldingRepositoryImplTest {
         assertThat(resultat.map { it.msgId }).containsExactly(UUID.fromString(melding.msgId))
     }
 
-    @Test
-    fun `hentForSamtale returnerer tom liste når identlisten er tom`() {
-        val samtaleRef = UUID.randomUUID()
-        val melding = lagMottattDialogmelding(conversationRef = samtaleRef.toString())
-        dataSource.transaction { connection ->
-            MottattDialogmeldingRepositoryImpl(connection).lagre(melding, randomSaksnummer())
-        }
-
-        val resultat = dataSource.transaction { connection ->
-            MottattDialogmeldingRepositoryImpl(connection).hentForSamtale(samtaleRef, emptyList())
-        }
-
-        assertTrue(resultat.isEmpty())
-    }
-
     private fun lagMottattDialogmelding(
         msgId: String = UUID.randomUUID().toString(),
         personIdentPasient: String = randomPersonIdent(),
         conversationRef: String? = UUID.randomUUID().toString(),
         parentRef: String? = UUID.randomUUID().toString(),
-        legehpr: String? = "12345678",
+        legehpr: String? = randomHprNummer(),
         tekstNotatInnhold: String? = "tekstNotatInnhold",
         dn: String? = "dn",
         navnHelsepersonell: String = "Dr. Testperson",
