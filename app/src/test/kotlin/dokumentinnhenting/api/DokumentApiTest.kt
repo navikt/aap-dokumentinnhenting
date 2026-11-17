@@ -11,6 +11,7 @@ import dokumentinnhenting.integrasjoner.saf.Variantformat
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -34,7 +35,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
+import java.nio.charset.Charset
 
 @WithFakes
 class DokumentApiTest {
@@ -50,63 +52,54 @@ class DokumentApiTest {
 
     @ParameterizedTest
     @CsvSource(
-        "application/pdf",
-        "application/xml",
-        "application/json",
-        "image/png",
-        "application/octet-stream",
+        "application/pdf, UTF-8",
+        "application/xml, UTF-8",
+        "text/html, UTF-8",
+        "text/plain, UTF-8",
+        "image/png, UTF-8",
+        "application/octet-stream, UTF-8",
+        "application/xml; charset=ISO-8859-1, ISO-8859-1",
     )
-    fun `returnerer dokumentet med innholdstypen fra SAF`(contentType: String) = testApplication {
+    fun `returnerer andre innholdstyper som tekst`(contentType: String, charset: String) = testApplication {
         initApp()
-        val dokument = byteArrayOf(0, 1, 2, 127, -1)
+        val dokument = "<dokument>Blåbær</dokument>"
         coEvery {
-            SafHentDokumentGateway.hentDokumentMedVariantFormat(
-                "journalpostid", "dokumentid", Variantformat.ORIGINAL, any()
+            SafHentDokumentGateway.hentDokument(
+                "journalpostid", "dokumentid", any(), Variantformat.ORIGINAL
             )
-        } returns SafDocumentResponse(dokument.inputStream(), contentType, "dokument")
+        } returns SafDocumentResponse(dokument.byteInputStream(Charset.forName(charset)), contentType, "dokument")
 
         val response = client.get("/api/dokumenter/journalpostid/dokumentid/ORIGINAL") {
             bearerAuth(bearerToken())
         }
 
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        assertThat(response.contentType()).isEqualTo(ContentType.parse(contentType))
-        assertThat(response.body<ByteArray>()).isEqualTo(dokument)
+        assertThat(response.contentType()?.withoutParameters()).isEqualTo(ContentType.Text.Plain)
+        assertThat(response.bodyAsText()).isEqualTo(dokument)
     }
 
     @ParameterizedTest
-    @EnumSource(Variantformat::class)
-    fun `sender valgt variantformat til SAF`(variantFormat: Variantformat) = testApplication {
+    @ValueSource(strings = ["application/json", "application/json; charset=UTF-8"])
+    fun `returnerer JSON uten dobbel serialisering`(contentType: String) = testApplication {
         initApp()
+        val json = """{"tekst":"Blåbær","antall":2}"""
         coEvery {
-            SafHentDokumentGateway.hentDokumentMedVariantFormat(
-                "journalpostid", "dokumentid", variantFormat, any()
+            SafHentDokumentGateway.hentDokument(
+                "journalpostid", "dokumentid", any(), Variantformat.ORIGINAL
             )
-        } returns SafDocumentResponse(byteArrayOf(1).inputStream(), "application/pdf", "dokument.pdf")
+        } returns SafDocumentResponse(json.byteInputStream(), contentType, "dokument.json")
 
-        val response = client.get("/api/dokumenter/journalpostid/dokumentid/$variantFormat") {
+        val response = client.get("/api/dokumenter/journalpostid/dokumentid/ORIGINAL") {
             bearerAuth(bearerToken())
         }
 
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        assertThat(response.contentType()?.withoutParameters()).isEqualTo(ContentType.Application.Json)
+        assertThat(response.bodyAsText()).isEqualTo(json)
         coVerify(exactly = 1) {
-            SafHentDokumentGateway.hentDokumentMedVariantFormat(
-                "journalpostid", "dokumentid", variantFormat, any()
+            SafHentDokumentGateway.hentDokument(
+                "journalpostid", "dokumentid", any(), Variantformat.ORIGINAL
             )
-        }
-    }
-
-    @Test
-    fun `avviser ukjent variantformat`() = testApplication {
-        initApp()
-
-        val response = client.get("/api/dokumenter/journalpostid/dokumentid/UKJENT") {
-            bearerAuth(bearerToken())
-        }
-
-        assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
-        coVerify(exactly = 0) {
-            SafHentDokumentGateway.hentDokumentMedVariantFormat(any(), any(), any(), any())
         }
     }
 

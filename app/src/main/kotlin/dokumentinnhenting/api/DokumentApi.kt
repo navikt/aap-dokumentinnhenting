@@ -27,11 +27,11 @@ import dokumentinnhenting.util.dokument.mapTilDokumentliste
 import dokumentinnhenting.util.dokument.tilBegrensetDto
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respondOutputStream
+import io.ktor.http.charset
+import io.ktor.server.response.respondText
 import java.io.InputStream
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostListeResponse
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostResponse
-import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.verdityper.dokument.JournalpostId
 
@@ -96,19 +96,19 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
             respond(HentDokumentResponse(response.dokument))
         }
 
-        route("/{journalpostId}/{dokumentinfoId}/{variantFormat}").get<HentDokumentMedVariantFormatParams, HentDokumentMedVariantFormatResponse> { req ->
-            val variantFormat = Variantformat.entries.firstOrNull { it.name == req.variantFormat }
-                ?: throw UgyldigForespørselException("Ugyldig variantformat: ${req.variantFormat}")
-            val response = SafHentDokumentGateway.hentDokumentMedVariantFormat(
-                req.journalpostId,
-                req.dokumentinfoId,
-                variantFormat,
-                token()
-            )
+        route("/{journalpostId}/{dokumentinfoId}/ORIGINAL").get<HentDokumentParams, HentDokumentMedVariantFormatResponse> { req ->
+            val response = SafHentDokumentGateway.hentDokument(req.journalpostId, req.dokumentinfoId, token(), Variantformat.ORIGINAL)
 
-            pipeline.call.respondOutputStream(contentType = ContentType.parse(response.contentType)) {
-                response.dokument.use { it.copyTo(this) }
+            val contentType = ContentType.parse(response.contentType)
+            val text = response.dokument.bufferedReader(contentType.charset() ?: Charsets.UTF_8).use {
+                it.readText()
             }
+            val responseContentType = if (contentType.match(ContentType.Application.Json)) {
+                contentType
+            } else {
+                ContentType.Text.Plain
+            }
+            pipeline.call.respondText(text, responseContentType)
         }
 
         route("/{journalpostId}/utsendingsinfo").get<JournalpostIdParams, HentUtsendingsinfoResponse> { params ->
@@ -152,12 +152,6 @@ data class HentDokumentoversiktFagsakParams(
 data class HentDokumentParams(
     @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
     @param:PathParam(description = "Dokumentinfo-ID") val dokumentinfoId: String,
-)
-
-data class HentDokumentMedVariantFormatParams(
-    @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
-    @param:PathParam(description = "Dokumentinfo-ID") val dokumentinfoId: String,
-    @param:PathParam(description = "Dokument-variant") val variantFormat: String,
 )
 
 data class HentDokumentoversiktJournalpostParams(@param:PathParam(description = "Journalpost-ID") val journalpostId: String)
