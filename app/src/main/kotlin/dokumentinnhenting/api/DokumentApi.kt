@@ -1,7 +1,16 @@
 package dokumentinnhenting.api
 
+import com.papsign.ktor.openapigen.OpenAPIGen
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.content.type.binary.BinaryResponse
+import com.papsign.ktor.openapigen.model.operation.MediaTypeModel
+import com.papsign.ktor.openapigen.model.operation.OperationModel
+import com.papsign.ktor.openapigen.model.operation.StatusResponseModel
+import com.papsign.ktor.openapigen.model.schema.DataType
+import com.papsign.ktor.openapigen.model.schema.SchemaModel
+import com.papsign.ktor.openapigen.modules.ModuleProvider
+import com.papsign.ktor.openapigen.modules.RouteOpenAPIModule
+import com.papsign.ktor.openapigen.modules.openapi.OperationModule
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
@@ -96,7 +105,7 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
             respond(HentDokumentResponse(response.dokument))
         }
 
-        route("/{journalpostId}/{dokumentinfoId}/ORIGINAL").get<HentDokumentParams, HentDokumentMedVariantFormatResponse> { req ->
+        route("/{journalpostId}/{dokumentinfoId}/ORIGINAL").get<HentDokumentParams, Unit>(OriginalDokumentResponse) { req ->
             val response = SafHentDokumentGateway.hentDokument(req.journalpostId, req.dokumentinfoId, token(), Variantformat.ORIGINAL)
 
             val contentType = ContentType.parse(response.contentType)
@@ -161,8 +170,17 @@ data class HentDokumentoversiktJournalpostListeParams(val journalpostIdListe: Li
 @BinaryResponse(contentTypes = ["application/pdf"])
 class HentDokumentResponse(val dokument: InputStream)
 
-@BinaryResponse(contentTypes = ["*/*"])
-class HentDokumentMedVariantFormatResponse(val dokument: InputStream)
+private object OriginalDokumentResponse : RouteOpenAPIModule, OperationModule {
+    override fun configure(apiGen: OpenAPIGen, provider: ModuleProvider<*>, operation: OperationModel) {
+        operation.responses["200"] = StatusResponseModel(
+            description = HttpStatusCode.OK.description,
+            content = mutableMapOf(
+                "application/json" to MediaTypeModel(SchemaModel.SchemaModelLitteral<Any>(nullable = true)),
+                "text/plain" to MediaTypeModel(SchemaModel.SchemaModelLitteral<String>(type = DataType.string)),
+            )
+        )
+    }
+}
 
 class HentUtsendingsinfoResponse(val utsendingsinfo: Utsendingsinfo?)
 

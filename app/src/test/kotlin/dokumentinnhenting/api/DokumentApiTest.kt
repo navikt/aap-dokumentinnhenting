@@ -27,6 +27,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
+import no.nav.aap.komponenter.json.DefaultJsonMapper.objectMapper
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.assertj.core.api.Assertions.assertThat
@@ -35,7 +36,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.ValueSource
 import java.nio.charset.Charset
 
 @WithFakes
@@ -79,10 +79,18 @@ class DokumentApiTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["application/json", "application/json; charset=UTF-8"])
-    fun `returnerer JSON uten dobbel serialisering`(contentType: String) = testApplication {
+    @CsvSource(
+        """application/json|{"tekst":"Blåbær","antall":2}""",
+        """application/json; charset=UTF-8|{"tekst":"Blåbær","antall":2}""",
+        "application/json|[]",
+        "application/json|\"tekst\"",
+        "application/json|42",
+        "application/json|true",
+        "application/json|null",
+        delimiter = '|',
+    )
+    fun `returnerer JSON uten dobbel serialisering`(contentType: String, json: String) = testApplication {
         initApp()
-        val json = """{"tekst":"Blåbær","antall":2}"""
         coEvery {
             SafHentDokumentGateway.hentDokument(
                 "journalpostid", "dokumentid", any(), Variantformat.ORIGINAL
@@ -91,6 +99,35 @@ class DokumentApiTest {
 
         val response = client.get("/api/dokumenter/journalpostid/dokumentid/ORIGINAL") {
             bearerAuth(bearerToken())
+        }
+
+        @Test
+        fun `beskriver vilkårlig JSON og ren tekst i OpenAPI`() = testApplication {
+            initApp()
+
+            val response = client.get("/openapi.json")
+
+            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+            val paths = objectMapper().readTree(response.bodyAsText()).path("paths")
+            val content = paths.path("/api/dokumenter/{journalpostId}/{dokumentinfoId}/ORIGINAL")
+                .path("get").path("responses").path("200").path("content")
+
+            assertThat(content.fieldNames().asSequence().toList())
+                .containsExactlyInAnyOrder("application/json", "text/plain")
+            val jsonSchema = content.path("application/json").path("schema")
+            assertThat(jsonSchema.isObject).isTrue()
+            assertThat(jsonSchema.has("type")).isFalse()
+            assertThat(jsonSchema.has("format")).isFalse()
+            assertThat(jsonSchema.path("nullable").asBoolean()).isTrue()
+            val textSchema = content.path("text/plain").path("schema")
+            assertThat(textSchema.path("type").asText()).isEqualTo("string")
+            assertThat(textSchema.has("format")).isFalse()
+
+            val pdfContent = paths.path("/api/dokumenter/{journalpostId}/{dokumentinfoId}")
+                .path("get").path("responses").path("200").path("content")
+            assertThat(pdfContent.fieldNames().asSequence().toList()).containsExactly("application/pdf")
+            assertThat(pdfContent.path("application/pdf").path("schema").path("format").asText())
+                .isEqualTo("binary")
         }
 
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
