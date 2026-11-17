@@ -145,7 +145,7 @@ data class HentDokumentoversiktBrukerRequest(
     val statuser: List<Journalstatus> = emptyList(),
 )
 
-class HentDokumentoversiktFagsakParams(
+data class HentDokumentoversiktFagsakParams(
     @param:PathParam(description = "Saksnummer") val saksnummer: String,
 )
 
