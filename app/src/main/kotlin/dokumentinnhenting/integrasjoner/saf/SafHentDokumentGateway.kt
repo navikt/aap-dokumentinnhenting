@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.saf
 
 import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
+import dokumentinnhenting.integrasjoner.saf.Variantformat as VariantFormat
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.bearerAuth
@@ -33,6 +34,37 @@ object SafHentDokumentGateway {
 
         val res = try {
             defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/ARKIV") {
+                bearerAuth(OboTokenProvider.getToken(scope, currentToken))
+            }
+        } catch (e: ClientRequestException) {
+            when (e.response.status) {
+                HttpStatusCode.Forbidden -> {
+                    throw IkkeTillattException("Mangler tilgang til å se dokument i SAF")
+                }
+                HttpStatusCode.NotFound -> {
+                    logger.warn("Fant ikke dokument i SAF. JournalpostId: $journalpostId, DokumentInfoId: $dokumentInfoId")
+                    throw VerdiIkkeFunnetException("Dokument ikke funnet i Joark.")
+                }
+                else -> throw e
+            }
+        }
+
+        val headers = res.headers
+        val contentType = res.contentType().toString()
+        val filnavn: String = extractFileNameFromHeaders(headers)
+            ?: throw IllegalStateException("Respons inneholdt ikke korrekte headere: $headers")
+
+        return SafDocumentResponse(dokument = res.body(), contentType = contentType, filnavn = filnavn)
+    }
+
+    suspend fun hentDokumentMedVariantFormat(
+        journalpostId: String,
+        dokumentInfoId: String,
+        variantFormat: VariantFormat,
+        currentToken: OidcToken,
+    ): SafDocumentResponse {
+        val res = try {
+            defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/${variantFormat}") {
                 bearerAuth(OboTokenProvider.getToken(scope, currentToken))
             }
         } catch (e: ClientRequestException) {

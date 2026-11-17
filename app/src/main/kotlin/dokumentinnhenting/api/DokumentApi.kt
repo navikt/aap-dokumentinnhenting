@@ -19,15 +19,19 @@ import dokumentinnhenting.integrasjoner.saf.SafGateway
 import dokumentinnhenting.integrasjoner.saf.SafHentDokumentGateway
 import dokumentinnhenting.integrasjoner.saf.Saksnummer
 import dokumentinnhenting.integrasjoner.saf.Utsendingsinfo
+import dokumentinnhenting.integrasjoner.saf.Variantformat
 import dokumentinnhenting.util.Tags
 import dokumentinnhenting.util.dokument.dokumentFilterDokumentSøk
 import dokumentinnhenting.util.dokument.mapKunVariantformatArkiv
 import dokumentinnhenting.util.dokument.mapTilDokumentliste
 import dokumentinnhenting.util.dokument.tilBegrensetDto
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respondOutputStream
 import java.io.InputStream
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostListeResponse
 import no.nav.aap.dokumentinnhenting.kontrakt.HentDokumentoversiktJournalpostResponse
+import no.nav.aap.komponenter.httpklient.exception.UgyldigForespørselException
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.verdityper.dokument.JournalpostId
 
@@ -92,6 +96,21 @@ fun NormalOpenAPIRoute.dokumentApi(dokarkivGateway: DokarkivGateway) {
             respond(HentDokumentResponse(response.dokument))
         }
 
+        route("/{journalpostId}/{dokumentinfoId}/{variantFormat}").get<HentDokumentMedVariantFormatParams, HentDokumentMedVariantFormatResponse> { req ->
+            val variantFormat = Variantformat.entries.firstOrNull { it.name == req.variantFormat }
+                ?: throw UgyldigForespørselException("Ugyldig variantformat: ${req.variantFormat}")
+            val response = SafHentDokumentGateway.hentDokumentMedVariantFormat(
+                req.journalpostId,
+                req.dokumentinfoId,
+                variantFormat,
+                token()
+            )
+
+            pipeline.call.respondOutputStream(contentType = ContentType.parse(response.contentType)) {
+                response.dokument.use { it.copyTo(this) }
+            }
+        }
+
         route("/{journalpostId}/utsendingsinfo").get<JournalpostIdParams, HentUtsendingsinfoResponse> { params ->
             val utsendingsinfo = SafGateway.hentUtsendingsinfo(JournalpostId(params.journalpostId), token())
 
@@ -135,12 +154,22 @@ data class HentDokumentParams(
     @param:PathParam(description = "Dokumentinfo-ID") val dokumentinfoId: String,
 )
 
+data class HentDokumentMedVariantFormatParams(
+    @param:PathParam(description = "Journalpost-ID") val journalpostId: String,
+    @param:PathParam(description = "Dokumentinfo-ID") val dokumentinfoId: String,
+    @param:PathParam(description = "Dokument-variant") val variantFormat: String,
+)
+
 data class HentDokumentoversiktJournalpostParams(@param:PathParam(description = "Journalpost-ID") val journalpostId: String)
 
 data class HentDokumentoversiktJournalpostListeParams(val journalpostIdListe: List<String>)
 
 @BinaryResponse(contentTypes = ["application/pdf"])
 class HentDokumentResponse(val dokument: InputStream)
+
+@BinaryResponse(contentTypes = ["*/*"])
+class HentDokumentMedVariantFormatResponse(val dokument: InputStream)
+
 class HentUtsendingsinfoResponse(val utsendingsinfo: Utsendingsinfo?)
 
 data class JournalpostIdParams(
