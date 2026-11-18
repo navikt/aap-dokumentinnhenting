@@ -2,6 +2,7 @@ package dokumentinnhenting.integrasjoner.saf
 
 import dokumentinnhenting.defaultHttpClient
 import dokumentinnhenting.integrasjoner.azure.OboTokenProvider
+import dokumentinnhenting.integrasjoner.saf.Variantformat as VariantFormat
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.bearerAuth
@@ -27,12 +28,13 @@ object SafHentDokumentGateway {
         journalpostId: String,
         dokumentInfoId: String,
         currentToken: OidcToken,
+        variantFormat: VariantFormat = VariantFormat.ARKIV,
     ): SafDocumentResponse {
         // Se https://confluence.adeo.no/display/BOA/Enum%3A+Variantformat
         // for gyldige verdier
 
         val res = try {
-            defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/ARKIV") {
+            defaultHttpClient.get("$safBaseUrl/hentdokument/${journalpostId}/${dokumentInfoId}/${variantFormat.name}") {
                 bearerAuth(OboTokenProvider.getToken(scope, currentToken))
             }
         } catch (e: ClientRequestException) {
