@@ -3,14 +3,7 @@ package dokumentinnhenting.util.motor.syfo.syfosteg
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.saf.SafRestGateway
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKode
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKodeverk
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
-import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
-import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.*
 import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepository
@@ -26,7 +19,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-behandler-dialogmelding-bestilling"
 const val KILDE = "AAP"
@@ -52,7 +45,7 @@ class BestillLegeerklæringSteg(
                 dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
                 brevGeneratorService = DialogmeldingBrevGeneratorService(
                     BrevGateway(),
-                    VarslingService(UnleashGatewayImpl)
+                    VarslingService()
                 ),
                 producer = kafkaProducer,
                 påminnelseRepository = PåminnelseRepositoryImpl(connection),

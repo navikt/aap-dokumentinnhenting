@@ -4,10 +4,8 @@ import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
-import dokumentinnhenting.unleash.UnleashGatewayImpl
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.plugins.*
+import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.slf4j.LoggerFactory
@@ -30,7 +28,7 @@ class JournalførBestillingSteg(
             return JournalførBestillingSteg(
                 DialogmeldingRepositoryImpl(connection),
                 BrevGateway(),
-                VarslingService(UnleashGatewayImpl)
+                VarslingService()
             )
         }
     }

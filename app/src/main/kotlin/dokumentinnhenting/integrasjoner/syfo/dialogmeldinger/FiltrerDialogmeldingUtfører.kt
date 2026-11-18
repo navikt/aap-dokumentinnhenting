@@ -10,9 +10,6 @@ import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
-import dokumentinnhenting.unleash.FeatureToggles
-import dokumentinnhenting.unleash.UnleashGateway
-import dokumentinnhenting.unleash.UnleashGatewayImpl
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.miljo.Miljø
@@ -28,7 +25,6 @@ class FiltrerDialogmeldingUtfører(
     private val dialogmeldingRepository: DialogmeldingRepository,
     private val mottattDialogmeldingRepository: MottattDialogmeldingRepository,
     private val personIdentGateway: PersonIdentGateway,
-    private val unleash: UnleashGateway,
 ) : JobbUtfører {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -68,15 +64,12 @@ class FiltrerDialogmeldingUtfører(
     }
 
     private fun finnSaksnummer(dialogmelding: DialogmeldingMottakDTO): String? {
-        val personIdenter = if (unleash.isEnabled(FeatureToggles.HaandterEndringAvIdentIDialogmelding)) {
+        val personIdenter =
             personIdentGateway.hentAlleIdenterForPerson(Ident(dialogmelding.personIdentPasient))
                 .map { it.identifikator }
                 .also {
                     check(it.isNotEmpty()) { "PDL returnerte ingen folkeregisteridenter" }
                 }
-        } else {
-            listOf(dialogmelding.personIdentPasient)
-        }
 
         return finnSaksnummerViaSendtDialogmelding(dialogmelding, personIdenter)
     }
@@ -147,7 +140,6 @@ class FiltrerDialogmeldingUtfører(
                 dialogmeldingRepository = DialogmeldingRepositoryImpl(connection),
                 mottattDialogmeldingRepository = MottattDialogmeldingRepositoryImpl(connection),
                 personIdentGateway = PdlIdentGateway(),
-                unleash = UnleashGatewayImpl
             )
         }
 
