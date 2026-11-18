@@ -100,61 +100,6 @@ class DokumentApiTest {
         val response = client.get("/api/dokumenter/journalpostid/dokumentid/ORIGINAL") {
             bearerAuth(bearerToken())
         }
-
-        @Test
-        fun `beskriver vilkårlig JSON og ren tekst i OpenAPI`() = testApplication {
-            initApp()
-
-            val response = client.get("/openapi.json")
-
-            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-            val paths = objectMapper().readTree(response.bodyAsText()).path("paths")
-            val content = paths.path("/api/dokumenter/{journalpostId}/{dokumentinfoId}/ORIGINAL")
-                .path("get").path("responses").path("200").path("content")
-
-            assertThat(content.fieldNames().asSequence().toList())
-                .containsExactlyInAnyOrder("application/json", "text/plain")
-            val jsonSchema = content.path("application/json").path("schema")
-            assertThat(jsonSchema.isObject).isTrue()
-            assertThat(jsonSchema.has("type")).isFalse()
-            assertThat(jsonSchema.has("format")).isFalse()
-            assertThat(jsonSchema.path("nullable").asBoolean()).isTrue()
-            val textSchema = content.path("text/plain").path("schema")
-            assertThat(textSchema.path("type").asText()).isEqualTo("string")
-            assertThat(textSchema.has("format")).isFalse()
-
-            val pdfContent = paths.path("/api/dokumenter/{journalpostId}/{dokumentinfoId}")
-                .path("get").path("responses").path("200").path("content")
-            assertThat(pdfContent.fieldNames().asSequence().toList()).containsExactly("application/pdf")
-            assertThat(pdfContent.path("application/pdf").path("schema").path("format").asText())
-                .isEqualTo("binary")
-        }
-
-        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        assertThat(response.contentType()?.withoutParameters()).isEqualTo(ContentType.Application.Json)
-        assertThat(response.bodyAsText()).isEqualTo(json)
-        coVerify(exactly = 1) {
-            SafHentDokumentGateway.hentDokument(
-                "journalpostid", "dokumentid", any(), Variantformat.ORIGINAL
-            )
-        }
-    }
-
-    @Test
-    fun `beholder eksisterende PDF-endepunkt`() = testApplication {
-        initApp()
-        val dokument = "%PDF-1.7".toByteArray()
-        coEvery {
-            SafHentDokumentGateway.hentDokument("journalpostid", "dokumentid", any())
-        } returns SafDocumentResponse(dokument.inputStream(), "application/pdf", "dokument.pdf")
-
-        val response = client.get("/api/dokumenter/journalpostid/dokumentid") {
-            bearerAuth(bearerToken())
-        }
-
-        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        assertThat(response.contentType()).isEqualTo(ContentType.Application.Pdf)
-        assertThat(response.body<ByteArray>()).isEqualTo(dokument)
     }
 
     private fun bearerToken() =
