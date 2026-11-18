@@ -98,7 +98,7 @@ class OppdaterLegeerklæringStatusUtfører(
                 DialogmeldingRepositoryImpl(connection),
                 FlytJobbRepository(connection),
                 BrevGateway(),
-                VarslingService(UnleashGatewayImpl)
+                VarslingService()
             )
         }
 

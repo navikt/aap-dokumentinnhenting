@@ -8,8 +8,6 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.integrasjoner.syfo.status.DialogmeldingStatusDto
 import dokumentinnhenting.integrasjoner.syfo.status.MeldingStatusType
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
-import dokumentinnhenting.unleash.FakeUnleashGateway
-import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører
 import dokumentinnhenting.util.motor.syfo.OppdaterLegeerklæringStatusUtfører.Companion.MOTTATT_TIDSPUNKT_PARAMETER
 import dokumentinnhenting.util.motor.syfo.SendVarslingsbrevUtfører
@@ -116,34 +114,18 @@ class DialogmeldingStatusHistorikkTest {
     }
 
     @Test
-    fun `OK på purring sender varslingsbrev når funksjonsbryteren er aktivert`() {
+    fun `OK på purring sender varslingsbrev`() {
         val bestilling = opprettBestilling(DokumentasjonType.PURRING, opprettBestilling())
         val brevGateway = mockk<BrevGateway>(relaxed = true)
 
         utfør(
             jobb(status(bestilling, MeldingStatusType.OK)),
             brevGateway,
-            FakeUnleashGateway(enabled = true)
         )
 
         coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
         assertThat(varslingsjobber(bestilling)).hasSize(1)
         assertThat(historikk(bestilling)).hasSize(1)
-    }
-
-    @Test
-    fun `OK på purring sender ikke varslingsbrev når funksjonsbryteren er deaktivert`() {
-        val bestilling = opprettBestilling(DokumentasjonType.PURRING, opprettBestilling())
-        val brevGateway = mockk<BrevGateway>(relaxed = true)
-
-        utfør(
-            jobb(status(bestilling, MeldingStatusType.OK)),
-            brevGateway,
-            FakeUnleashGateway(enabled = false)
-        )
-
-        coVerify(exactly = 1) { brevGateway.ekspederBestilling(any()) }
-        assertThat(varslingsjobber(bestilling)).isEmpty()
     }
 
     private fun opprettBestilling(
@@ -189,14 +171,13 @@ class DialogmeldingStatusHistorikkTest {
     private fun utfør(
         input: JobbInput,
         brevGateway: BrevGateway = mockk(),
-        unleash: UnleashGateway = FakeUnleashGateway(enabled = false)
     ) {
         dataSource.transaction { connection ->
             OppdaterLegeerklæringStatusUtfører(
                 DialogmeldingRepositoryImpl(connection),
                 FlytJobbRepository(connection),
                 brevGateway,
-                VarslingService(unleash)
+                VarslingService()
             ).utfør(input)
         }
     }
