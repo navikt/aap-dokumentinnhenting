@@ -8,7 +8,6 @@ import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.saf.SafDocumentResponse
 import dokumentinnhenting.integrasjoner.saf.SafHentDokumentGateway
 import dokumentinnhenting.integrasjoner.saf.Variantformat
-import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -23,11 +22,9 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import no.nav.aap.komponenter.json.DefaultJsonMapper.objectMapper
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.assertj.core.api.Assertions.assertThat
@@ -100,6 +97,10 @@ class DokumentApiTest {
         val response = client.get("/api/dokumenter/journalpostid/dokumentid/ORIGINAL") {
             bearerAuth(bearerToken())
         }
+
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        assertThat(response.contentType()?.withoutParameters()).isEqualTo(ContentType.Application.Json)
+        assertThat(response.bodyAsText()).isEqualTo(json)
     }
 
     private fun bearerToken() =
