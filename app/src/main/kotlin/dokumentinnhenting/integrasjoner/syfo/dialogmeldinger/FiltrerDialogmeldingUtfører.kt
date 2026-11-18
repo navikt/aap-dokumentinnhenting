@@ -18,7 +18,7 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.UUID
 
 class FiltrerDialogmeldingUtfører(
     private val flytJobbRepository: FlytJobbRepository,
