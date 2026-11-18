@@ -57,23 +57,6 @@ class MottattDialogmeldingRepositoryImpl(private val connection: DBConnection) :
         }
     }
 
-    override fun hentForSamtale(samtaleRef: UUID, personIdenter: List<String>): List<MottattDialogmeldingRecord> {
-        if (personIdenter.isEmpty()) return emptyList()
-
-        val query = """
-            SELECT * FROM MOTTATT_DIALOGMELDING
-            WHERE CONVERSATION_REF = ? AND PERSON_IDENT_PASIENT = ANY(?::text[])
-        """.trimIndent()
-
-        return connection.queryList(query) {
-            setParams {
-                setUUID(1, samtaleRef)
-                setArray(2, personIdenter)
-            }
-            setRowMapper(::mapMottattDialogmeldingRecord)
-        }
-    }
-
     override fun hentForSaksnummer(saksnummer: String): List<MottattDialogmeldingRecord> {
         val query = """
             SELECT * FROM MOTTATT_DIALOGMELDING

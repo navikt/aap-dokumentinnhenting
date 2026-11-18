@@ -145,44 +145,6 @@ class FiltrerDialogmeldingUtførerTest {
     }
 
     @Test
-    fun `kobler mottatt melding til riktig sak etter identbytte når conversationRef matcher en tidligere mottatt melding`() {
-        val gammelIdent = randomPersonIdent()
-        val nyIdent = randomPersonIdent()
-        val saksnummer = randomSaksnummer()
-        val conversationRef = randomUUID().toString()
-
-        lagreMottattDialogmelding(
-            conversationRef = conversationRef,
-            personIdentPasient = gammelIdent,
-            saksnummer = saksnummer,
-        )
-        lagreMottattDialogmelding(
-            conversationRef = conversationRef,
-            personIdentPasient = gammelIdent,
-            saksnummer = saksnummer,
-        )
-        val mottattMelding = lagDialogmeldingMottakDTO(
-            personIdentPasient = nyIdent,
-            conversationRef = conversationRef,
-            parentRef = null,
-        )
-
-        every {
-            personIdentGateway.hentAlleIdenterForPerson(Ident(nyIdent))
-        } returns listOf(Ident(nyIdent), Ident(gammelIdent, aktivIdent = false))
-
-        utfør(mottattMelding)
-
-        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
-            FiltrertDialogmeldingMedSakstilknytning(
-                skalLagreMottattDialogmelding = true,
-                dialogmeldingMottatt = mottattMelding,
-                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
-            )
-        )
-    }
-
-    @Test
     fun `skal ikke legge til jobb når ingen åpen sak finnes`() {
         val personIdent = randomPersonIdent()
         val annenPersonIdent = randomPersonIdent()
@@ -263,35 +225,6 @@ class FiltrerDialogmeldingUtførerTest {
         val dto = lagDialogmeldingMottakDTO(
             conversationRef = randomUUID().toString(),
             parentRef = dialogmeldingUuid.toString(),
-            personIdentPasient = personIdent,
-        )
-
-        utfør(dto)
-
-        assertThat(hentJobber(saksnummer)).singleElement().isEqualTo(
-            FiltrertDialogmeldingMedSakstilknytning(
-                skalLagreMottattDialogmelding = true,
-                dialogmeldingMottatt = dto,
-                sakOgBehandling = BehandlingsflytGateway.SakOgBehandling(saksnummer)
-            )
-        )
-    }
-
-    @Test
-    fun `skal legge til jobb basert på tidligere mottatt dialogmelding med samme conversationRef når conversationRef og parentRef ikke gir treff på sendte dialogmeldinger`() {
-        val saksnummer = randomSaksnummer()
-        val conversationRef = randomUUID()
-        val personIdent = randomPersonIdent()
-
-        lagreMottattDialogmelding(
-            conversationRef = conversationRef.toString(),
-            personIdentPasient = personIdent,
-            saksnummer,
-        )
-
-        val dto = lagDialogmeldingMottakDTO(
-            conversationRef = conversationRef.toString(),
-            parentRef = null,
             personIdentPasient = personIdent,
         )
 
@@ -520,34 +453,6 @@ class FiltrerDialogmeldingUtførerTest {
         val feil = assertThrows<IllegalStateException> { utfør(dto) }
         assertThat(feil.message)
             .isEqualTo("Fant flere saksnumre for samme samtale i sendte dialogmeldinger")
-
-        assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
-    }
-
-    @Test
-    fun `motstridende saksnumre i mottatte dialogmeldinger for en samtale stopper behandling`() {
-        val dto = lagDialogmeldingMottakDTO(parentRef = null)
-        val historiskIdent = randomPersonIdent()
-        val samtaleRef = dto.conversationRef
-        val førsteSaksnummer = randomSaksnummer()
-        val andreSaksnummer = randomSaksnummer()
-        lagreMottattDialogmelding(
-            conversationRef = samtaleRef,
-            personIdentPasient = dto.personIdentPasient,
-            saksnummer = førsteSaksnummer,
-        )
-        lagreMottattDialogmelding(
-            conversationRef = samtaleRef,
-            personIdentPasient = historiskIdent,
-            saksnummer = andreSaksnummer,
-        )
-        every {
-            personIdentGateway.hentAlleIdenterForPerson(any())
-        } returns listOf(Ident(dto.personIdentPasient), Ident(historiskIdent, aktivIdent = false))
-
-        val feil = assertThrows<IllegalStateException> { utfør(dto) }
-        assertThat(feil.message)
-            .isEqualTo("Fant flere saksnumre for samme samtale i mottatte dialogmeldinger")
 
         assertThat(hentJobber(dto.personIdentPasient)).isEmpty()
     }
