@@ -150,6 +150,7 @@ fun DialogmeldingFullRecord.tilFellesDialogmeldingDto(
 fun DialogmeldingFullRecord.tilPåminnelseRecord(
     antallDagerPåminnelseFrist: Long = PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA,
     påminnelseStatus: PåminnelseStatus? = null,
+    påminnelseId: Long? = null,
 ): PåminnelseRecord {
     require(antallDagerPåminnelseFrist > 0) {
         "Antallet dager frist på påminnelse må være et positivt tall!"
@@ -175,7 +176,7 @@ fun DialogmeldingFullRecord.tilPåminnelseRecord(
     val antattSisteForespørselSendt = if (statusTilLagring == PåminnelseStatus.SENDT) påminnelseFrist else null
 
     return PåminnelseRecord(
-        id = null,
+        id = påminnelseId,
         dialogmeldingId = this.dialogmeldingUuid,
         behandlingsReferanse = this.behandlingsReferanse,
         status = statusTilLagring,

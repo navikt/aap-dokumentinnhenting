@@ -6,6 +6,8 @@ import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
 import dokumentinnhenting.unleash.UnleashGateway
+import dokumentinnhenting.util.DialogmeldingUUID
+import dokumentinnhenting.util.NavIdent
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -28,7 +30,10 @@ fun NormalOpenAPIRoute.påminnelseApi(
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection, unleash)
                 service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
-                service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
+                service.sendPåminnelseForBestilling(
+                    DialogmeldingUUID(req.dialogmeldingUuid),
+                    req.brukerNavIdent?.let { NavIdent(it) }
+                )
             }
             respond(response)
         }
@@ -41,7 +46,10 @@ fun NormalOpenAPIRoute.påminnelseApi(
             dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection, unleash)
                 service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
-                service.avbrytPåminnelseForBestilling(req.dialogmeldingUuid)
+                service.avbrytPåminnelseForBestilling(
+                    DialogmeldingUUID(req.dialogmeldingUuid),
+                    req.brukerNavIdent?.let { NavIdent(it) }
+                )
             }
             respond(HttpStatusCode.NoContent)
         }
@@ -54,7 +62,10 @@ fun NormalOpenAPIRoute.påminnelseApi(
             dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection, unleash)
                 service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
-                service.gjenopptaPåminnelseForBestilling(req.dialogmeldingUuid)
+                service.gjenopptaPåminnelseForBestilling(
+                    DialogmeldingUUID(req.dialogmeldingUuid),
+                    req.brukerNavIdent?.let { NavIdent(it) }
+                )
             }
             respond(HttpStatusCode.NoContent)
         }

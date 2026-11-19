@@ -8,7 +8,7 @@ import java.util.UUID
 data class PåminnelseRequest(
     val dialogmeldingUuid: UUID,
     val behandlingsreferanse: UUID,
-    val brukerNavIdent: String
+    val brukerNavIdent: String?
 ) : Behandlingsreferanse {
     override fun behandlingsreferanseResolverInput(): String {
         return behandlingsreferanse.toString()

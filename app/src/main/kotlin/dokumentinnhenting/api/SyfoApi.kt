@@ -1,6 +1,5 @@
 package dokumentinnhenting.api
 
-import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
@@ -18,6 +17,8 @@ import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.unleash.UnleashGatewayImpl
 import dokumentinnhenting.util.BestillingCache
+import dokumentinnhenting.util.DialogmeldingUUID
+import dokumentinnhenting.util.NavIdent
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
@@ -86,7 +87,10 @@ fun NormalOpenAPIRoute.syfoApi(
         ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection, UnleashGatewayImpl)
-                service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
+                service.sendPåminnelseForBestilling(
+                    DialogmeldingUUID(req.dialogmeldingUuid),
+                    req.bestillerNavIdent?.let { NavIdent(it) }
+                )
             }
             respond(response)
         }
