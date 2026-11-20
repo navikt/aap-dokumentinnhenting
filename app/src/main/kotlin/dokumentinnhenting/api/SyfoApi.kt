@@ -1,6 +1,5 @@
 package dokumentinnhenting.api
 
-import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
@@ -18,6 +17,7 @@ import dokumentinnhenting.integrasjoner.syfo.oppslag.SyfoGateway
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.unleash.UnleashGatewayImpl
 import dokumentinnhenting.util.BestillingCache
+import dokumentinnhenting.util.DialogmeldingUUID
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
@@ -30,6 +30,7 @@ import no.nav.aap.dokumentinnhenting.kontrakt.ForhåndsvisDialogmeldingDto
 import no.nav.aap.dokumentinnhenting.kontrakt.LegeerklæringPurringDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.server.auth.token
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.Operasjon
@@ -86,7 +87,10 @@ fun NormalOpenAPIRoute.syfoApi(
         ) { _, req ->
             val response = dataSource.transaction { connection ->
                 val service = BehandlerDialogmeldingBestillingService.konstruer(connection, UnleashGatewayImpl)
-                service.sendPåminnelseForBestilling(req.dialogmeldingUuid)
+                service.sendPåminnelseForBestilling(
+                    DialogmeldingUUID(req.dialogmeldingUuid),
+                    req.bestillerNavIdent?.let(::Bruker)
+                )
             }
             respond(response)
         }

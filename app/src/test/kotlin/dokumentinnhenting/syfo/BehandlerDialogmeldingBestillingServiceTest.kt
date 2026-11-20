@@ -5,10 +5,12 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBe
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.unleash.FakeUnleashGateway
+import dokumentinnhenting.util.DialogmeldingUUID
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.komponenter.verdityper.Bruker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -50,7 +52,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
             assertThrows<RuntimeException> {
                 behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
-                    UUID.randomUUID()
+                    DialogmeldingUUID(UUID.randomUUID()),
+                    Bruker("a123456")
                 )
             }
         }
@@ -97,7 +100,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
             assertThrows<RuntimeException> {
                 behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
-                    dialogmeldingLegerklæringUuid
+                    DialogmeldingUUID(dialogmeldingLegerklæringUuid),
+                    Bruker("a123456")
                 )
             }
         }
@@ -115,7 +119,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
             val forespørsel = requireNotNull(repository.hentByDialogId(dialogmeldingUuid))
 
-            val påminnelseUuid = service.sendPåminnelseForBestilling(dialogmeldingUuid)
+            val påminnelseUuid = service.sendPåminnelseForBestilling(
+                DialogmeldingUUID(dialogmeldingUuid),
+                Bruker("a123456")
+            )
             val påminnelse = requireNotNull(repository.hentByDialogId(påminnelseUuid))
 
             assertThat(påminnelse.dialogmeldingUuid).isNotEqualTo(forespørsel.dialogmeldingUuid)
@@ -167,7 +174,8 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 FakeUnleashGateway(enabled = true)
             )
             behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
-                dialogmeldingUuid
+                DialogmeldingUUID(dialogmeldingUuid),
+                Bruker("a123456")
             )
 
             val påminnelserFørAutomatisk = dialogmeldingRepository.hentForSaksnummer(saksnummer)
@@ -205,7 +213,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 connection,
                 FakeUnleashGateway(enabled = true)
             )
-            behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(bestillingUuid)
+            behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(
+                DialogmeldingUUID(bestillingUuid),
+                Bruker("a123456")
+            )
         }
 
 
@@ -240,7 +251,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 connection,
                 FakeUnleashGateway(enabled = true)
             )
-            behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(bestillingUuid)
+            behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(
+                DialogmeldingUUID(bestillingUuid),
+                Bruker("a123456")
+            )
         }
 
         // setter purring gjenopptatt
@@ -249,7 +263,10 @@ class BehandlerDialogmeldingBestillingServiceTest {
                 connection,
                 FakeUnleashGateway(enabled = true)
             )
-            behandlerDialogmeldingBestillingService.gjenopptaPåminnelseForBestilling(bestillingUuid)
+            behandlerDialogmeldingBestillingService.gjenopptaPåminnelseForBestilling(
+                DialogmeldingUUID(bestillingUuid),
+                Bruker("a123456")
+            )
         }
 
 

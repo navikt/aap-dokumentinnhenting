@@ -4,6 +4,7 @@ import dokumentinnhenting.AzureTokenGen
 import dokumentinnhenting.WithFakes
 import dokumentinnhenting.api.tilDto
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.repositories.PåminnelseHistorikkRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.unleash.FakeUnleashGateway
 import dokumentinnhenting.util.motor.syfo.syfosteg.BestillLegeerklæringSteg
@@ -35,6 +36,7 @@ class BestillLegeerklæringStegTest {
     private val mockProducer = mockk<KafkaProducer<String, String>>(relaxed = true)
     private lateinit var dialogmeldingRepository: DialogmeldingRepositoryImpl
     private lateinit var påminnelseRepository: PåminnelseRepositoryImpl
+    private lateinit var påminnelseHistorikkRepository: PåminnelseHistorikkRepositoryImpl
 
     private lateinit var dataSource: TestDataSource
 
@@ -74,6 +76,7 @@ class BestillLegeerklæringStegTest {
                 FakeUnleashGateway(enabled = true)
             )
             påminnelseRepository = PåminnelseRepositoryImpl(connection)
+            påminnelseHistorikkRepository = PåminnelseHistorikkRepositoryImpl(connection)
 
             // Andre del, henter data i steg og sender til kafka
             dialogmeldingUuid = behandlerDialogmeldingBestillingService.bestillNyDialogmeldingForespørsel(dto)
@@ -86,6 +89,7 @@ class BestillLegeerklæringStegTest {
                     dialogmeldingBrevGeneratorService,
                     mockProducer,
                     påminnelseRepository,
+                    påminnelseHistorikkRepository,
                     FakeUnleashGateway(enabled = true)
                 )
             steg.utfør(SyfoSteg.Kontekst(dialogmeldingUuid))

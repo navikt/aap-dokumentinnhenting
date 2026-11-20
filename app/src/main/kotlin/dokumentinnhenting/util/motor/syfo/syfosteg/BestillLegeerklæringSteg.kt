@@ -3,9 +3,18 @@ package dokumentinnhenting.util.motor.syfo.syfosteg
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.saf.SafRestGateway
-import dokumentinnhenting.integrasjoner.syfo.bestilling.*
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKode
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKodeverk
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.repositories.PåminnelseHistorikkRepository
+import dokumentinnhenting.repositories.PåminnelseHistorikkRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepository
 import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
@@ -15,11 +24,12 @@ import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.verdityper.Bruker
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 const val SYFO_BESTILLING_DIALOGMELDING_TOPIC = "teamsykefravr.isdialogmelding-behandler-dialogmelding-bestilling"
 const val KILDE = "AAP"
@@ -29,6 +39,7 @@ class BestillLegeerklæringSteg(
     private val brevGeneratorService: DialogmeldingBrevGeneratorService,
     private val producer: KafkaProducer<String, String>,
     private val påminnelseRepository: PåminnelseRepository,
+    private val påminnelseHistorikkRepository: PåminnelseHistorikkRepository,
     private val unleash: UnleashGateway
 ) : SyfoSteg.Utfører {
     private val objectMapper = jacksonObjectMapper()
@@ -49,6 +60,7 @@ class BestillLegeerklæringSteg(
                 ),
                 producer = kafkaProducer,
                 påminnelseRepository = PåminnelseRepositoryImpl(connection),
+                påminnelseHistorikkRepository = PåminnelseHistorikkRepositoryImpl(connection),
                 unleash = UnleashGatewayImpl
             )
         }
@@ -84,24 +96,44 @@ class BestillLegeerklæringSteg(
         prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            if (funnetBestilling.dokumentasjonType == DokumentasjonType.PURRING) {
-                requireNotNull(funnetBestilling.tidligereBestillingReferanse) {
-                    "'tidligereBestillingReferanse' må være satt for purringer for å kunne oppdatere status på riktig purring/påminnelse!"
-                }
+            oppdaterPåminnelseTabell(funnetBestilling, dialogmeldingUuid)
 
-                påminnelseRepository.settPåminnelseSendt(
-                    funnetBestilling.tidligereBestillingReferanse,
-                    LocalDateTime.now()
-                )
-            } else {
-                påminnelseRepository.settOpprinneligForespørselSendt(
-                    dialogmeldingUuid,
-                    LocalDateTime.now()
-                )
+            if (unleash.isEnabled(FeatureToggles.LagrePaaminnelseHistorikk)) {
+                oppdaterPåminnelseHistorikkTabell(dialogmeldingUuid)
             }
         }
 
         return SyfoSteg.Resultat.FULLFØRT
+    }
+
+    private fun oppdaterPåminnelseTabell(bestilling: DialogmeldingFullRecord, dialogmeldingUuid: UUID) {
+        if (bestilling.dokumentasjonType == DokumentasjonType.PURRING) {
+            requireNotNull(bestilling.tidligereBestillingReferanse) {
+                "'tidligereBestillingReferanse' må være satt for purringer for å kunne oppdatere status på riktig purring/påminnelse!"
+            }
+
+            påminnelseRepository.settPåminnelseSendt(
+                bestilling.tidligereBestillingReferanse,
+                LocalDateTime.now()
+            )
+        } else {
+            påminnelseRepository.settOpprinneligForespørselSendt(
+                dialogmeldingUuid,
+                LocalDateTime.now()
+            )
+        }
+    }
+
+    private fun oppdaterPåminnelseHistorikkTabell(dialogmeldingUuid: UUID) {
+        val påminnelseRecord = påminnelseRepository.hentPåminnelseForDialogmeldingId(dialogmeldingUuid)
+            .firstOrNull()
+        if (påminnelseRecord != null) {
+            påminnelseHistorikkRepository.lagreNyPåminnelseStatusEndring(
+                påminnelseRecord,
+                opprettetAvIdent = Bruker("Kelvin"),
+                endringTidspunkt = LocalDateTime.now()
+            )
+        }
     }
 
     private fun mapToDialogMeldingBestilling(
