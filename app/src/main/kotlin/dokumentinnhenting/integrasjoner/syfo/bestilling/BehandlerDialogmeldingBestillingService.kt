@@ -48,7 +48,7 @@ class BehandlerDialogmeldingBestillingService(
         val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(dialogmeldingUuid.uuid)
             ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
 
-        if (!unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
+        if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             opprettEllerOppdaterPåminnelseEksisterendeForespørsel(
                 bestilling,
                 PåminnelseStatus.PLANLAGT,

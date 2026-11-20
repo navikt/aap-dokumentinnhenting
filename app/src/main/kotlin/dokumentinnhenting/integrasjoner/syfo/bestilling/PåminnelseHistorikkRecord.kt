@@ -8,5 +8,6 @@ data class PåminnelseHistorikkRecord(
     val påminnelseId: Long,
     val opprettetAv: Bruker,
     val påminnelseStatus: PåminnelseStatus,
+    val sisteForespørselSendt: LocalDateTime?,
     val hendelseTidspunkt: LocalDateTime
 )

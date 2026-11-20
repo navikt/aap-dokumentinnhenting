@@ -12,9 +12,9 @@ class PåminnelseHistorikkRepositoryImpl(private val connection: DBConnection) :
     override fun lagreNyPåminnelseStatusEndring(påminnelse: PåminnelseRecord, opprettetAvIdent: Bruker, endringTidspunkt: LocalDateTime) {
         val query = """
             INSERT INTO PAAMINNELSE_HISTORIKK(
-                PAAMINNELSE_ID, OPPRETTET_AV, PAAMINNELSE_STATUS, HENDELSE_TIDSPUNKT
+                PAAMINNELSE_ID, OPPRETTET_AV, PAAMINNELSE_STATUS, SISTE_FORESPORSEL_SENDT, HENDELSE_TIDSPUNKT
             )
-            SELECT ?, ?, ?, ?
+            SELECT ?, ?, ?, ?, ?
         """.trimIndent()
 
         connection.execute(query) {
@@ -22,7 +22,8 @@ class PåminnelseHistorikkRepositoryImpl(private val connection: DBConnection) :
                 setLong(1, påminnelse.id)
                 setString(2, opprettetAvIdent.ident)
                 setString(3, påminnelse.status.name)
-                setLocalDateTime(4, endringTidspunkt)
+                setLocalDateTime(4, påminnelse.sisteForespørselSendt)
+                setLocalDateTime(5, endringTidspunkt)
             }
         }
     }
@@ -48,6 +49,7 @@ class PåminnelseHistorikkRepositoryImpl(private val connection: DBConnection) :
             påminnelseId = row.getLong("PAAMINNELSE_ID"),
             opprettetAv = Bruker(row.getString("OPPRETTET_AV")),
             påminnelseStatus = row.getEnum("PAAMINNELSE_STATUS"),
+            sisteForespørselSendt = row.getLocalDateTimeOrNull("SISTE_FORESPORSEL_SENDT"),
             hendelseTidspunkt = row.getLocalDateTime("HENDELSE_TIDSPUNKT")
         )
 }
