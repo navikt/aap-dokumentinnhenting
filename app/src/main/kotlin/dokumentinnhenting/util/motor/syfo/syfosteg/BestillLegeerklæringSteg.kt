@@ -97,7 +97,10 @@ class BestillLegeerklæringSteg(
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             oppdaterPåminnelseTabell(funnetBestilling, dialogmeldingUuid)
-            oppdaterPåminnelseHistorikkTabell(dialogmeldingUuid)
+
+            if (unleash.isEnabled(FeatureToggles.LagrePaaminnelseHistorikk)) {
+                oppdaterPåminnelseHistorikkTabell(dialogmeldingUuid)
+            }
         }
 
         return SyfoSteg.Resultat.FULLFØRT
