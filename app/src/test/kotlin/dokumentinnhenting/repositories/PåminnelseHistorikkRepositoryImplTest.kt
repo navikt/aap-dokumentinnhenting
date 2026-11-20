@@ -1,14 +1,13 @@
 package dokumentinnhenting.repositories
 
-import dokumentinnhenting.WithFakes
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.PåminnelseStatus
 import dokumentinnhenting.randomNavIdent
-import dokumentinnhenting.util.NavIdent
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.komponenter.verdityper.Bruker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -20,7 +19,6 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-@WithFakes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PåminnelseHistorikkRepositoryImplTest {
 
@@ -38,7 +36,7 @@ class PåminnelseHistorikkRepositoryImplTest {
 
     @Test
     fun `lagreNyPåminnelseTilstand lagrer tilstand`() {
-        val opprettetAv = NavIdent("Behandler NAV")
+        val opprettetAv = Bruker("Behandler NAV")
         val endringTidspunkt = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS)
 
         val dialogmelding = lagDialogmeldingRecord()
@@ -65,7 +63,7 @@ class PåminnelseHistorikkRepositoryImplTest {
         val lagretPåminnelseRecord = dataSource.transaction { connection ->
             val repository = PåminnelseHistorikkRepositoryImpl(connection)
 
-            repository.hentPåminnelsePåPåminnelseId(lagretPåminnelse.id!!).firstOrNull()
+            repository.hentPåminnelserPåPåminnelseId(lagretPåminnelse.id!!).firstOrNull()
         }
 
         assertThat(lagretPåminnelseRecord).isNotNull

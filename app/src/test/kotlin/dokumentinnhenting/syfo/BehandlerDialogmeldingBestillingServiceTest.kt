@@ -6,11 +6,11 @@ import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.unleash.FakeUnleashGateway
 import dokumentinnhenting.util.DialogmeldingUUID
-import dokumentinnhenting.util.NavIdent
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.komponenter.verdityper.Bruker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -53,7 +53,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             assertThrows<RuntimeException> {
                 behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
                     DialogmeldingUUID(UUID.randomUUID()),
-                    NavIdent("a123456")
+                    Bruker("a123456")
                 )
             }
         }
@@ -101,7 +101,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             assertThrows<RuntimeException> {
                 behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
                     DialogmeldingUUID(dialogmeldingLegerklæringUuid),
-                    NavIdent("a123456")
+                    Bruker("a123456")
                 )
             }
         }
@@ -121,7 +121,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
 
             val påminnelseUuid = service.sendPåminnelseForBestilling(
                 DialogmeldingUUID(dialogmeldingUuid),
-                NavIdent("a123456")
+                Bruker("a123456")
             )
             val påminnelse = requireNotNull(repository.hentByDialogId(påminnelseUuid))
 
@@ -175,7 +175,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
             behandlerDialogmeldingBestillingService.sendPåminnelseForBestilling(
                 DialogmeldingUUID(dialogmeldingUuid),
-                NavIdent("a123456")
+                Bruker("a123456")
             )
 
             val påminnelserFørAutomatisk = dialogmeldingRepository.hentForSaksnummer(saksnummer)
@@ -215,7 +215,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
             behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(
                 DialogmeldingUUID(bestillingUuid),
-                NavIdent("a123456")
+                Bruker("a123456")
             )
         }
 
@@ -253,7 +253,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
             behandlerDialogmeldingBestillingService.avbrytPåminnelseForBestilling(
                 DialogmeldingUUID(bestillingUuid),
-                NavIdent("a123456")
+                Bruker("a123456")
             )
         }
 
@@ -265,7 +265,7 @@ class BehandlerDialogmeldingBestillingServiceTest {
             )
             behandlerDialogmeldingBestillingService.gjenopptaPåminnelseForBestilling(
                 DialogmeldingUUID(bestillingUuid),
-                NavIdent("a123456")
+                Bruker("a123456")
             )
         }
 

@@ -9,12 +9,12 @@ import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
 import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.DialogmeldingUUID
-import dokumentinnhenting.util.NavIdent
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.slf4j.LoggerFactory
@@ -44,7 +44,7 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    fun sendPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: NavIdent?): UUID {
+    fun sendPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: Bruker?): UUID {
         val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(dialogmeldingUuid.uuid)
             ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
 
@@ -82,7 +82,7 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    fun avbrytPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: NavIdent?) {
+    fun avbrytPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: Bruker?) {
         val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid.uuid)
             ?: throw IllegalArgumentException("Fant ikke bestilling med dialogmeldingUuid $dialogmeldingUuid")
 
@@ -106,7 +106,7 @@ class BehandlerDialogmeldingBestillingService(
     }
 
 
-    fun gjenopptaPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: NavIdent?) {
+    fun gjenopptaPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: Bruker?) {
         val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid.uuid)
             ?: throw IllegalArgumentException("Fant ikke bestilling med dialogmeldingUuid $dialogmeldingUuid")
 
@@ -222,7 +222,7 @@ class BehandlerDialogmeldingBestillingService(
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             opprettEllerOppdaterPåminnelseRecord(
                 dialogMeldingRecord,
-                NavIdent(dto.bestillerNavIdent)
+                Bruker(dto.bestillerNavIdent)
             )
         }
 
@@ -247,7 +247,7 @@ class BehandlerDialogmeldingBestillingService(
         return dialogmeldingRepository.opprettDialogmelding(melding)
     }
 
-    private fun opprettEllerOppdaterPåminnelseRecord(dialogmelding: DialogmeldingRecord, bestillerNavIdent: NavIdent?) {
+    private fun opprettEllerOppdaterPåminnelseRecord(dialogmelding: DialogmeldingRecord, bestillerNavIdent: Bruker?) {
         log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer}")
 
         val nyPåminnelseRecord = dialogmelding.tilPåminnelseRecord(
@@ -265,7 +265,7 @@ class BehandlerDialogmeldingBestillingService(
     private fun opprettEllerOppdaterPåminnelseEksisterendeForespørsel(
         dialogmelding: DialogmeldingFullRecord,
         status: PåminnelseStatus,
-        bestillerNavIdent: NavIdent?
+        bestillerNavIdent: Bruker?
     ) {
         log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer}")
 
@@ -288,7 +288,7 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    private fun opprettPåminnelseStatusEndringHistorikk(påminnelse: PåminnelseRecord, bestillerNavIdent: NavIdent) {
+    private fun opprettPåminnelseStatusEndringHistorikk(påminnelse: PåminnelseRecord, bestillerNavIdent: Bruker) {
         log.info("Oppretter historikkobjekt i repository med status ${påminnelse.status} for dialogmelding med id ${påminnelse.dialogmeldingId}")
         påminnelseHistorikkRepository.lagreNyPåminnelseStatusEndring(
             påminnelse,

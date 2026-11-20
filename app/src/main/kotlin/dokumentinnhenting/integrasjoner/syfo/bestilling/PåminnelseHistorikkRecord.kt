@@ -1,12 +1,12 @@
 package dokumentinnhenting.integrasjoner.syfo.bestilling
 
-import dokumentinnhenting.util.NavIdent
+import no.nav.aap.komponenter.verdityper.Bruker
 import java.time.LocalDateTime
 
 data class PåminnelseHistorikkRecord(
     val id: Long?,
     val påminnelseId: Long,
-    val opprettetAv: NavIdent,
+    val opprettetAv: Bruker,
     val påminnelseStatus: PåminnelseStatus,
     val hendelseTidspunkt: LocalDateTime
 )
