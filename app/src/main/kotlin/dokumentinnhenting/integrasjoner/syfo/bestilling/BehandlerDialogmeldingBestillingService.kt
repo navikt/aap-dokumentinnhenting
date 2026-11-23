@@ -277,10 +277,9 @@ class BehandlerDialogmeldingBestillingService(
             )
         )
 
-        val påminnelseMedId = dialogmelding.tilPåminnelseRecord(
-            påminnelseStatus = status,
-            påminnelseId = påminnelseId
-        )
+        val påminnelseMedId = påminnelseRepository
+            .hentPåminnelseForDialogmeldingId(dialogmelding.dialogmeldingUuid)
+            .single { it.id == påminnelseId }
 
         if (unleash.isEnabled(FeatureToggles.LagrePaaminnelseHistorikk) && bestillerNavIdent != null) {
             opprettPåminnelseStatusEndringHistorikk(
