@@ -23,7 +23,7 @@ interface DialogmeldingRepository : Repository {
 
     fun oppdaterFlytStatus(dialogmeldingUuid: UUID, flytStatus: ProsesseringSyfoStatus)
 
-    fun hentBestillingEldreEnn14Dager(dialogmeldingUuid: UUID): DialogmeldingFullRecord?
+    fun hentBestillingEldreEnnAntallDager(dialogmeldingUuid: UUID, antallDager: Long): DialogmeldingFullRecord?
 
     fun hentBestillingerForDokumentasjonstyper(
         behandlingReferanse: BehandlingReferanse,

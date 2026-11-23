@@ -8,6 +8,7 @@ import com.papsign.ktor.openapigen.route.tag
 import dokumentinnhenting.Azp
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.BehandlerDialogmeldingBestillingService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DIALOGMELDING_BREVBYGGER_HENT_BESTILLINGER_ELDRE_ENN
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
 import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
 import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
@@ -145,7 +146,12 @@ fun NormalOpenAPIRoute.syfoApi(
             val response = dataSource.transaction { connection ->
                 val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
                 val tidligereBestilling =
-                    req.tidligereBestillingReferanse?.let { dialogmeldingRepository.hentBestillingEldreEnn14Dager(it) }
+                    req.tidligereBestillingReferanse?.let {
+                        dialogmeldingRepository.hentBestillingEldreEnnAntallDager(
+                            it,
+                            DIALOGMELDING_BREVBYGGER_HENT_BESTILLINGER_ELDRE_ENN
+                        )
+                    }
 
                 val dialogmelding = runBlocking {
                     brevGeneratorService.genererMedSignatur(

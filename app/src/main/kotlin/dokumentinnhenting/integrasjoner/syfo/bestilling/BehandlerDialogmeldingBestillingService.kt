@@ -45,8 +45,10 @@ class BehandlerDialogmeldingBestillingService(
     }
 
     fun sendPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: Bruker?): UUID {
-        val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(dialogmeldingUuid.uuid)
-            ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
+        val bestilling = dialogmeldingRepository.hentBestillingEldreEnnAntallDager(
+            dialogmeldingUuid.uuid,
+            DIALOGMELDING_PÅMINNELSE_HENT_BESTILLINGER_ELDRE_ENN
+        ) ?: throw RuntimeException("Fant ikke bestilling eldre enn 1 dag hvis bruk til påminnelse i test, eller 14 dager hvis prod eller til bruk i brevpreview.")
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             opprettEllerOppdaterPåminnelseEksisterendeForespørsel(

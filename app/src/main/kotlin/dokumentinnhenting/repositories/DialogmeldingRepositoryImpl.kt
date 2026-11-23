@@ -117,15 +117,20 @@ class DialogmeldingRepositoryImpl(private val connection: DBConnection) : Dialog
         }
     }
 
-    override fun hentBestillingEldreEnn14Dager(dialogmeldingUuid: UUID): DialogmeldingFullRecord? {
+    override fun hentBestillingEldreEnnAntallDager(dialogmeldingUuid: UUID, antallDager: Long): DialogmeldingFullRecord? {
+        require(antallDager >= 0) {
+            "Antall dager må være et positivt tall i hentBestillingEldreEnnXDager"
+        }
+
         val query = """
             SELECT * FROM DIALOGMELDING
-            WHERE OPPRETTET_TID < NOW() - INTERVAL '14 days' AND DIALOGMELDING_UUID = ?
+            WHERE OPPRETTET_TID < NOW() - (? * INTERVAL '1 DAY') AND DIALOGMELDING_UUID = ?
         """.trimIndent()
 
         return connection.queryFirstOrNull(query) {
             setParams {
-                setUUID(1, dialogmeldingUuid)
+                setLong(1, antallDager)
+                setUUID(2, dialogmeldingUuid)
             }
             setRowMapper(::mapDialogmeldingFullRecord)
         }
