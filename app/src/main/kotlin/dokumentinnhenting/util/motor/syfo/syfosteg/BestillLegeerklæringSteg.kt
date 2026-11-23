@@ -99,7 +99,7 @@ class BestillLegeerklæringSteg(
             oppdaterPåminnelseTabell(funnetBestilling, dialogmeldingUuid)
 
             if (unleash.isEnabled(FeatureToggles.LagrePaaminnelseHistorikk)) {
-                oppdaterPåminnelseHistorikkTabell(dialogmeldingUuid)
+                oppdaterPåminnelseHistorikkTabell(funnetBestilling, dialogmeldingUuid)
             }
         }
 
@@ -124,8 +124,17 @@ class BestillLegeerklæringSteg(
         }
     }
 
-    private fun oppdaterPåminnelseHistorikkTabell(dialogmeldingUuid: UUID) {
-        val påminnelseRecord = påminnelseRepository.hentPåminnelseForDialogmeldingId(dialogmeldingUuid)
+    private fun oppdaterPåminnelseHistorikkTabell(bestilling: DialogmeldingFullRecord, dialogmeldingUuid: UUID) {
+        val dialogmeldingUuidHistorikk = if (bestilling.dokumentasjonType == DokumentasjonType.PURRING) {
+            requireNotNull(bestilling.tidligereBestillingReferanse) {
+                "'tidligereBestillingReferanse' må være satt for purringer for å kunne oppdatere historikk på riktig purring/påminnelse!"
+            }
+            bestilling.tidligereBestillingReferanse
+        } else {
+            dialogmeldingUuid
+        }
+
+        val påminnelseRecord = påminnelseRepository.hentPåminnelseForDialogmeldingId(dialogmeldingUuidHistorikk)
             .firstOrNull()
         if (påminnelseRecord != null) {
             påminnelseHistorikkRepository.lagreNyPåminnelseStatusEndring(
