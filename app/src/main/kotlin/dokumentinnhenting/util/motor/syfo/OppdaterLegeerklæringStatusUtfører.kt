@@ -9,6 +9,8 @@ import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.unleash.UnleashGatewayImpl
+import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.util.metrics.recordDialogmeldingStatusEndret
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
@@ -88,6 +90,7 @@ class OppdaterLegeerklæringStatusUtfører(
                 jobbRepository.leggTil(jobb)
             }
         }
+        prometheus.recordDialogmeldingStatusEndret(record.status)
     }
 
     companion object : Jobb {

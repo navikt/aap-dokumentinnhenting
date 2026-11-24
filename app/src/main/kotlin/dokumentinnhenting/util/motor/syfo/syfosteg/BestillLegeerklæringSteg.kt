@@ -20,8 +20,8 @@ import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
 import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.unleash.UnleashGatewayImpl
-import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.util.metrics.recordDialogmeldingSendt
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.verdityper.Bruker
@@ -93,7 +93,7 @@ class BestillLegeerklæringSteg(
             log.error("Feilet ved sending til topic $SYFO_BESTILLING_DIALOGMELDING_TOPIC", e)
             return SyfoSteg.Resultat.STOPP
         }
-        prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
+        prometheus.recordDialogmeldingSendt(funnetBestilling.dokumentasjonType)
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             oppdaterPåminnelseTabell(funnetBestilling, dialogmeldingUuid)

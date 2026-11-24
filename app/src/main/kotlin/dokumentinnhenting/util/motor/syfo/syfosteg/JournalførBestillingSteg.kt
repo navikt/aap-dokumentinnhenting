@@ -4,6 +4,9 @@ import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.util.metrics.Journalforingsutfall
+import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.util.metrics.recordJournalforingsforsok
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -58,19 +61,27 @@ class JournalførBestillingSteg(
                 requireNotNull(journalpostResponse.journalpostId),
                 dokumentId
             )
+            prometheus.recordJournalforingsforsok(
+                if (journalpostResponse.journalpostFerdigstilt) Journalforingsutfall.VELLYKKET
+                else Journalforingsutfall.IKKE_FERDIGSTILT
+            )
         } catch (e: HttpRequestTimeoutException) {
             log.warn("Timeout ved journalføring av dokument $dialogmeldingUuid", e)
+            prometheus.recordJournalforingsforsok(Journalforingsutfall.TIMEOUT)
             return SyfoSteg.Resultat.STOPP
         } catch (e: ClientRequestException) {
             if (e.response.status == HttpStatusCode.RequestTimeout) {
                 log.warn("Timeout ved journalføring av dokument $dialogmeldingUuid", e)
+                prometheus.recordJournalforingsforsok(Journalforingsutfall.TIMEOUT)
                 return SyfoSteg.Resultat.STOPP
             } else {
                 log.error("Uhåndtert feil ved journalføring av dokument $dialogmeldingUuid", e)
+                prometheus.recordJournalforingsforsok(Journalforingsutfall.FEIL)
                 return SyfoSteg.Resultat.STOPP
             }
         } catch (e: Exception) {
             log.error("Feilet ved journalføring av dokument $dialogmeldingUuid", e)
+            prometheus.recordJournalforingsforsok(Journalforingsutfall.FEIL)
             return SyfoSteg.Resultat.STOPP
         }
 

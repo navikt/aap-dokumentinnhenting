@@ -10,6 +10,9 @@ import dokumentinnhenting.repositories.DialogmeldingRepository
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.MottattDialogmeldingRepository
 import dokumentinnhenting.repositories.MottattDialogmeldingRepositoryImpl
+import dokumentinnhenting.util.metrics.DialogmeldingFiltreringsutfall
+import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.util.metrics.recordDialogmeldingFiltrert
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.miljo.Miljø
@@ -36,13 +39,15 @@ class FiltrerDialogmeldingUtfører(
         if (Miljø.erDev() && payload.journalpostId == "0") {
             // Skal kun skje i testmiljøet. Vil være "0" i tilfeller hvor Syfo ikke klarer å opprette journalpost.
             log.warn("Håndterer ikke dialogmelding fordi journalpostId er 0.")
+            prometheus.recordDialogmeldingFiltrert(DialogmeldingFiltreringsutfall.UGYLDIG_JOURNALPOST)
             return
         }
 
-        val saksnummer = finnSaksnummer(payload)
+        val sakstilknytning = finnSaksnummer(payload)
 
-        if (saksnummer != null) {
-            opprettJobb(payload, saksnummer, skalLagreMottatDialogmelding = true)
+        if (sakstilknytning != null) {
+            opprettJobb(payload, sakstilknytning.saksnummer, skalLagreMottatDialogmelding = true)
+            prometheus.recordDialogmeldingFiltrert(sakstilknytning.utfall)
             return
         }
 
@@ -55,15 +60,21 @@ class FiltrerDialogmeldingUtfører(
 
             if (saksInfo == null) {
                 log.info("Fant ikke åpen sak for personident på dialogmelding med journalpostId ${payload.journalpostId}")
+                prometheus.recordDialogmeldingFiltrert(DialogmeldingFiltreringsutfall.INGEN_SAK)
                 return
             } else {
                 log.info("Fant åpen sak for dialogmelding. msgId: ${payload.msgId}, conversationRef: ${payload.conversationRef}, parentRef: ${payload.parentRef}, journalpostId: ${payload.journalpostId}")
                 opprettJobb(payload, saksInfo.saksnummer, skalLagreMottatDialogmelding = false)
+                prometheus.recordDialogmeldingFiltrert(DialogmeldingFiltreringsutfall.BEHANDLINGSFLYT)
             }
+        } else {
+            prometheus.recordDialogmeldingFiltrert(DialogmeldingFiltreringsutfall.MANGLER_FORESPORSELSSVAR)
         }
     }
 
-    private fun finnSaksnummer(dialogmelding: DialogmeldingMottakDTO): String? {
+    private data class Sakstilknytning(val saksnummer: String, val utfall: DialogmeldingFiltreringsutfall)
+
+    private fun finnSaksnummer(dialogmelding: DialogmeldingMottakDTO): Sakstilknytning? {
         val personIdenter =
             personIdentGateway.hentAlleIdenterForPerson(Ident(dialogmelding.personIdentPasient))
                 .map { it.identifikator }
@@ -76,7 +87,7 @@ class FiltrerDialogmeldingUtfører(
 
     private fun finnSaksnummerViaSendtDialogmelding(
         mottattDialogmelding: DialogmeldingMottakDTO, personIdenter: List<String>
-    ): String? {
+    ): Sakstilknytning? {
         return mottattDialogmelding.conversationRef?.toUUIDOrNull()
             ?.let {
                 dialogmeldingRepository.hentForSamtale(
@@ -94,6 +105,7 @@ class FiltrerDialogmeldingUtfører(
             }
             .singleOrNull()
             ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på conversationRef. msgId: ${mottattDialogmelding.msgId}") }
+            ?.let { Sakstilknytning(it, DialogmeldingFiltreringsutfall.SAMTALE) }
             ?: mottattDialogmelding.parentRef?.toUUIDOrNull()
                 ?.let {
                     dialogmeldingRepository.hentForParent(
@@ -103,6 +115,7 @@ class FiltrerDialogmeldingUtfører(
                 }
                 ?.saksnummer
                 ?.also { log.info("Fant kobling fra mottatt til sendt dialogmelding basert på parentRef. msgId: ${mottattDialogmelding.msgId}") }
+                ?.let { Sakstilknytning(it, DialogmeldingFiltreringsutfall.PARENT) }
     }
 
     private fun opprettJobb(

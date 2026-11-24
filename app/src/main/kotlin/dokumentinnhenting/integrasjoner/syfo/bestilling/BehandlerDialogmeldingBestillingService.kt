@@ -9,6 +9,9 @@ import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
 import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.DialogmeldingUUID
+import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.util.metrics.recordAutomatiskPurringEndret
+import dokumentinnhenting.util.metrics.recordPurringBestilt
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
@@ -58,7 +61,7 @@ class BehandlerDialogmeldingBestillingService(
             )
         }
 
-        return bestillDialogmeldingPåminnelse(
+        val påminnelseUuid = bestillDialogmeldingPåminnelse(
             dto = BehandlingsflytToDokumentInnhentingBestillingDto(
                 bestillerNavIdent = bestilling.bestillerNavIdent,
                 behandlerRef = bestilling.behandlerRef,
@@ -74,6 +77,8 @@ class BehandlerDialogmeldingBestillingService(
             ),
             samtaleRef = bestilling.samtaleRef
         )
+        prometheus.recordPurringBestilt(automatisk = false)
+        return påminnelseUuid
     }
 
     fun validerBehandlingsreferanseForBestilling(dialogmeldingUuid: UUID, behandlingsreferanse: UUID) {
@@ -105,6 +110,7 @@ class BehandlerDialogmeldingBestillingService(
                 bestillerNavIdent
             )
         }
+        prometheus.recordAutomatiskPurringEndret(aktiv = false)
     }
 
 
@@ -128,6 +134,7 @@ class BehandlerDialogmeldingBestillingService(
                 bestillerNavIdent
             )
         }
+        prometheus.recordAutomatiskPurringEndret(aktiv = true)
     }
 
     fun sendAutomatiskPåminnelseHvisBestillingFinnes(
@@ -167,6 +174,7 @@ class BehandlerDialogmeldingBestillingService(
                 )
             }
             connection.markerSavepoint()
+            prometheus.recordPurringBestilt(automatisk = true)
         }
     }
 
