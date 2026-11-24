@@ -8,6 +8,7 @@ import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
 import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.util.metrics.recordAutomatiskPurringEndret
 import dokumentinnhenting.util.metrics.recordPurringBestilt
 import dokumentinnhenting.util.motor.syfo.ProsesserLegeerklæringBestillingUtfører
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
@@ -95,6 +96,7 @@ class BehandlerDialogmeldingBestillingService(
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.AVBRUTT)
         }
+        prometheus.recordAutomatiskPurringEndret(aktiv = false)
     }
 
 
@@ -114,6 +116,7 @@ class BehandlerDialogmeldingBestillingService(
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.PLANLAGT)
         }
+        prometheus.recordAutomatiskPurringEndret(aktiv = true)
     }
 
     fun sendAutomatiskPåminnelseHvisBestillingFinnes(

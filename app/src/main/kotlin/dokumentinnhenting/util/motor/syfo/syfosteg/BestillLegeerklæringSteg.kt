@@ -3,7 +3,14 @@ package dokumentinnhenting.util.motor.syfo.syfosteg
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dokumentinnhenting.integrasjoner.brev.BrevGateway
 import dokumentinnhenting.integrasjoner.saf.SafRestGateway
-import dokumentinnhenting.integrasjoner.syfo.bestilling.*
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingBrevGeneratorService
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingFullRecord
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKode
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingKodeverk
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingToBehandlerBestillingDTO
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DialogmeldingType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.DokumentasjonType
+import dokumentinnhenting.integrasjoner.syfo.bestilling.VarslingService
 import dokumentinnhenting.kafkaProducer
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepository
@@ -11,7 +18,6 @@ import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
 import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.unleash.UnleashGatewayImpl
-import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.metrics.recordDialogmeldingSendt
 import kotlinx.coroutines.runBlocking
@@ -82,7 +88,6 @@ class BestillLegeerklæringSteg(
             log.error("Feilet ved sending til topic $SYFO_BESTILLING_DIALOGMELDING_TOPIC", e)
             return SyfoSteg.Resultat.STOPP
         }
-        prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
         prometheus.recordDialogmeldingSendt(funnetBestilling.dokumentasjonType)
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
