@@ -40,10 +40,10 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
-      - uses: paulhatch/semantic-version@5ae1354e589c5a67345fb2c6e65b025ff676d7c7 # v6.0.7
+      - uses: paulhatch/semantic-version@v6.0.7
         id: tag
         with:
           change_path: "kontrakt/"
@@ -56,7 +56,7 @@ jobs:
         with:
           java-version: 25
           distribution: 'temurin'
-      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - uses: gradle/actions/setup-gradle@v6.4.1
         with:
           gradle-version: wrapper
       - id: notes
@@ -67,7 +67,7 @@ jobs:
           echo "CHANGELOG<<$randomDelimiter" >> $GITHUB_OUTPUT
           echo "$text" >> $GITHUB_OUTPUT
           echo "$randomDelimiter" >> $GITHUB_OUTPUT
-      - uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
+      - uses: softprops/action-gh-release@v3.0.4
         if: ${{ steps.tag.outputs.changed == 'true' }}
         id: create_release
         env:
