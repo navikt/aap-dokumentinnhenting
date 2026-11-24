@@ -101,6 +101,11 @@ class BestillLegeerklæringStegTest {
         assertEquals(dialogmeldingUuid, lagretBestilling[0].dialogmeldingUuid)
     }
 
+    @org.junit.jupiter.api.BeforeEach
+    fun resetProducer() {
+        io.mockk.clearMocks(mockProducer)
+    }
+
     @Test
     fun `Status i Påminnelse og PåminnelseHistorikk forblir PLANLAGT ved L40 forespørsel som ikke er PURRING`() {
         val saksnummer = Random.nextLong().toString()
