@@ -10,7 +10,7 @@ import dokumentinnhenting.util.DialogmeldingUUID
 import dokumentinnhenting.util.Tags
 import io.ktor.http.HttpStatusCode
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.verdityper.Bruker
+import no.nav.aap.komponenter.server.auth.bruker
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
@@ -32,7 +32,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
                 service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                 service.sendPåminnelseForBestilling(
                     DialogmeldingUUID(req.dialogmeldingUuid),
-                    req.brukerNavIdent?.let(::Bruker)
+                    bruker()
                 )
             }
             respond(response)
@@ -48,7 +48,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
                 service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                 service.avbrytPåminnelseForBestilling(
                     DialogmeldingUUID(req.dialogmeldingUuid),
-                    req.brukerNavIdent?.let(::Bruker)
+                    bruker()
                 )
             }
             respond(HttpStatusCode.NoContent)
@@ -64,7 +64,7 @@ fun NormalOpenAPIRoute.påminnelseApi(
                 service.validerBehandlingsreferanseForBestilling(req.dialogmeldingUuid, req.behandlingsreferanse)
                 service.gjenopptaPåminnelseForBestilling(
                     DialogmeldingUUID(req.dialogmeldingUuid),
-                    req.brukerNavIdent?.let(::Bruker)
+                    bruker()
                 )
             }
             respond(HttpStatusCode.NoContent)
