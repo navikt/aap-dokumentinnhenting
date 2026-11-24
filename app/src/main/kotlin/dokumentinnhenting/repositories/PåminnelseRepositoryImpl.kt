@@ -12,7 +12,7 @@ import java.util.UUID
 
 class PåminnelseRepositoryImpl(private val connection: DBConnection) : PåminnelseRepository {
 
-    override fun opprettPåminnelseEllerOppdaterStatus(påminnelse: PåminnelseRecord) {
+    override fun opprettPåminnelseEllerOppdaterStatus(påminnelse: PåminnelseRecord): Long {
         val query = """
             INSERT INTO PAAMINNELSE (
                 DIALOGMELDING_UUID, BEHANDLINGSREFERANSE, STATUS, PAMINNELSESDATO, OPPRETTET_TIDSPUNKT, SISTE_FORESPORSEL_SENDT
@@ -22,7 +22,7 @@ class PåminnelseRepositoryImpl(private val connection: DBConnection) : Påminne
                 STATUS = ?
         """.trimIndent()
 
-        return connection.execute(query) {
+        return connection.executeReturnKey(query) {
             setParams {
                 setUUID(1, påminnelse.dialogmeldingId)
                 setUUID(2, påminnelse.behandlingsReferanse)

@@ -4,9 +4,11 @@ import dokumentinnhenting.api.tilDialogmeldingRecord
 import dokumentinnhenting.api.tilPåminnelseRecord
 import dokumentinnhenting.prosessering.medDialogmeldingUuid
 import dokumentinnhenting.repositories.DialogmeldingRepositoryImpl
+import dokumentinnhenting.repositories.PåminnelseHistorikkRepositoryImpl
 import dokumentinnhenting.repositories.PåminnelseRepositoryImpl
 import dokumentinnhenting.unleash.FeatureToggles
 import dokumentinnhenting.unleash.UnleashGateway
+import dokumentinnhenting.util.DialogmeldingUUID
 import dokumentinnhenting.util.metrics.prometheus
 import dokumentinnhenting.util.metrics.recordAutomatiskPurringEndret
 import dokumentinnhenting.util.metrics.recordPurringBestilt
@@ -15,6 +17,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.dokumentinnhenting.kontrakt.BehandlingsflytToDokumentInnhentingBestillingDto
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.httpklient.exception.IkkeTillattException
+import no.nav.aap.komponenter.verdityper.Bruker
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import org.slf4j.LoggerFactory
@@ -33,6 +36,7 @@ class BehandlerDialogmeldingBestillingService(
     private val jobbRepository = FlytJobbRepository(connection)
     private val dialogmeldingRepository = DialogmeldingRepositoryImpl(connection)
     private val påminnelseRepository = PåminnelseRepositoryImpl(connection)
+    private val påminnelseHistorikkRepository = PåminnelseHistorikkRepositoryImpl(connection)
 
     companion object {
         fun konstruer(connection: DBConnection, unleash: UnleashGateway): BehandlerDialogmeldingBestillingService {
@@ -43,12 +47,18 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    fun sendPåminnelseForBestilling(dialogmeldingUuid: UUID): UUID {
-        val bestilling = dialogmeldingRepository.hentBestillingEldreEnn14Dager(dialogmeldingUuid)
-            ?: throw RuntimeException("Fant ikke bestilling eldre enn 14 dager.")
+    fun sendPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: Bruker?): UUID {
+        val bestilling = dialogmeldingRepository.hentBestillingEldreEnnAntallDager(
+            dialogmeldingUuid.uuid,
+            DIALOGMELDING_PÅMINNELSE_HENT_BESTILLINGER_ELDRE_ENN
+        ) ?: throw RuntimeException("Fant ikke bestilling eldre enn 1 dag hvis bruk til påminnelse i test, eller 14 dager hvis prod eller til bruk i brevpreview.")
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.PLANLAGT)
+            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(
+                bestilling,
+                PåminnelseStatus.PLANLAGT,
+                bestillerNavIdent
+            )
         }
 
         val påminnelseUuid = bestillDialogmeldingPåminnelse(
@@ -79,8 +89,8 @@ class BehandlerDialogmeldingBestillingService(
         }
     }
 
-    fun avbrytPåminnelseForBestilling(dialogmeldingUuid: UUID) {
-        val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
+    fun avbrytPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: Bruker?) {
+        val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid.uuid)
             ?: throw IllegalArgumentException("Fant ikke bestilling med dialogmeldingUuid $dialogmeldingUuid")
 
         require(bestilling.dokumentasjonType == DokumentasjonType.L40 || bestilling.dokumentasjonType == DokumentasjonType.L8) {
@@ -90,18 +100,22 @@ class BehandlerDialogmeldingBestillingService(
         log.info("Avbryter automatisk påminnelse for bestilling med dialogmeldingUuid $dialogmeldingUuid")
         dialogmeldingRepository.settAutomatiskPåminnelse(
             automatiskPåminnelse = false,
-            dialogmeldingUuid = dialogmeldingUuid
+            dialogmeldingUuid = dialogmeldingUuid.uuid
         )
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.AVBRUTT)
+            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(
+                bestilling,
+                PåminnelseStatus.AVBRUTT,
+                bestillerNavIdent
+            )
         }
         prometheus.recordAutomatiskPurringEndret(aktiv = false)
     }
 
 
-    fun gjenopptaPåminnelseForBestilling(dialogmeldingUuid: UUID) {
-        val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid)
+    fun gjenopptaPåminnelseForBestilling(dialogmeldingUuid: DialogmeldingUUID, bestillerNavIdent: Bruker?) {
+        val bestilling = dialogmeldingRepository.hentByDialogId(dialogmeldingUuid.uuid)
             ?: throw IllegalArgumentException("Fant ikke bestilling med dialogmeldingUuid $dialogmeldingUuid")
 
         require(bestilling.dokumentasjonType == DokumentasjonType.L40 || bestilling.dokumentasjonType == DokumentasjonType.L8) {
@@ -110,11 +124,15 @@ class BehandlerDialogmeldingBestillingService(
         log.info("Gjenopptar automatisk påminnelse for bestilling med dialogmeldingUuid $dialogmeldingUuid")
         dialogmeldingRepository.settAutomatiskPåminnelse(
             automatiskPåminnelse = true,
-            dialogmeldingUuid = dialogmeldingUuid
+            dialogmeldingUuid = dialogmeldingUuid.uuid
         )
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(bestilling, PåminnelseStatus.PLANLAGT)
+            opprettEllerOppdaterPåminnelseEksisterendeForespørsel(
+                bestilling,
+                PåminnelseStatus.PLANLAGT,
+                bestillerNavIdent
+            )
         }
         prometheus.recordAutomatiskPurringEndret(aktiv = true)
     }
@@ -212,7 +230,10 @@ class BehandlerDialogmeldingBestillingService(
         val dialogmeldingUUID = lagreDialogmeldingBestillingOgOpprettJobb(dialogMeldingRecord)
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
-            opprettEllerOppdaterPåminnelseRecord(dialogMeldingRecord)
+            opprettEllerOppdaterPåminnelseRecord(
+                dialogMeldingRecord,
+                Bruker(dto.bestillerNavIdent)
+            )
         }
 
         return dialogmeldingUUID
@@ -236,25 +257,52 @@ class BehandlerDialogmeldingBestillingService(
         return dialogmeldingRepository.opprettDialogmelding(melding)
     }
 
-    private fun opprettEllerOppdaterPåminnelseRecord(dialogmelding: DialogmeldingRecord) {
-        log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer})")
-        påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
-            dialogmelding.tilPåminnelseRecord(
-                påminnelseDato = LocalDate.now().plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
-                opprettetTidspunkt = LocalDateTime.now()
-            )
+    private fun opprettEllerOppdaterPåminnelseRecord(dialogmelding: DialogmeldingRecord, bestillerNavIdent: Bruker?) {
+        log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer}")
+
+        val nyPåminnelseRecord = dialogmelding.tilPåminnelseRecord(
+            påminnelseDato = LocalDate.now().plusDays(PÅMINNELSE_ANTALL_DAGER_TREKKE_FRA),
+            opprettetTidspunkt = LocalDateTime.now()
         )
+        val påminnelseId = påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(nyPåminnelseRecord)
+        val påminnelseRecordMedId = nyPåminnelseRecord.copy(id = påminnelseId)
+
+        if (unleash.isEnabled(FeatureToggles.LagrePaaminnelseHistorikk) && bestillerNavIdent != null) {
+            opprettPåminnelseStatusEndringHistorikk(påminnelseRecordMedId, bestillerNavIdent)
+        }
     }
 
     private fun opprettEllerOppdaterPåminnelseEksisterendeForespørsel(
         dialogmelding: DialogmeldingFullRecord,
-        status: PåminnelseStatus
+        status: PåminnelseStatus,
+        bestillerNavIdent: Bruker?
     ) {
-        log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer})")
-        påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
+        log.info("Oppretter påminnelseobjekt i repository for sak ${dialogmelding.saksnummer}")
+
+        val påminnelseId = påminnelseRepository.opprettPåminnelseEllerOppdaterStatus(
             dialogmelding.tilPåminnelseRecord(
                 påminnelseStatus = status
             )
+        )
+
+        val påminnelseMedId = påminnelseRepository
+            .hentPåminnelseForDialogmeldingId(dialogmelding.dialogmeldingUuid)
+            .single { it.id == påminnelseId }
+
+        if (unleash.isEnabled(FeatureToggles.LagrePaaminnelseHistorikk) && bestillerNavIdent != null) {
+            opprettPåminnelseStatusEndringHistorikk(
+                påminnelseMedId,
+                bestillerNavIdent
+            )
+        }
+    }
+
+    private fun opprettPåminnelseStatusEndringHistorikk(påminnelse: PåminnelseRecord, bestillerNavIdent: Bruker) {
+        log.info("Oppretter historikkobjekt i repository med status ${påminnelse.status} for dialogmelding med id ${påminnelse.dialogmeldingId}")
+        påminnelseHistorikkRepository.lagreNyPåminnelseStatusEndring(
+            påminnelse,
+            bestillerNavIdent,
+            LocalDateTime.now()
         )
     }
 }

@@ -308,7 +308,7 @@ class DialogmeldingRepositoryImplTest {
         }
 
         val resultat = dataSource.transaction { connection ->
-            DialogmeldingRepositoryImpl(connection).hentBestillingEldreEnn14Dager(record.dialogmeldingUuid)
+            DialogmeldingRepositoryImpl(connection).hentBestillingEldreEnnAntallDager(record.dialogmeldingUuid, 1L)
         }
 
         assertNull(resultat)
