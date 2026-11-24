@@ -13,6 +13,7 @@ import dokumentinnhenting.unleash.UnleashGateway
 import dokumentinnhenting.unleash.UnleashGatewayImpl
 import dokumentinnhenting.util.metrics.bestillingCounter
 import dokumentinnhenting.util.metrics.prometheus
+import dokumentinnhenting.util.metrics.recordDialogmeldingSendt
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -82,6 +83,7 @@ class BestillLegeerklæringSteg(
             return SyfoSteg.Resultat.STOPP
         }
         prometheus.bestillingCounter(SYFO_BESTILLING_DIALOGMELDING_TOPIC).increment()
+        prometheus.recordDialogmeldingSendt(funnetBestilling.dokumentasjonType)
 
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             if (funnetBestilling.dokumentasjonType == DokumentasjonType.PURRING) {
