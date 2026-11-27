@@ -16,7 +16,7 @@ data class PåminnelseRecord(
     fun erForespørselSendtSisteAntallDager(antallDager: Long) =
         sisteForespørselSendt != null &&
         sisteForespørselSendt.plusDays(antallDager) > LocalDateTime.now()
-    fun harPåminnelseDatoPassert() =
+    fun erPåminnelseDatoNåddEllerPassert() =
         påminnelseDato <= LocalDate.now()
 }
 

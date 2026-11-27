@@ -72,7 +72,7 @@ class DialogmeldingUthentingService(
         // Antagelse: At det opprettes en automatisk påminnelse for hver forespørsel om L40.
         return påminnelser
             .filter { påminnelse ->
-                påminnelse.harPåminnelseDatoPassert() &&
+                påminnelse.erPåminnelseDatoNåddEllerPassert() &&
                 påminnelse.status != PåminnelseStatus.PLANLAGT &&
                 !påminnelse.erForespørselSendtSisteAntallDager(MINSTE_ANTALL_DØGN_SIDEN_FORRIGE_PÅMINNELSE)
             }
