@@ -87,14 +87,6 @@ class BestillLegeerklæringSteg(
             jsonValue
         )
 
-        try {
-            producer.send(record).get()
-        } catch (e: Exception) {
-            log.error("Feilet ved sending til topic $SYFO_BESTILLING_DIALOGMELDING_TOPIC", e)
-            return SyfoSteg.Resultat.STOPP
-        }
-        prometheus.recordDialogmeldingSendt(funnetBestilling.dokumentasjonType)
-
         if (unleash.isEnabled(FeatureToggles.KnappForManuellPaaminnelse)) {
             oppdaterPåminnelseTabell(funnetBestilling, dialogmeldingUuid)
 
@@ -102,6 +94,14 @@ class BestillLegeerklæringSteg(
                 oppdaterPåminnelseHistorikkTabell(funnetBestilling, dialogmeldingUuid)
             }
         }
+
+        try {
+            producer.send(record).get()
+        } catch (e: Exception) {
+            log.error("Feilet ved sending til topic $SYFO_BESTILLING_DIALOGMELDING_TOPIC", e)
+            return SyfoSteg.Resultat.STOPP
+        }
+        prometheus.recordDialogmeldingSendt(funnetBestilling.dokumentasjonType)
 
         return SyfoSteg.Resultat.FULLFØRT
     }
